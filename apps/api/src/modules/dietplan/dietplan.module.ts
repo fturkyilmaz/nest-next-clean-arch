@@ -1,10 +1,19 @@
-// dietplan.module.ts
 import { Module } from '@nestjs/common';
+import { CqrsModule } from '@nestjs/cqrs';
+import { RepositoryModule } from '@infrastructure/repositories/RepositoryModule';
 import { DietPlanController } from './dietplan.controller';
-import { DietPlanService } from './dietplan.service';
+import {
+  CreateDietPlanCommandHandler,
+  ActivateDietPlanCommandHandler,
+  GetDietPlansByClientQueryHandler,
+} from '@application/use-cases/diet-plan';
+
+const CommandHandlers = [CreateDietPlanCommandHandler, ActivateDietPlanCommandHandler];
+const QueryHandlers = [GetDietPlansByClientQueryHandler];
 
 @Module({
+  imports: [CqrsModule, RepositoryModule],
   controllers: [DietPlanController],
-  providers: [DietPlanService],
+  providers: [...CommandHandlers, ...QueryHandlers],
 })
-export class DietPlanModule { }
+export class DietPlanModule {}

@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { DatabaseModule } from '../database/DatabaseModule';
+import { DatabaseModule } from '@infrastructure/database/DatabaseModule';
 import { PrismaUserRepository } from './PrismaUserRepository';
 import { PrismaClientRepository } from './PrismaClientRepository';
 import { PrismaDietPlanRepository } from './PrismaDietPlanRepository';

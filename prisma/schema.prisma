@@ -1,6 +1,5 @@
 generator client {
   provider = "prisma-client-js"
-  output   = "../generated/prisma"
 }
 
 datasource db {
@@ -403,4 +402,41 @@ model AuditLog {
   @@index([entityId])
   @@index([createdAt])
   @@map("audit_logs")
+}
+
+// ============================================
+// Event Sourcing & Outbox Pattern
+// ============================================
+
+model EventStore {
+  id            String   @id @default(cuid())
+  aggregateId   String
+  aggregateType String
+  eventType     String
+  eventData     String   @db.Text // JSON
+  version       Int
+  metaData      String?  @db.Text // JSON
+  timestamp     DateTime @default(now())
+  
+  @@unique([aggregateId, version])
+  @@index([aggregateId])
+  @@index([eventType])
+  @@map("event_store")
+}
+
+model OutboxEvent {
+  id            String    @id @default(cuid())
+  aggregateId   String
+  aggregateType String
+  eventType     String
+  payload       String    @db.Text // JSON
+  status        String    @default("PENDING") // PENDING, PROCESSED, FAILED
+  error         String?   @db.Text
+  retryCount    Int       @default(0)
+  createdAt     DateTime  @default(now())
+  processedAt   DateTime?
+  
+  @@index([status])
+  @@index([createdAt])
+  @@map("outbox_events")
 }

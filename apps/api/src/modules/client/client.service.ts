@@ -11,6 +11,13 @@ export class ClientService {
   }
 
   async create(dto: { name: string; dietitianId: string }) {
-    return this.prisma.client.create({ data: dto });
+    return this.prisma.client.create({
+      data: {
+        firstName: dto.name.split(' ')[0] || 'Unknown',
+        lastName: dto.name.split(' ').slice(1).join(' ') || 'User',
+        email: `temp_${Date.now()}@example.com`, // Dummy email to satisfy unique constraint
+        dietitianId: dto.dietitianId,
+      }
+    });
   }
 }

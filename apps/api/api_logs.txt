@@ -1,0 +1,39 @@
+
+> @diet/api@0.1.0 start:dev /Users/furkanturkyilmaz/Documents/nest-next-clean-arch/apps/api
+> ts-node-dev -r tsconfig-paths/register --respawn --transpile-only src/main.ts
+
+[INFO] 11:38:06 ts-node-dev ver. 2.0.0 (using ts-node ver. 10.9.2, typescript ver. 5.9.3)
+[32m[Nest] 54730  - [39m12/06/2025, 11:38:07 AM [32m    LOG[39m [38;5;3m[NestFactory] [39m[32mStarting Nest application...[39m
+[32m[Nest] 54730  - [39m12/06/2025, 11:38:07 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mAppModule dependencies initialized[39m[38;5;3m +10ms[39m
+[32m[Nest] 54730  - [39m12/06/2025, 11:38:07 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mPassportModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 54730  - [39m12/06/2025, 11:38:07 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mThrottlerModule dependencies initialized[39m[38;5;3m +0ms[39m
+[31m[Nest] 54730  - [39m12/06/2025, 11:38:07 AM [31m  ERROR[39m [38;5;3m[ExceptionHandler] [39m[31mNest can't resolve dependencies of the HttpCacheInterceptor (RedisCacheService, ?). Please make sure that the argument Reflector at index [1] is available in the RedisCacheModule context.
+
+Potential solutions:
+- Is RedisCacheModule a valid NestJS module?
+- If Reflector is a provider, is it part of the current RedisCacheModule?
+- If Reflector is exported from a separate @Module, is that module imported within RedisCacheModule?
+  @Module({
+    imports: [ /* the Module containing Reflector */ ]
+  })
+[39m
+Error: Nest can't resolve dependencies of the HttpCacheInterceptor (RedisCacheService, ?). Please make sure that the argument Reflector at index [1] is available in the RedisCacheModule context.
+
+Potential solutions:
+- Is RedisCacheModule a valid NestJS module?
+- If Reflector is a provider, is it part of the current RedisCacheModule?
+- If Reflector is exported from a separate @Module, is that module imported within RedisCacheModule?
+  @Module({
+    imports: [ /* the Module containing Reflector */ ]
+  })
+
+    at Injector.lookupComponentInParentModules (/Users/furkanturkyilmaz/Documents/nest-next-clean-arch/apps/api/node_modules/.pnpm/@nestjs+core@10.4.20_@nestjs+common@10.4.20_reflect-metadata@0.1.14_rxjs@7.8.2/node_modules/@nestjs/core/injector/injector.js:262:19)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at Injector.resolveComponentInstance (/Users/furkanturkyilmaz/Documents/nest-next-clean-arch/apps/api/node_modules/.pnpm/@nestjs+core@10.4.20_@nestjs+common@10.4.20_reflect-metadata@0.1.14_rxjs@7.8.2/node_modules/@nestjs/core/injector/injector.js:215:33)
+    at resolveParam (/Users/furkanturkyilmaz/Documents/nest-next-clean-arch/apps/api/node_modules/.pnpm/@nestjs+core@10.4.20_@nestjs+common@10.4.20_reflect-metadata@0.1.14_rxjs@7.8.2/node_modules/@nestjs/core/injector/injector.js:129:38)
+    at async Promise.all (index 1)
+    at Injector.resolveConstructorParams (/Users/furkanturkyilmaz/Documents/nest-next-clean-arch/apps/api/node_modules/.pnpm/@nestjs+core@10.4.20_@nestjs+common@10.4.20_reflect-metadata@0.1.14_rxjs@7.8.2/node_modules/@nestjs/core/injector/injector.js:144:27)
+    at Injector.loadInstance (/Users/furkanturkyilmaz/Documents/nest-next-clean-arch/apps/api/node_modules/.pnpm/@nestjs+core@10.4.20_@nestjs+common@10.4.20_reflect-metadata@0.1.14_rxjs@7.8.2/node_modules/@nestjs/core/injector/injector.js:70:13)
+    at Injector.loadProvider (/Users/furkanturkyilmaz/Documents/nest-next-clean-arch/apps/api/node_modules/.pnpm/@nestjs+core@10.4.20_@nestjs+common@10.4.20_reflect-metadata@0.1.14_rxjs@7.8.2/node_modules/@nestjs/core/injector/injector.js:98:9)
+    at /Users/furkanturkyilmaz/Documents/nest-next-clean-arch/apps/api/node_modules/.pnpm/@nestjs+core@10.4.20_@nestjs+common@10.4.20_reflect-metadata@0.1.14_rxjs@7.8.2/node_modules/@nestjs/core/injector/instance-loader.js:56:13
+    at async Promise.all (index 6)

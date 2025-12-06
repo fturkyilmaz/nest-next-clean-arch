@@ -1,3 +1,5 @@
+import { Result, ValidationError } from '../common/Result';
+
 /**
  * Password Value Object
  * Ensures password strength validation at domain level
@@ -16,39 +18,46 @@ export class Password {
    * - At least one uppercase letter
    * - At least one lowercase letter
    * - At least one number
-   * - At least one special character
    */
-  public static create(password: string): Password {
+  public static create(password: string): Result<Password, ValidationError> {
     if (!password) {
-      throw new Error('Password cannot be empty');
+      return Result.fail(new ValidationError('Password cannot be empty'));
     }
 
     if (password.length < 8) {
-      throw new Error('Password must be at least 8 characters long');
+      return Result.fail(new ValidationError('Password must be at least 8 characters long'));
     }
 
     const hasUpperCase = /[A-Z]/.test(password);
     const hasLowerCase = /[a-z]/.test(password);
     const hasNumber = /[0-9]/.test(password);
-    const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
 
-    if (!hasUpperCase || !hasLowerCase || !hasNumber || !hasSpecialChar) {
-      throw new Error(
-        'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character'
+    if (!hasUpperCase || !hasLowerCase || !hasNumber) {
+      return Result.fail(
+        new ValidationError(
+          'Password must contain at least one uppercase letter, one lowercase letter, and one number'
+        )
       );
     }
 
-    return new Password(password);
+    return Result.ok(new Password(password));
   }
 
   /**
    * Create from already hashed password (e.g., from database)
    */
-  public static createFromHash(hashedPassword: string): Password {
+  public static fromHash(hashedPassword: string): Password {
     if (!hashedPassword) {
       throw new Error('Hashed password cannot be empty');
     }
     return new Password(hashedPassword);
+  }
+
+  /**
+   * Alias for fromHash for backward compatibility
+   */
+  public static createFromHash(hashedPassword: string): Password {
+    return Password.fromHash(hashedPassword);
   }
 
   public getValue(): string {
