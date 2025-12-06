@@ -12,6 +12,7 @@ pnpm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 lerna-debug.log*
+pnpm-lock.yaml
 
 # dotenv environment variable files
 .env
@@ -22,3 +23,5 @@ lerna-debug.log*
 # temp directory
 .temp
 .tmp
+
+/generated/prisma

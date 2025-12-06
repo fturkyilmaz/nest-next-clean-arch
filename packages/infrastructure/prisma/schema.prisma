@@ -1,43 +1,37 @@
-generator client {
-  provider = "prisma-client-js"
-}
-
-datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
-}
-
 model User {
   id        String   @id @default(cuid())
   email     String   @unique
   password  String
   role      Role
   createdAt DateTime @default(now())
-  clients   Client[]
+
+  // Bir User (dietitian) birden fazla Client’a sahip olabilir
+  clients   Client[] @relation("DietitianClients")
+  dietPlans DietPlan[] @relation("DietitianDietPlans")
 }
 
 model Client {
   id           String    @id @default(cuid())
   name         String
   dietitianId  String
-  dietitian    User      @relation(fields: [dietitianId], references: [id])
-  dietPlans    DietPlan[]
+  dietitian    User      @relation("DietitianClients", fields: [dietitianId], references: [id])
+  dietPlans    DietPlan[] @relation("ClientDietPlans")
 }
 
 model DietPlan {
   id          String   @id @default(cuid())
   clientId    String
-  client      Client   @relation(fields: [clientId], references: [id])
+  client      Client   @relation("ClientDietPlans", fields: [clientId], references: [id])
   dietitianId String
-  dietitian   User     @relation(fields: [dietitianId], references: [id])
-  meals       Meal[]
+  dietitian   User     @relation("DietitianDietPlans", fields: [dietitianId], references: [id])
+  meals       Meal[]   @relation("DietPlanMeals")
   createdAt   DateTime @default(now())
 }
 
 model Meal {
   id          String   @id @default(cuid())
   dietPlanId  String
-  dietPlan    DietPlan @relation(fields: [dietPlanId], references: [id])
+  dietPlan    DietPlan @relation("DietPlanMeals", fields: [dietPlanId], references: [id])
   name        String
   calories    Int
   timeOfDay   String
