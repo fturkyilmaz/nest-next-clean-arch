@@ -8,16 +8,133 @@ datasource db {
 }
 
 model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  role         Role
+  createdAt    DateTime @default(now())
+  clients      Client[] @relation("DietitianClients")
+  dietPlans    DietPlan[] @relation("DietitianDietPlans")
+}
+
+model Client {
+  id           String   @id @default(cuid())
+  dietitianId  String
+  dietitian    User     @relation("DietitianClients", fields: [dietitianId], references: [id])
+  name         String
+  profileJson  Json?
+  createdAt    DateTime @default(now())
+  dietPlans    DietPlan[] @relation("ClientDietPlans")
+
+  @@index([dietitianId])
+  @@index([name])
+}
+
+model DietPlan {
+  id          String   @id @default(cuid())
+  clientId    String
+  dietitianId String
+  version     Int      @default(1)
+  title       String
+  notes       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  client      Client   @relation("ClientDietPlans", fields: [clientId], references: [id])
+  dietitian   User     @relation("DietitianDietPlans", fields: [dietitianId], references: [id])
+  mealPlans   MealPlan[] @relation("DietPlanMealPlans")
+
+  @@index([clientId, version])
+  @@index([dietitianId])
+}
+
+model MealPlan {
+  id         String   @id @default(cuid())
+  dietPlanId String
+  dayOfWeek  Int      // 0-6
+  meals      Meal[]
+  dietPlan   DietPlan @relation("DietPlanMealPlans", fields: [dietPlanId], references: [id])
+
+  @@index([dietPlanId, dayOfWeek])
+}
+
+model Meal {
+  id         String   @id @default(cuid())
+  mealPlanId String
+  name       String
+  timeOfDay  String   // breakfast/lunch/dinner/snack
+  calories   Int      @default(0)
+  items      MealItem[]
+  mealPlan   MealPlan @relation(fields: [mealPlanId], references: [id])
+
+  @@check(calories >= 0)
+  @@index([mealPlanId, timeOfDay])
+}
+
+model MealItem {
   id        String   @id @default(cuid())
-  email     String   @unique
-  password  String
-  role      Role
-  createdAt DateTime @default(now())
-  clients   Client[]
+  mealId    String
+  foodItemId String
+  quantity  Float    @default(1.0)
+  unit      String
+  meal      Meal     @relation(fields: [mealId], references: [id])
+  foodItem  FoodItem @relation(fields: [foodItemId], references: [id])
+
+  @@index([mealId])
+  @@index([foodItemId])
+}
+
+model FoodItem {
+  id         String   @id @default(cuid())
+  name       String   @unique
+  category   String?
+  nutrition  NutritionalInfo?
+  createdAt  DateTime @default(now())
+
+  @@index([name])
+}
+
+model NutritionalInfo {
+  id           String @id @default(cuid())
+  foodItemId   String @unique
+  calories     Int
+  proteinGr    Float
+  fatGr        Float
+  carbsGr      Float
+  sodiumMg     Int?
+  sugarGr      Float?
+  fiberGr      Float?
+  foodItem     FoodItem @relation(fields: [foodItemId], references: [id])
+}
+
+model Appointment {
+  id          String   @id @default(cuid())
+  clientId    String
+  dietitianId String
+  startsAt    DateTime
+  endsAt      DateTime
+  notes       String?
+  client      Client   @relation(fields: [clientId], references: [id])
+  dietitian   User     @relation(fields: [dietitianId], references: [id])
+
+  @@index([dietitianId, startsAt])
+  @@index([clientId, startsAt])
+}
+
+model AuditLog {
+  id          String   @id @default(cuid())
+  actorUserId String?
+  entityType  String
+  entityId    String
+  action      String
+  diffJson    Json?
+  createdAt   DateTime @default(now())
+  actor       User?    @relation(fields: [actorUserId], references: [id])
+
+  @@index([entityType, entityId])
+  @@index([createdAt])
 }
 
 enum Role {
   admin
   dietitian
-  client
 }
