@@ -17,6 +17,8 @@
         "@nestjs/passport": "^11.0.5",
         "@nestjs/swagger": "^11.2.3",
         "@prisma/client": "^7.1.0",
+        "@tanstack/react-query": "^5.90.12",
+        "axios": "^1.13.2",
         "bcrypt": "^6.0.0",
         "class-transformer": "^0.5.1",
         "class-validator": "^0.14.3",
