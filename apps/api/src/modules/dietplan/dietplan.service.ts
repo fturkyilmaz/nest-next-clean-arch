@@ -1,16 +1,23 @@
+// dietplan.service.ts
 import { Injectable } from '@nestjs/common';
+import { PrismaClient } from '@prisma/client';
 
 @Injectable()
 export class DietPlanService {
-  private plans = [];
+  private prisma = new PrismaClient();
 
-  findAll() {
-    return this.plans;
+  async findByClient(clientId: string) {
+    return this.prisma.dietPlan.findMany({ where: { clientId }, include: { meals: true } });
   }
 
-  create(dto: { clientId: string; meals: any[] }) {
-    const plan = { id: `dp_${Date.now()}`, ...dto };
-    this.plans.push(plan);
-    return plan;
+  async create(dto: { clientId: string; dietitianId: string; meals: any[] }) {
+    return this.prisma.dietPlan.create({
+      data: {
+        clientId: dto.clientId,
+        dietitianId: dto.dietitianId,
+        meals: { create: dto.meals },
+      },
+      include: { meals: true },
+    });
   }
 }

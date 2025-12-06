@@ -1,3 +1,4 @@
+// dietplan.module.ts
 import { Module } from '@nestjs/common';
 import { DietPlanController } from './dietplan.controller';
 import { DietPlanService } from './dietplan.service';
@@ -6,4 +7,4 @@ import { DietPlanService } from './dietplan.service';
   controllers: [DietPlanController],
   providers: [DietPlanService],
 })
-export class DietPlanModule {}
+export class DietPlanModule { }

@@ -1,17 +1,18 @@
-import { Controller, Get, Post, Body } from '@nestjs/common';
+// dietplan.controller.ts
+import { Controller, Get, Post, Body, Param } from '@nestjs/common';
 import { DietPlanService } from './dietplan.service';
 
 @Controller('api/v1/dietplans')
 export class DietPlanController {
-  constructor(private readonly service: DietPlanService) {}
+  constructor(private readonly service: DietPlanService) { }
 
-  @Get()
-  findAll() {
-    return this.service.findAll();
+  @Get(':clientId')
+  async findByClient(@Param('clientId') clientId: string) {
+    return this.service.findByClient(clientId);
   }
 
   @Post()
-  create(@Body() dto: { clientId: string; meals: any[] }) {
+  async create(@Body() dto: { clientId: string; dietitianId: string; meals: any[] }) {
     return this.service.create(dto);
   }
 }

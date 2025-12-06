@@ -1,16 +1,16 @@
+// client.service.ts
 import { Injectable } from '@nestjs/common';
+import { PrismaClient } from '@prisma/client';
 
 @Injectable()
 export class ClientService {
-  private clients = [];
+  private prisma = new PrismaClient();
 
-  findAll() {
-    return this.clients;
+  async findAll() {
+    return this.prisma.client.findMany();
   }
 
-  create(dto: { name: string; dietitianId: string }) {
-    const client = { id: `c_${Date.now()}`, ...dto };
-    this.clients.push(client);
-    return client;
+  async create(dto: { name: string; dietitianId: string }) {
+    return this.prisma.client.create({ data: dto });
   }
 }

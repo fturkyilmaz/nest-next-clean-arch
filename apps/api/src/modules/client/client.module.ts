@@ -1,3 +1,4 @@
+// client.module.ts
 import { Module } from '@nestjs/common';
 import { ClientController } from './client.controller';
 import { ClientService } from './client.service';
@@ -6,4 +7,4 @@ import { ClientService } from './client.service';
   controllers: [ClientController],
   providers: [ClientService],
 })
-export class ClientModule {}
+export class ClientModule { }
