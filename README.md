@@ -92,6 +92,3 @@ pnpm -r test
 - Blue-Green deployment
 
 
-Bu haliyle README.md hem **kurulum adımlarını** hem de **teknoloji stack’ini** kapsıyor.  
-
-👉 İstersen sana bir de **Docker Compose örneği** ekleyeyim, böylece PostgreSQL/SQL Server + API + Web + Mobile birlikte ayağa kalkabilir.
