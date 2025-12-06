@@ -1,140 +1,406 @@
 generator client {
   provider = "prisma-client-js"
-  output   = "./generated/prisma"
+  output   = "../generated/prisma"
 }
 
 datasource db {
   provider = "postgresql"
 }
 
+// ============================================
+// User Management
+// ============================================
+
 model User {
-  id           String   @id @default(cuid())
-  email        String   @unique
-  passwordHash String
-  role         Role
-  createdAt    DateTime @default(now())
-  clients      Client[] @relation("DietitianClients")
-  dietPlans    DietPlan[] @relation("DietitianDietPlans")
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String   // bcrypt hashed
+  firstName String
+  lastName  String
+  role      Role
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime? // Soft delete
+
+  // Relations
+  clients           Client[]      @relation("DietitianClients")
+  dietPlans         DietPlan[]    @relation("DietitianPlans")
+  appointments      Appointment[] @relation("DietitianAppointments")
+  auditLogs         AuditLog[]
+
+  @@index([email])
+  @@index([role])
+  @@index([isActive])
+  @@map("users")
 }
+
+enum Role {
+  ADMIN
+  DIETITIAN
+  CLIENT
+}
+
+// ============================================
+// Client Management
+// ============================================
 
 model Client {
-  id           String   @id @default(cuid())
-  dietitianId  String
-  dietitian    User     @relation("DietitianClients", fields: [dietitianId], references: [id])
-  name         String
-  profileJson  Json?
-  createdAt    DateTime @default(now())
-  dietPlans    DietPlan[] @relation("ClientDietPlans")
+  id          String    @id @default(cuid())
+  firstName   String
+  lastName    String
+  email       String    @unique
+  phone       String?
+  dateOfBirth DateTime?
+  gender      Gender?
+  
+  // Assigned Dietitian
+  dietitianId String
+  dietitian   User      @relation("DietitianClients", fields: [dietitianId], references: [id], onDelete: Cascade)
+  
+  // Medical Information
+  allergies   String?   // JSON array of allergies
+  conditions  String?   // JSON array of medical conditions
+  medications String?   // JSON array of medications
+  notes       String?   @db.Text
+  
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime? // Soft delete
+
+  // Relations
+  metrics      ClientMetrics[]
+  dietPlans    DietPlan[]
+  appointments Appointment[]
 
   @@index([dietitianId])
-  @@index([name])
+  @@index([email])
+  @@index([isActive])
+  @@map("clients")
 }
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
+model ClientMetrics {
+  id        String   @id @default(cuid())
+  clientId  String
+  client    Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  
+  weight    Float    // in kg
+  height    Float    // in cm
+  bmi       Float?   // calculated
+  bodyFat   Float?   // percentage
+  waist     Float?   // in cm
+  hip       Float?   // in cm
+  
+  recordedAt DateTime @default(now())
+  notes      String?  @db.Text
+
+  @@index([clientId])
+  @@index([recordedAt])
+  @@map("client_metrics")
+}
+
+// ============================================
+// Diet Plan Management
+// ============================================
 
 model DietPlan {
   id          String   @id @default(cuid())
+  name        String
+  description String?  @db.Text
+  
+  // Ownership
   clientId    String
+  client      Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  
   dietitianId String
+  dietitian   User     @relation("DietitianPlans", fields: [dietitianId], references: [id], onDelete: Cascade)
+  
+  // Plan Details
+  startDate   DateTime
+  endDate     DateTime?
+  status      DietPlanStatus @default(DRAFT)
+  
+  // Nutritional Goals
+  targetCalories      Int?
+  targetProtein       Float? // in grams
+  targetCarbs         Float? // in grams
+  targetFat           Float? // in grams
+  targetFiber         Float? // in grams
+  
+  // Versioning
   version     Int      @default(1)
-  title       String
-  notes       String?
+  isActive    Boolean  @default(true)
+  
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  client      Client   @relation("ClientDietPlans", fields: [clientId], references: [id])
-  dietitian   User     @relation("DietitianDietPlans", fields: [dietitianId], references: [id])
-  mealPlans   MealPlan[] @relation("DietPlanMealPlans")
+  deletedAt   DateTime? // Soft delete
 
-  @@index([clientId, version])
+  // Relations
+  mealPlans   MealPlan[]
+
+  @@index([clientId])
   @@index([dietitianId])
+  @@index([status])
+  @@index([isActive])
+  @@map("diet_plans")
+}
+
+enum DietPlanStatus {
+  DRAFT
+  ACTIVE
+  COMPLETED
+  CANCELLED
 }
 
 model MealPlan {
   id         String   @id @default(cuid())
   dietPlanId String
-  dayOfWeek  Int      // 0-6
-  meals      Meal[]
-  dietPlan   DietPlan @relation("DietPlanMealPlans", fields: [dietPlanId], references: [id])
+  dietPlan   DietPlan @relation(fields: [dietPlanId], references: [id], onDelete: Cascade)
+  
+  dayOfWeek  DayOfWeek
+  date       DateTime? // Specific date if not recurring
+  
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
-  @@index([dietPlanId, dayOfWeek])
+  // Relations
+  meals      Meal[]
+
+  @@index([dietPlanId])
+  @@index([dayOfWeek])
+  @@map("meal_plans")
+}
+
+enum DayOfWeek {
+  MONDAY
+  TUESDAY
+  WEDNESDAY
+  THURSDAY
+  FRIDAY
+  SATURDAY
+  SUNDAY
 }
 
 model Meal {
   id         String   @id @default(cuid())
   mealPlanId String
-  name       String
-  timeOfDay  String   // breakfast/lunch/dinner/snack
-  calories   Int      @default(0)
-  items      MealItem[]
-  mealPlan   MealPlan @relation(fields: [mealPlanId], references: [id])
+  mealPlan   MealPlan @relation(fields: [mealPlanId], references: [id], onDelete: Cascade)
+  
+  name       String   // e.g., "Breakfast", "Lunch", "Dinner", "Snack"
+  timeOfDay  TimeOfDay
+  
+  // Meal Details
+  description String?  @db.Text
+  instructions String? @db.Text
+  
+  // Nutritional Information (calculated from food items)
+  calories   Float?
+  protein    Float?
+  carbs      Float?
+  fat        Float?
+  fiber      Float?
+  
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
-  @@check(calories >= 0)
-  @@index([mealPlanId, timeOfDay])
+  // Relations
+  foodItems  MealFoodItem[]
+
+  @@index([mealPlanId])
+  @@index([timeOfDay])
+  @@map("meals")
 }
 
-model MealItem {
-  id        String   @id @default(cuid())
-  mealId    String
-  foodItemId String
-  quantity  Float    @default(1.0)
-  unit      String
-  meal      Meal     @relation(fields: [mealId], references: [id])
-  foodItem  FoodItem @relation(fields: [foodItemId], references: [id])
-
-  @@index([mealId])
-  @@index([foodItemId])
+enum TimeOfDay {
+  BREAKFAST
+  MORNING_SNACK
+  LUNCH
+  AFTERNOON_SNACK
+  DINNER
+  EVENING_SNACK
 }
+
+// ============================================
+// Food Database
+// ============================================
 
 model FoodItem {
+  id          String   @id @default(cuid())
+  name        String
+  description String?  @db.Text
+  category    FoodCategory
+  
+  // Serving Information
+  servingSize Float    // in grams
+  servingUnit String   // e.g., "cup", "piece", "tbsp"
+  
+  // Nutritional Information (per serving)
+  calories    Float
+  protein     Float    // in grams
+  carbs       Float    // in grams
+  fat         Float    // in grams
+  fiber       Float?   // in grams
+  sugar       Float?   // in grams
+  sodium      Float?   // in mg
+  
+  // Additional Nutrients
+  nutritionalInfo NutritionalInfo?
+  
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  mealFoodItems MealFoodItem[]
+
+  @@index([category])
+  @@index([name])
+  @@map("food_items")
+}
+
+enum FoodCategory {
+  VEGETABLES
+  FRUITS
+  GRAINS
+  PROTEIN
+  DAIRY
+  FATS_OILS
+  BEVERAGES
+  SNACKS
+  CONDIMENTS
+  OTHER
+}
+
+// Many-to-Many relationship between Meal and FoodItem
+model MealFoodItem {
   id         String   @id @default(cuid())
-  name       String   @unique
-  category   String?
-  nutrition  NutritionalInfo?
+  mealId     String
+  meal       Meal     @relation(fields: [mealId], references: [id], onDelete: Cascade)
+  
+  foodItemId String
+  foodItem   FoodItem @relation(fields: [foodItemId], references: [id], onDelete: Cascade)
+  
+  quantity   Float    // Number of servings
+  notes      String?
+  
   createdAt  DateTime @default(now())
 
-  @@index([name])
+  @@unique([mealId, foodItemId])
+  @@index([mealId])
+  @@index([foodItemId])
+  @@map("meal_food_items")
 }
 
 model NutritionalInfo {
-  id           String @id @default(cuid())
-  foodItemId   String @unique
-  calories     Int
-  proteinGr    Float
-  fatGr        Float
-  carbsGr      Float
-  sodiumMg     Int?
-  sugarGr      Float?
-  fiberGr      Float?
-  foodItem     FoodItem @relation(fields: [foodItemId], references: [id])
+  id         String   @id @default(cuid())
+  foodItemId String   @unique
+  foodItem   FoodItem @relation(fields: [foodItemId], references: [id], onDelete: Cascade)
+  
+  // Vitamins (in mg unless specified)
+  vitaminA   Float?
+  vitaminC   Float?
+  vitaminD   Float?   // in IU
+  vitaminE   Float?
+  vitaminK   Float?   // in mcg
+  vitaminB6  Float?
+  vitaminB12 Float?   // in mcg
+  folate     Float?   // in mcg
+  
+  // Minerals (in mg unless specified)
+  calcium    Float?
+  iron       Float?
+  magnesium  Float?
+  phosphorus Float?
+  potassium  Float?
+  zinc       Float?
+  
+  // Fats breakdown
+  saturatedFat      Float?
+  transFat          Float?
+  monounsaturatedFat Float?
+  polyunsaturatedFat Float?
+  cholesterol       Float? // in mg
+  
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("nutritional_info")
 }
+
+// ============================================
+// Appointments
+// ============================================
 
 model Appointment {
   id          String   @id @default(cuid())
+  
   clientId    String
+  client      Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  
   dietitianId String
-  startsAt    DateTime
-  endsAt      DateTime
-  notes       String?
-  client      Client   @relation(fields: [clientId], references: [id])
-  dietitian   User     @relation(fields: [dietitianId], references: [id])
+  dietitian   User     @relation("DietitianAppointments", fields: [dietitianId], references: [id], onDelete: Cascade)
+  
+  title       String
+  description String?  @db.Text
+  
+  startTime   DateTime
+  endTime     DateTime
+  
+  status      AppointmentStatus @default(SCHEDULED)
+  
+  notes       String?  @db.Text
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  deletedAt   DateTime? // Soft delete
 
-  @@index([dietitianId, startsAt])
-  @@index([clientId, startsAt])
+  @@index([clientId])
+  @@index([dietitianId])
+  @@index([startTime])
+  @@index([status])
+  @@map("appointments")
 }
+
+enum AppointmentStatus {
+  SCHEDULED
+  CONFIRMED
+  COMPLETED
+  CANCELLED
+  NO_SHOW
+}
+
+// ============================================
+// Audit Trail
+// ============================================
 
 model AuditLog {
-  id          String   @id @default(cuid())
-  actorUserId String?
-  entityType  String
-  entityId    String
-  action      String
-  diffJson    Json?
-  createdAt   DateTime @default(now())
-  actor       User?    @relation(fields: [actorUserId], references: [id])
+  id         String   @id @default(cuid())
+  
+  userId     String?
+  user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  
+  action     String   // e.g., "CREATE", "UPDATE", "DELETE"
+  entity     String   // e.g., "Client", "DietPlan"
+  entityId   String
+  
+  changes    String?  @db.Text // JSON of changes
+  metadata   String?  @db.Text // Additional context
+  
+  ipAddress  String?
+  userAgent  String?
+  
+  createdAt  DateTime @default(now())
 
-  @@index([entityType, entityId])
+  @@index([userId])
+  @@index([entity])
+  @@index([entityId])
   @@index([createdAt])
-}
-
-enum Role {
-  admin
-  dietitian
+  @@map("audit_logs")
 }

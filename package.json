@@ -9,7 +9,13 @@
         "dev:api": "pnpm --filter @diet/api start:dev",
         "dev:mobile": "pnpm --filter @diet/mobile start",
         "lint": "pnpm -r run lint",
-        "test": "pnpm -r run test"
+        "test": "pnpm -r run test",
+        "prisma:generate": "prisma generate --schema=./prisma/schema.prisma",
+        "prisma:migrate": "prisma migrate dev --schema=./prisma/schema.prisma",
+        "prisma:seed": "ts-node prisma/seed.ts"
+    },
+    "prisma": {
+        "seed": "ts-node prisma/seed.ts"
     },
     "dependencies": {
         "@nestjs/config": "^4.0.2",
@@ -30,7 +36,10 @@
         "swagger-ui-express": "^5.0.1"
     },
     "devDependencies": {
+        "@types/bcrypt": "^5.0.2",
+        "@types/node": "^20.11.15",
         "prisma": "^7.1.0",
+        "ts-node": "^10.9.2",
         "typescript": "^5.6.3"
     }
 }
