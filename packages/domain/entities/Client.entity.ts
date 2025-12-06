@@ -1,4 +1,4 @@
-import { Email } from '../value-objects/Email.vo';
+import { Email } from '@domain/value-objects/Email.vo';
 
 export enum Gender {
   MALE = 'MALE',
@@ -37,15 +37,20 @@ export class Client {
   }
 
   public static create(
-    props: Omit<ClientProps, 'id' | 'createdAt' | 'updatedAt' | 'allergies' | 'conditions' | 'medications'>
+    props: Omit<ClientProps, 'id' | 'createdAt' | 'updatedAt' | 'isActive'> & {
+      allergies?: string[];
+      conditions?: string[];
+      medications?: string[];
+      isActive?: boolean;
+    }
   ): Client {
     const now = new Date();
     return new Client({
       ...props,
       id: '', // Will be set by repository
-      allergies: [],
-      conditions: [],
-      medications: [],
+      allergies: props.allergies || [],
+      conditions: props.conditions || [],
+      medications: props.medications || [],
       isActive: props.isActive ?? true,
       createdAt: now,
       updatedAt: now,

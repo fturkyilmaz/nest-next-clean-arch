@@ -1,0 +1,11 @@
+{
+  "compilerOptions": {
+    "paths": {
+      "@domain/*": ["../../packages/domain/*"],
+      "@application/*": ["../../packages/application/*"],
+      "@infrastructure/*": ["../../packages/infrastructure/*"],
+      "@api/*": ["./src/*"],
+      "@shared/*": ["../../packages/shared/*"]
+    }
+  }
+}

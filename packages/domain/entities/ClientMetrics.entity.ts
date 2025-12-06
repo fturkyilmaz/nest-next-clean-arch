@@ -1,5 +1,5 @@
-import { Weight } from '../value-objects/Weight.vo';
-import { Height } from '../value-objects/Height.vo';
+import { Weight } from '@domain/value-objects/Weight.vo';
+import { Height } from '@domain/value-objects/Height.vo';
 
 export interface ClientMetricsProps {
   id: string;

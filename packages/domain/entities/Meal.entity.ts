@@ -1,4 +1,4 @@
-import { NutritionalValue } from '../value-objects/NutritionalValue.vo';
+import { NutritionalValue } from '@domain/value-objects/NutritionalValue.vo';
 
 export enum TimeOfDay {
   BREAKFAST = 'BREAKFAST',

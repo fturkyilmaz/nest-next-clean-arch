@@ -1,4 +1,4 @@
-import { DateRange } from '../value-objects/DateRange.vo';
+import { DateRange } from '@domain/value-objects/DateRange.vo';
 
 export enum DietPlanStatus {
   DRAFT = 'DRAFT',
@@ -43,7 +43,7 @@ export class DietPlan {
   }
 
   public static create(
-    props: Omit<DietPlanProps, 'id' | 'version' | 'createdAt' | 'updatedAt'>
+    props: Omit<DietPlanProps, 'id' | 'version' | 'createdAt' | 'updatedAt' | 'isActive'> & { isActive?: boolean }
   ): DietPlan {
     const now = new Date();
     return new DietPlan({
@@ -94,8 +94,37 @@ export class DietPlan {
     return { ...this.props.nutritionalGoals };
   }
 
+  // Convenience getters for nutritional goals
+  public getTargetCalories(): number | undefined {
+    return this.props.nutritionalGoals.targetCalories;
+  }
+
+  public getTargetProtein(): number | undefined {
+    return this.props.nutritionalGoals.targetProtein;
+  }
+
+  public getTargetCarbs(): number | undefined {
+    return this.props.nutritionalGoals.targetCarbs;
+  }
+
+  public getTargetFat(): number | undefined {
+    return this.props.nutritionalGoals.targetFat;
+  }
+
+  public getTargetFiber(): number | undefined {
+    return this.props.nutritionalGoals.targetFiber;
+  }
+
   public getVersion(): number {
     return this.props.version;
+  }
+
+  public getStartDate(): Date {
+    return this.props.dateRange.getStartDate();
+  }
+
+  public getEndDate(): Date | null {
+    return this.props.dateRange.getEndDate();
   }
 
   public isActive(): boolean {

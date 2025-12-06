@@ -1,0 +1,41 @@
+{
+    "moduleFileExtensions": [
+        "js",
+        "json",
+        "ts"
+    ],
+    "rootDir": ".",
+    "testRegex": ".*\\.spec\\.ts$",
+    "transform": {
+        "^.+\\.(t|j)s$": "ts-jest"
+    },
+    "collectCoverageFrom": [
+        "packages/**/*.(t|j)s",
+        "apps/**/*.(t|j)s",
+        "!**/*.spec.ts",
+        "!**/*.e2e-spec.ts",
+        "!**/node_modules/**",
+        "!**/dist/**",
+        "!**/coverage/**"
+    ],
+    "coverageDirectory": "./coverage",
+    "testEnvironment": "node",
+    "roots": [
+        "<rootDir>/packages/",
+        "<rootDir>/apps/",
+        "<rootDir>/test/"
+    ],
+    "moduleNameMapper": {
+        "^@domain/(.*)$": "<rootDir>/packages/domain/$1",
+        "^@application/(.*)$": "<rootDir>/packages/application/$1",
+        "^@infrastructure/(.*)$": "<rootDir>/packages/infrastructure/$1"
+    },
+    "coverageThresholds": {
+        "global": {
+            "branches": 70,
+            "functions": 70,
+            "lines": 70,
+            "statements": 70
+        }
+    }
+}

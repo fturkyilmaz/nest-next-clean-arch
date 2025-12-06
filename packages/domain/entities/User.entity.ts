@@ -1,5 +1,5 @@
-import { Email } from '../value-objects/Email.vo';
-import { Password } from '../value-objects/Password.vo';
+import { Email } from '@domain/value-objects/Email.vo';
+import { Password } from '@domain/value-objects/Password.vo';
 
 export enum UserRole {
   ADMIN = 'ADMIN',
