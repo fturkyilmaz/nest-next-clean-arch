@@ -80,7 +80,7 @@ See [ARCHITECTURE.md](./ARCHITECTURE.md) for detailed architecture documentation
 
 1. **Clone the repository**
 ```bash
-git clone https://github.com/your-username/nest-next-clean-arch.git
+git clone https://github.com/fturkyilmaz/nest-next-clean-arch.git
 cd nest-next-clean-arch
 ```
 

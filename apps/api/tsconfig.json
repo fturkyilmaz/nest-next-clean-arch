@@ -3,11 +3,13 @@
   "compilerOptions": {
     "outDir": "../../dist/apps/api"
   },
-  "include": ["src/**/*", "../../packages/**/*"],
+  "include": [
+    "src/**/*",
+    "../../packages/**/*"
+  ],
   "exclude": [
-    "node_modules", 
-    "dist", 
-    "**/*.spec.ts", 
+    "node_modules",
+    "dist",
     "../../packages/**/*.spec.ts",
     "../../packages/**/__tests__/**/*"
   ]

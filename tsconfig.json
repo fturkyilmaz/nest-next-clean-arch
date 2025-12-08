@@ -18,13 +18,29 @@
     "forceConsistentCasingInFileNames": false,
     "noFallthroughCasesInSwitch": false,
     "paths": {
-      "@domain/*": ["packages/domain/*"],
-      "@application/*": ["packages/application/*"],
-      "@infrastructure/*": ["packages/infrastructure/*"],
-      "@api/*": ["apps/api/src/*"],
-      "@shared/*": ["packages/shared/*"]
+      "@domain/*": [
+        "packages/domain/*"
+      ],
+      "@application/*": [
+        "packages/application/*"
+      ],
+      "@infrastructure/*": [
+        "packages/infrastructure/*"
+      ],
+      "@api/*": [
+        "apps/api/src/*"
+      ],
+      "@shared/*": [
+        "packages/shared/*"
+      ]
     }
   },
-  "include": ["packages/**/*", "apps/**/*"],
-  "exclude": ["node_modules", "dist", "**/*.spec.ts"]
+  "include": [
+    "packages/**/*",
+    "apps/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist"
+  ]
 }

@@ -37,7 +37,7 @@ export class Client {
   }
 
   public static create(
-    props: Omit<ClientProps, 'id' | 'createdAt' | 'updatedAt' | 'isActive'> & {
+    props: Omit<ClientProps, 'id' | 'createdAt' | 'updatedAt' | 'isActive' | 'allergies' | 'conditions' | 'medications'> & {
       allergies?: string[];
       conditions?: string[];
       medications?: string[];

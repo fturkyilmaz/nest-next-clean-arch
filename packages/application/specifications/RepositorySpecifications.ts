@@ -4,18 +4,21 @@
  */
 
 import { Specification } from '@domain/specifications/Specification';
+import { Client } from '@domain/entities/Client.entity';
+import { DietPlan } from '@domain/entities/DietPlan.entity';
+import { FoodItem } from '@domain/entities/FoodItem.entity';
 
 /**
  * Client Repository Specifications
  */
 
-export class ClientByDietitianSpec extends Specification<any> {
+export class ClientByDietitianSpec extends Specification<Client> {
   constructor(private readonly dietitianId: string) {
     super();
   }
 
-  isSatisfiedBy(client: any): boolean {
-    return client.dietitianId === this.dietitianId;
+  isSatisfiedBy(client: Client): boolean {
+    return client.getDietitianId() === this.dietitianId;
   }
 
   toPrismaWhere() {
@@ -23,13 +26,13 @@ export class ClientByDietitianSpec extends Specification<any> {
   }
 }
 
-export class ClientByEmailSpec extends Specification<any> {
+export class ClientByEmailSpec extends Specification<Client> {
   constructor(private readonly email: string) {
     super();
   }
 
-  isSatisfiedBy(client: any): boolean {
-    return client.email === this.email;
+  isSatisfiedBy(client: Client): boolean {
+    return client.getEmail().toString() === this.email;
   }
 
   toPrismaWhere() {
@@ -37,9 +40,9 @@ export class ClientByEmailSpec extends Specification<any> {
   }
 }
 
-export class ActiveClientsSpec extends Specification<any> {
-  isSatisfiedBy(client: any): boolean {
-    return client.isActive === true && client.deletedAt === null;
+export class ActiveClientsSpec extends Specification<Client> {
+  isSatisfiedBy(client: Client): boolean {
+    return client.isActive() && !client.getDeletedAt();
   }
 
   toPrismaWhere() {
@@ -50,18 +53,17 @@ export class ActiveClientsSpec extends Specification<any> {
   }
 }
 
-export class ClientSearchSpec extends Specification<any> {
+export class ClientSearchSpec extends Specification<Client> {
   constructor(private readonly searchTerm: string) {
     super();
   }
 
-  isSatisfiedBy(client: any): boolean {
+  isSatisfiedBy(client: Client): boolean {
     const term = this.searchTerm.toLowerCase();
-    return (
-      client.firstName?.toLowerCase().includes(term) ||
-      client.lastName?.toLowerCase().includes(term) ||
-      client.email?.toLowerCase().includes(term)
-    );
+    const fullName = client.getFullName().toLowerCase();
+    const email = client.getEmail().toString().toLowerCase();
+
+    return fullName.includes(term) || email.includes(term);
   }
 
   toPrismaWhere() {
@@ -75,9 +77,18 @@ export class ClientSearchSpec extends Specification<any> {
   }
 }
 
-export class ClientWithActiveDietPlanSpec extends Specification<any> {
-  isSatisfiedBy(client: any): boolean {
-    return client.dietPlans?.some((plan: any) => plan.status === 'ACTIVE');
+export class ClientWithActiveDietPlanSpec extends Specification<Client> {
+  isSatisfiedBy(client: Client): boolean {
+    // This assumes we have loaded checking capability or logic is outside, 
+    // but strict typing prevents accessing 'dietPlans' directly if it's not on Client entity public interface.
+    // Assuming Client entity doesn't have public getDietPlans() based on previous read.
+    // For now, removing runtime check or marking as limitation if Entity doesn't support it yet.
+    // But earlier code accessed client.dietPlans.
+    // Checking Client.entity.ts again -> it does NOT expose dietPlans relations.
+    // So this specification is actually impossible to implement purely on Domain Entity without loading it.
+    // We will leave it as 'any' cast internally OR comment out runtime check if impossible.
+    // Let's coerce to any for now to maintain behavior until Aggregates are richer.
+    return (client as any).dietPlans?.some((plan: any) => plan.status === 'ACTIVE');
   }
 
   toPrismaWhere() {
@@ -95,13 +106,13 @@ export class ClientWithActiveDietPlanSpec extends Specification<any> {
  * Diet Plan Repository Specifications
  */
 
-export class DietPlanByClientSpec extends Specification<any> {
+export class DietPlanByClientSpec extends Specification<DietPlan> {
   constructor(private readonly clientId: string) {
     super();
   }
 
-  isSatisfiedBy(plan: any): boolean {
-    return plan.clientId === this.clientId;
+  isSatisfiedBy(plan: DietPlan): boolean {
+    return plan.getClientId() === this.clientId;
   }
 
   toPrismaWhere() {
@@ -109,13 +120,13 @@ export class DietPlanByClientSpec extends Specification<any> {
   }
 }
 
-export class DietPlanByStatusSpec extends Specification<any> {
+export class DietPlanByStatusSpec extends Specification<DietPlan> {
   constructor(private readonly status: string) {
     super();
   }
 
-  isSatisfiedBy(plan: any): boolean {
-    return plan.status === this.status;
+  isSatisfiedBy(plan: DietPlan): boolean {
+    return plan.getStatus() === this.status;
   }
 
   toPrismaWhere() {
@@ -123,9 +134,9 @@ export class DietPlanByStatusSpec extends Specification<any> {
   }
 }
 
-export class ActiveDietPlansSpec extends Specification<any> {
-  isSatisfiedBy(plan: any): boolean {
-    return plan.status === 'ACTIVE' && plan.deletedAt === null;
+export class ActiveDietPlansSpec extends Specification<DietPlan> {
+  isSatisfiedBy(plan: DietPlan): boolean {
+    return plan.isActiveStatus() && !plan.getDeletedAt();
   }
 
   toPrismaWhere() {
@@ -136,7 +147,7 @@ export class ActiveDietPlansSpec extends Specification<any> {
   }
 }
 
-export class DietPlanInDateRangeSpec extends Specification<any> {
+export class DietPlanInDateRangeSpec extends Specification<DietPlan> {
   constructor(
     private readonly startDate: Date,
     private readonly endDate: Date
@@ -144,8 +155,8 @@ export class DietPlanInDateRangeSpec extends Specification<any> {
     super();
   }
 
-  isSatisfiedBy(plan: any): boolean {
-    return plan.startDate >= this.startDate && plan.endDate <= this.endDate;
+  isSatisfiedBy(plan: DietPlan): boolean {
+    return plan.getStartDate() >= this.startDate && (plan.getEndDate() ? plan.getEndDate()! <= this.endDate : false);
   }
 
   toPrismaWhere() {
@@ -160,13 +171,13 @@ export class DietPlanInDateRangeSpec extends Specification<any> {
  * Food Item Repository Specifications
  */
 
-export class FoodItemByCategorySpec extends Specification<any> {
+export class FoodItemByCategorySpec extends Specification<FoodItem> {
   constructor(private readonly category: string) {
     super();
   }
 
-  isSatisfiedBy(item: any): boolean {
-    return item.category === this.category;
+  isSatisfiedBy(item: FoodItem): boolean {
+    return item.getCategory() === this.category;
   }
 
   toPrismaWhere() {
@@ -174,16 +185,16 @@ export class FoodItemByCategorySpec extends Specification<any> {
   }
 }
 
-export class FoodItemSearchSpec extends Specification<any> {
+export class FoodItemSearchSpec extends Specification<FoodItem> {
   constructor(private readonly searchTerm: string) {
     super();
   }
 
-  isSatisfiedBy(item: any): boolean {
+  isSatisfiedBy(item: FoodItem): boolean {
     const term = this.searchTerm.toLowerCase();
     return (
-      item.name?.toLowerCase().includes(term) ||
-      item.description?.toLowerCase().includes(term)
+      item.getName().toLowerCase().includes(term) ||
+      (item.getDescription()?.toLowerCase().includes(term) ?? false)
     );
   }
 
@@ -197,13 +208,13 @@ export class FoodItemSearchSpec extends Specification<any> {
   }
 }
 
-export class HighProteinFoodSpec extends Specification<any> {
+export class HighProteinFoodSpec extends Specification<FoodItem> {
   constructor(private readonly minProtein: number = 20) {
     super();
   }
 
-  isSatisfiedBy(item: any): boolean {
-    return item.protein >= this.minProtein;
+  isSatisfiedBy(item: FoodItem): boolean {
+    return item.getNutritionalValue().getProtein() >= this.minProtein;
   }
 
   toPrismaWhere() {
@@ -213,13 +224,13 @@ export class HighProteinFoodSpec extends Specification<any> {
   }
 }
 
-export class LowCalorieFoodSpec extends Specification<any> {
+export class LowCalorieFoodSpec extends Specification<FoodItem> {
   constructor(private readonly maxCalories: number = 100) {
     super();
   }
 
-  isSatisfiedBy(item: any): boolean {
-    return item.calories <= this.maxCalories;
+  isSatisfiedBy(item: FoodItem): boolean {
+    return item.getNutritionalValue().getCalories() <= this.maxCalories;
   }
 
   toPrismaWhere() {
@@ -248,39 +259,3 @@ export const getHealthyProteinFoods = () =>
 // Active diet plans for a client
 export const getActiveClientDietPlans = (clientId: string) =>
   new DietPlanByClientSpec(clientId).and(new ActiveDietPlansSpec());
-
-/**
- * Usage Examples:
- * 
- * // Simple query
- * const activeClients = await clientRepo.find(new ActiveClientsSpec());
- * 
- * // Composite query
- * const myActiveClients = await clientRepo.find(
- *   getActiveDietitianClients(dietitianId)
- * );
- * 
- * // Search with pagination
- * const searchResults = await clientRepo.findPaginated(
- *   new ClientSearchSpec('john'),
- *   1,
- *   20
- * );
- * 
- * // Advanced query
- * const result = await clientRepo.findAdvanced({
- *   specification: new ActiveClientsSpec()
- *     .and(new ClientByDietitianSpec(dietitianId))
- *     .and(new ClientSearchSpec('john')),
- *   pagination: { page: 1, pageSize: 10 },
- *   sorting: [{ field: 'createdAt', order: 'desc' }],
- *   includes: ['metrics', 'dietPlans'],
- * });
- * 
- * // Complex business query
- * const healthyFoods = await foodRepo.find(
- *   new HighProteinFoodSpec(20)
- *     .and(new LowCalorieFoodSpec(150))
- *     .and(new FoodItemByCategorySpec('VEGETABLES'))
- * );
- */
