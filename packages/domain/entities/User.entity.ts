@@ -31,11 +31,10 @@ export class User {
     this.props = props;
   }
 
-  public static create(props: Omit<UserProps, 'id' | 'createdAt' | 'updatedAt'>): User {
+  public static create(props: Omit<UserProps, 'createdAt' | 'updatedAt'>): User {
     const now = new Date();
     return new User({
       ...props,
-      id: '', // Will be set by repository
       createdAt: now,
       updatedAt: now,
       isActive: props.isActive ?? true,
