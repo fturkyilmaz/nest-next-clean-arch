@@ -32,6 +32,9 @@
       ],
       "@shared/*": [
         "packages/shared/*"
+      ],
+      "@ui/*": [
+        "packages/ui/src/*"
       ]
     }
   },
