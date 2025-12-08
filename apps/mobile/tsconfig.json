@@ -1,0 +1,35 @@
+{
+    "compilerOptions": {
+        "strict": true,
+        "target": "ESNext",
+        "lib": [
+            "ESNext"
+        ],
+        "jsx": "react-jsx",
+        "module": "ESNext",
+        "moduleResolution": "bundler",
+        "allowSyntheticDefaultImports": true,
+        "esModuleInterop": true,
+        "skipLibCheck": true,
+        "noEmit": true,
+        "baseUrl": ".",
+        "paths": {
+            "@/*": [
+                "./src/*"
+            ],
+            "@domain/*": [
+                "../../packages/domain/*"
+            ],
+            "@application/*": [
+                "../../packages/application/*"
+            ]
+        }
+    },
+    "include": [
+        "**/*.ts",
+        "**/*.tsx",
+        ".expo/types/**/*.ts",
+        "expo-env.d.ts"
+    ],
+    "extends": "expo/tsconfig.base"
+}
