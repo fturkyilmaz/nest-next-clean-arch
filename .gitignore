@@ -13,6 +13,7 @@ yarn-debug.log*
 yarn-error.log*
 lerna-debug.log*
 pnpm-lock.yaml
+.pnpm-debug.log
 
 # dotenv environment variable files
 .env
@@ -25,3 +26,30 @@ pnpm-lock.yaml
 .tmp
 
 /generated/prisma
+
+
+# Coverage reports
+coverage/
+coverage-final.json
+lcov-report/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# IDE & OS
+.vscode/
+.idea/
+*.DS_Store
+Thumbs.db
+
+# Test artifacts
+*.test.ts.snap
+test-results/
+jest-html-reporters-*
+
+# Docker
+*.tar
+*.pid
+*.sock

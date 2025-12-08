@@ -22,3 +22,8 @@ lerna-debug.log*
 # temp directory
 .temp
 .tmp
+
+# Coverage reports
+coverage/
+coverage-final.json
+lcov-report/
