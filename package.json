@@ -53,9 +53,12 @@
     },
     "devDependencies": {
         "@types/bcrypt": "^5.0.2",
+        "@types/jest": "^30.0.0",
         "@types/node": "^20.11.15",
         "@types/uuid": "^11.0.0",
+        "jest": "^30.2.0",
         "prisma": "^7.1.0",
+        "ts-jest": "^29.4.6",
         "ts-node": "^10.9.2",
         "tsconfig-paths": "^4.2.0",
         "typescript": "^5.6.3"

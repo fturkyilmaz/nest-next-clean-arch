@@ -1,4 +1,5 @@
+export * from './AuthDto';
 export * from './UserDto';
 export * from './ClientDto';
-export * from './AuthDto';
+export * from './ClientMetricsDto';
 export * from './DietPlanDto';

@@ -30,7 +30,7 @@
         "^@application/(.*)$": "<rootDir>/packages/application/$1",
         "^@infrastructure/(.*)$": "<rootDir>/packages/infrastructure/$1"
     },
-    "coverageThresholds": {
+    "coverageThreshold": {
         "global": {
             "branches": 70,
             "functions": 70,
