@@ -1,11 +1,14 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
+import { Inject } from '@nestjs/common';
 import { UpdateClientCommand } from './UpdateClientCommand';
 import { IClientRepository } from '@application/interfaces/IClientRepository';
 import { Client, Gender } from '@domain/entities/Client.entity';
 
 @CommandHandler(UpdateClientCommand)
 export class UpdateClientCommandHandler implements ICommandHandler<UpdateClientCommand> {
-  constructor(private readonly clientRepository: IClientRepository) {}
+  constructor(
+    @Inject('IClientRepository') private readonly clientRepository: IClientRepository
+  ) { }
 
   async execute(command: UpdateClientCommand): Promise<Client> {
     // Find client

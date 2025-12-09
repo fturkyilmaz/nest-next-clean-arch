@@ -1,4 +1,5 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
+import { Inject } from '@nestjs/common';
 import { UpdateUserCommand } from './UpdateUserCommand';
 import { IUserRepository } from '@application/interfaces/IUserRepository';
 import { User } from '@domain/entities/User.entity';
@@ -6,7 +7,9 @@ import { Email } from '@domain/value-objects/Email.vo';
 
 @CommandHandler(UpdateUserCommand)
 export class UpdateUserCommandHandler implements ICommandHandler<UpdateUserCommand> {
-  constructor(private readonly userRepository: IUserRepository) {}
+  constructor(
+    @Inject('IUserRepository') private readonly userRepository: IUserRepository
+  ) { }
 
   async execute(command: UpdateUserCommand): Promise<User> {
     // Find user
@@ -18,13 +21,13 @@ export class UpdateUserCommandHandler implements ICommandHandler<UpdateUserComma
     // Update email if provided
     if (command.email) {
       const newEmail = Email.create(command.email);
-      
+
       // Check if new email is already taken by another user
       const existingUser = await this.userRepository.findByEmail(command.email);
       if (existingUser && existingUser.getId() !== command.userId) {
         throw new Error('Email is already taken by another user');
       }
-      
+
       if (newEmail.isSuccess()) { user.updateEmail(newEmail.getValue()); }
     }
 

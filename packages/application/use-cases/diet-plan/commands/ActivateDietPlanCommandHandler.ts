@@ -1,13 +1,15 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
+import { Inject } from '@nestjs/common';
 import { ActivateDietPlanCommand } from './ActivateDietPlanCommand';
 import { IDietPlanRepository } from '@application/interfaces/IDietPlanRepository';
 import { DietPlan } from '@domain/entities/DietPlan.entity';
 
 @CommandHandler(ActivateDietPlanCommand)
 export class ActivateDietPlanCommandHandler
-  implements ICommandHandler<ActivateDietPlanCommand>
-{
-  constructor(private readonly dietPlanRepository: IDietPlanRepository) {}
+  implements ICommandHandler<ActivateDietPlanCommand> {
+  constructor(
+    @Inject('IDietPlanRepository') private readonly dietPlanRepository: IDietPlanRepository
+  ) { }
 
   async execute(command: ActivateDietPlanCommand): Promise<DietPlan> {
     // Find diet plan

@@ -1,4 +1,5 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
+import { Inject } from '@nestjs/common';
 import { CreateClientCommand } from './CreateClientCommand';
 import { IClientRepository } from '@application/interfaces/IClientRepository';
 import { Client, Gender } from '@domain/entities/Client.entity';
@@ -6,7 +7,9 @@ import { Email } from '@domain/value-objects/Email.vo';
 
 @CommandHandler(CreateClientCommand)
 export class CreateClientCommandHandler implements ICommandHandler<CreateClientCommand> {
-  constructor(private readonly clientRepository: IClientRepository) {}
+  constructor(
+    @Inject('IClientRepository') private readonly clientRepository: IClientRepository
+  ) { }
 
   async execute(command: CreateClientCommand): Promise<Client> {
     // Check if email already exists

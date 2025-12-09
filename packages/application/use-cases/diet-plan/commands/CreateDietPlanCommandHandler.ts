@@ -1,4 +1,5 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
+import { Inject } from '@nestjs/common';
 import { CreateDietPlanCommand } from './CreateDietPlanCommand';
 import { IDietPlanRepository } from '@application/interfaces/IDietPlanRepository';
 import { DietPlan, DietPlanStatus } from '@domain/entities/DietPlan.entity';
@@ -6,9 +7,10 @@ import { DateRange } from '@domain/value-objects/DateRange.vo';
 
 @CommandHandler(CreateDietPlanCommand)
 export class CreateDietPlanCommandHandler
-  implements ICommandHandler<CreateDietPlanCommand>
-{
-  constructor(private readonly dietPlanRepository: IDietPlanRepository) {}
+  implements ICommandHandler<CreateDietPlanCommand> {
+  constructor(
+    @Inject('IDietPlanRepository') private readonly dietPlanRepository: IDietPlanRepository
+  ) { }
 
   async execute(command: CreateDietPlanCommand): Promise<DietPlan> {
     // Create date range
