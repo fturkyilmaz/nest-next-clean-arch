@@ -9,6 +9,7 @@ import { AuthController } from './auth.controller';
 
 @Module({
   imports: [
+    ConfigModule, // Ensure ConfigService is available
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.registerAsync({
       imports: [ConfigModule],
@@ -20,12 +21,11 @@ import { AuthController } from './auth.controller';
       }),
       inject: [ConfigService],
     }),
-    ConfigModule,
     CqrsModule,
     RepositoryModule,
   ],
   controllers: [AuthController],
-  providers: [JwtStrategy, AuthService],
+  providers: [ConfigService, JwtStrategy, AuthService],
   exports: [JwtStrategy, PassportModule, AuthService],
 })
-export class AuthModule {}
+export class AuthModule { }

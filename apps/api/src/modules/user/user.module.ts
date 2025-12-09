@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { CqrsModule } from '@nestjs/cqrs';
 import { RepositoryModule } from '@infrastructure/repositories/RepositoryModule';
+import { BcryptPasswordHasher } from '@infrastructure/services/BcryptPasswordHasher';
 import { UserController } from './user.controller';
 import {
   CreateUserCommandHandler,
@@ -15,6 +16,14 @@ const QueryHandlers = [GetUserByIdQueryHandler, GetAllUsersQueryHandler];
 @Module({
   imports: [CqrsModule, RepositoryModule],
   controllers: [UserController],
-  providers: [...CommandHandlers, ...QueryHandlers],
+  providers: [
+    ...CommandHandlers,
+    ...QueryHandlers,
+    {
+      provide: 'IPasswordHasher',
+      useClass: BcryptPasswordHasher,
+    },
+  ],
 })
-export class UserModule {}
+export class UserModule { }
+
