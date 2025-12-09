@@ -1,0 +1,16 @@
+export {
+    initTelemetry,
+    shutdownTelemetry,
+    getTracer,
+    createSpan,
+    addSpanAttributes,
+    addSpanEvent,
+    getCurrentTraceId,
+    getCurrentSpanId,
+    trace,
+    context,
+    SpanStatusCode,
+    type Span,
+    type Tracer,
+    type TelemetryConfig,
+} from './tracing';

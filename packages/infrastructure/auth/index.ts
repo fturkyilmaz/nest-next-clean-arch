@@ -6,5 +6,5 @@ export * from './CurrentUserDecorator';
 export * from './AuthService';
 export * from './PoliciesGuard';
 export * from './PoliciesDecorator';
+export * from './PolicyTypes';
 export * from './policies/CommonPolicies';
-

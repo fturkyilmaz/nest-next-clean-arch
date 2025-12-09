@@ -1,6 +1,7 @@
 import { Module, Global } from '@nestjs/common';
 import { CacheModule } from '@nestjs/cache-manager';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { Reflector } from '@nestjs/core';
 import * as redisStore from 'cache-manager-redis-store';
 import { RedisCacheService } from './RedisCacheService';
 import { CacheInvalidationService } from './CacheInvalidationService';
@@ -25,6 +26,7 @@ import { HttpCacheInterceptor } from './HttpCacheInterceptor';
     }),
   ],
   providers: [
+    Reflector,
     RedisCacheService,
     CacheInvalidationService,
     CacheWarmingService,
@@ -38,5 +40,5 @@ import { HttpCacheInterceptor } from './HttpCacheInterceptor';
     HttpCacheInterceptor,
   ],
 })
-export class RedisCacheModule {}
+export class RedisCacheModule { }
 
