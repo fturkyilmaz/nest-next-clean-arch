@@ -1,0 +1,16 @@
+{
+    "name": "@diet/shared",
+    "version": "0.1.0",
+    "private": true,
+    "main": "./api-client/index.ts",
+    "types": "./api-client/index.ts",
+    "exports": {
+        "./api-client": "./api-client/index.ts"
+    },
+    "dependencies": {
+        "axios": "^1.6.0"
+    },
+    "devDependencies": {
+        "typescript": "^5.5.0"
+    }
+}

@@ -28,9 +28,16 @@ model User {
   appointments      Appointment[] @relation("DietitianAppointments")
   auditLogs         AuditLog[]
 
+  // Single-column indexes
   @@index([email])
   @@index([role])
   @@index([isActive])
+  
+  // Composite indexes for query optimization
+  @@index([role, isActive])           // Find active users by role
+  @@index([isActive, createdAt])      // Recent active users
+  @@index([deletedAt, isActive])      // Soft delete queries
+  
   @@map("users")
 }
 
@@ -73,9 +80,17 @@ model Client {
   dietPlans    DietPlan[]
   appointments Appointment[]
 
+  // Single-column indexes
   @@index([dietitianId])
   @@index([email])
   @@index([isActive])
+  
+  // Composite indexes for query optimization
+  @@index([dietitianId, isActive])           // Active clients by dietitian
+  @@index([dietitianId, createdAt])          // Recent clients by dietitian
+  @@index([isActive, deletedAt])             // Soft delete queries
+  @@index([dietitianId, isActive, lastName]) // Sorted client list
+  
   @@map("clients")
 }
 
@@ -100,8 +115,13 @@ model ClientMetrics {
   recordedAt DateTime @default(now())
   notes      String?  @db.Text
 
+  // Single-column indexes
   @@index([clientId])
   @@index([recordedAt])
+  
+  // Composite index for time-series queries
+  @@index([clientId, recordedAt(sort: Desc)])  // Latest metrics per client
+  
   @@map("client_metrics")
 }
 
@@ -144,10 +164,19 @@ model DietPlan {
   // Relations
   mealPlans   MealPlan[]
 
+  // Single-column indexes
   @@index([clientId])
   @@index([dietitianId])
   @@index([status])
   @@index([isActive])
+  
+  // Composite indexes for query optimization
+  @@index([dietitianId, status, isActive])     // Active plans by status per dietitian
+  @@index([clientId, status, isActive])        // Active plans by status per client
+  @@index([clientId, startDate, endDate])      // Date range queries
+  @@index([status, startDate])                 // Active plans in date range
+  @@index([isActive, deletedAt])               // Soft delete queries
+  
   @@map("diet_plans")
 }
 
