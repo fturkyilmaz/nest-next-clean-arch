@@ -4,14 +4,20 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { RootStackParamList, MainTabParamList } from "./types";
 
-// Placeholder screens - to be replaced with actual implementations
+// Screens
 import HomeScreen from "../screens/HomeScreen";
+import ClientsScreen from "../screens/ClientsScreen";
 import DietPlansScreen from "../screens/DietPlansScreen";
 import MealsScreen from "../screens/MealsScreen";
 import ProgressScreen from "../screens/ProgressScreen";
+import UsersScreen from "../screens/UsersScreen";
+import DietPlanDetailScreen from "../screens/DietPlanDetailScreen";
+import CreateDietPlanScreen from "../screens/CreateDietPlanScreen";
+import ClientDetailScreen from "../screens/ClientDetailScreen";
+import AddClientScreen from "../screens/AddClientScreen";
 
-const Stack = createNativeStackNavigator<RootStackParamList>();
-const Tab = createBottomTabNavigator<MainTabParamList>();
+const Stack = createNativeStackNavigator<RootStackParamList>() as any;
+const Tab = createBottomTabNavigator<MainTabParamList>() as any;
 
 /**
  * Bottom Tab Navigator for main app screens
@@ -39,31 +45,27 @@ function MainTabNavigator() {
             <Tab.Screen
                 name="Home"
                 component={HomeScreen}
-                options={{
-                    tabBarLabel: "Home",
-                    // tabBarIcon: will add icons later
-                }}
+                options={{ tabBarLabel: "Home" }}
+            />
+            <Tab.Screen
+                name="Clients"
+                component={ClientsScreen}
+                options={{ tabBarLabel: "Clients" }}
             />
             <Tab.Screen
                 name="DietPlans"
                 component={DietPlansScreen}
-                options={{
-                    tabBarLabel: "Diet Plans",
-                }}
+                options={{ tabBarLabel: "Diet Plans" }}
             />
             <Tab.Screen
                 name="Meals"
                 component={MealsScreen}
-                options={{
-                    tabBarLabel: "Meals",
-                }}
+                options={{ tabBarLabel: "Meals" }}
             />
             <Tab.Screen
                 name="Progress"
                 component={ProgressScreen}
-                options={{
-                    tabBarLabel: "Progress",
-                }}
+                options={{ tabBarLabel: "Progress" }}
             />
         </Tab.Navigator>
     );
@@ -74,6 +76,7 @@ function MainTabNavigator() {
  */
 export default function RootNavigator() {
     return (
+        // @ts-ignore
         <NavigationContainer>
             <Stack.Navigator
                 screenOptions={{
@@ -82,7 +85,11 @@ export default function RootNavigator() {
                 }}
             >
                 <Stack.Screen name="MainTabs" component={MainTabNavigator} />
-                {/* Auth and detail screens will be added here */}
+                <Stack.Screen name="Users" component={UsersScreen} />
+                <Stack.Screen name="DietPlanDetail" component={DietPlanDetailScreen} />
+                <Stack.Screen name="CreateDietPlan" component={CreateDietPlanScreen} />
+                <Stack.Screen name="ClientDetail" component={ClientDetailScreen} />
+                <Stack.Screen name="AddClient" component={AddClientScreen} />
             </Stack.Navigator>
         </NavigationContainer>
     );

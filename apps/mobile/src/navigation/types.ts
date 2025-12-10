@@ -11,10 +11,15 @@ export type RootStackParamList = {
     Register: undefined;
     ForgotPassword: undefined;
     // Detail screens
-    DietPlanDetails: { planId: string };
+    // Detail screens
+    DietPlanDetail: { planId: string };
+    CreateDietPlan: undefined;
     MealDetails: { mealId: string };
     Profile: undefined;
     Settings: undefined;
+    Users: undefined;
+    ClientDetail: { clientId: string };
+    AddClient: undefined;
 };
 
 /**
@@ -22,6 +27,7 @@ export type RootStackParamList = {
  */
 export type MainTabParamList = {
     Home: undefined;
+    Clients: undefined;
     DietPlans: undefined;
     Meals: undefined;
     Progress: undefined;

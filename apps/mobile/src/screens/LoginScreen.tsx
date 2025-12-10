@@ -20,7 +20,7 @@ export default function LoginScreen({ navigation }: any) {
         setError('');
         try {
             await loginMutation.mutateAsync({ email, password });
-            navigation.replace('Main');
+            navigation.replace('MainTabs');
         } catch (err: any) {
             setError(err.detail || err.message || 'Login failed');
         }

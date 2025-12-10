@@ -108,6 +108,11 @@ export interface CreateClientRequest {
     phone?: string;
     dateOfBirth?: string;
     gender?: 'MALE' | 'FEMALE' | 'OTHER';
+    dietitianId: string;
+    allergies?: string[];
+    conditions?: string[];
+    medications?: string[];
+    notes?: string;
 }
 
 export interface CreateDietPlanRequest {
@@ -116,11 +121,13 @@ export interface CreateDietPlanRequest {
     clientId: string;
     startDate: string;
     endDate?: string;
-    targetCalories?: number;
-    targetProtein?: number;
-    targetCarbs?: number;
-    targetFat?: number;
-    targetFiber?: number;
+    nutritionalGoals?: {
+        targetCalories?: number;
+        targetProtein?: number;
+        targetCarbs?: number;
+        targetFat?: number;
+        targetFiber?: number;
+    };
 }
 
 /**
@@ -212,6 +219,11 @@ export class ApiService {
 
     async getUserById(id: string): Promise<User> {
         const res = await this.client.get<User>(`/users/${id}`);
+        return res.data;
+    }
+
+    async updateUser(id: string, data: Partial<User>): Promise<User> {
+        const res = await this.client.put<User>(`/users/${id}`, data);
         return res.data;
     }
 

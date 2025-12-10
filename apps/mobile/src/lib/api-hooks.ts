@@ -74,11 +74,29 @@ export function useLogout() {
     });
 }
 
+export function useUsers() {
+    return useQuery({
+        queryKey: ['users'],
+        queryFn: () => api.getUsers(),
+    });
+}
+
 export function useCurrentUser() {
     return useQuery({
         queryKey: ['currentUser'],
         queryFn: () => api.getCurrentUser(),
-        staleTime: 5 * 60 * 1000,
+    });
+}
+
+export function useUpdateUser(id: string) {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (data: Partial<any>) => api.updateUser(id, data),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['users'] });
+            queryClient.invalidateQueries({ queryKey: ['users', id] });
+            queryClient.invalidateQueries({ queryKey: ['currentUser'] });
+        },
     });
 }
 
