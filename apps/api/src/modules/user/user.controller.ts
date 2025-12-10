@@ -9,11 +9,22 @@ import {
   UseGuards,
   HttpCode,
   HttpStatus,
+  NotFoundException,
+  ForbiddenException,
+  ParseBoolPipe,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiBearerAuth,
+  ApiCreatedResponse,
+  ApiOkResponse,
+  ApiForbiddenResponse,
+  ApiNotFoundResponse,
+} from '@nestjs/swagger';
 import { JwtAuthGuard, Roles, CurrentUser, CurrentUserData } from '@infrastructure/auth';
-import { RolesGuard } from '@infrastructure/auth/RolesGuard';
 import {
   CreateUserCommand,
   UpdateUserCommand,
@@ -25,10 +36,11 @@ import {
   UpdateUserDto,
   UserResponseDto,
 } from '@application/dto/UserDto';
+import { UserMapper } from './user.mapper';
 
 @ApiTags('Users')
 @Controller('users')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
 export class UserController {
   constructor(
@@ -40,8 +52,8 @@ export class UserController {
   @Roles('ADMIN')
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Create a new user (Admin only)' })
-  @ApiResponse({ status: 201, description: 'User created successfully', type: UserResponseDto })
-  @ApiResponse({ status: 403, description: 'Forbidden - Admin role required' })
+  @ApiCreatedResponse({ description: 'User created successfully', type: UserResponseDto })
+  @ApiForbiddenResponse({ description: 'Forbidden - Admin role required' })
   async createUser(@Body() createUserDto: CreateUserDto): Promise<UserResponseDto> {
     const command = new CreateUserCommand(
       createUserDto.email,
@@ -52,79 +64,51 @@ export class UserController {
     );
 
     const user = await this.commandBus.execute(command);
-
-    return {
-      id: user.getId(),
-      email: user.getEmail().getValue(),
-      firstName: user.getFirstName(),
-      lastName: user.getLastName(),
-      role: user.getRole(),
-      isActive: user.isActive(),
-      createdAt: user.getCreatedAt(),
-      updatedAt: user.getUpdatedAt(),
-    };
+    return UserMapper.toResponseDto(user);
   }
 
   @Get(':id')
   @ApiOperation({ summary: 'Get user by ID' })
-  @ApiResponse({ status: 200, description: 'User found', type: UserResponseDto })
-  @ApiResponse({ status: 404, description: 'User not found' })
+  @ApiOkResponse({ description: 'User found', type: UserResponseDto })
+  @ApiNotFoundResponse({ description: 'User not found' })
   async getUserById(@Param('id') id: string): Promise<UserResponseDto> {
     const query = new GetUserByIdQuery(id);
     const user = await this.queryBus.execute(query);
 
     if (!user) {
-      throw new Error('User not found');
+      throw new NotFoundException('User not found');
     }
 
-    return {
-      id: user.getId(),
-      email: user.getEmail().getValue(),
-      firstName: user.getFirstName(),
-      lastName: user.getLastName(),
-      role: user.getRole(),
-      isActive: user.isActive(),
-      createdAt: user.getCreatedAt(),
-      updatedAt: user.getUpdatedAt(),
-    };
+    return UserMapper.toResponseDto(user);
   }
 
   @Get()
   @Roles('ADMIN')
   @ApiOperation({ summary: 'Get all users (Admin only)' })
-  @ApiResponse({ status: 200, description: 'Users retrieved', type: [UserResponseDto] })
+  @ApiOkResponse({ description: 'Users retrieved', type: [UserResponseDto] })
   async getAllUsers(
     @Query('role') role?: string,
-    @Query('isActive') isActive?: boolean,
-    @Query('skip') skip?: number,
-    @Query('take') take?: number
+    @Query('isActive', ParseBoolPipe) isActive?: boolean,
+    @Query('skip', ParseIntPipe) skip?: number,
+    @Query('take', ParseIntPipe) take?: number
   ): Promise<UserResponseDto[]> {
     const query = new GetAllUsersQuery(role, isActive, skip, take);
     const users = await this.queryBus.execute(query);
 
-    return users.map((user) => ({
-      id: user.getId(),
-      email: user.getEmail().getValue(),
-      firstName: user.getFirstName(),
-      lastName: user.getLastName(),
-      role: user.getRole(),
-      isActive: user.isActive(),
-      createdAt: user.getCreatedAt(),
-      updatedAt: user.getUpdatedAt(),
-    }));
+    return users.map(UserMapper.toResponseDto);
   }
 
   @Put(':id')
   @ApiOperation({ summary: 'Update user' })
-  @ApiResponse({ status: 200, description: 'User updated', type: UserResponseDto })
+  @ApiOkResponse({ description: 'User updated', type: UserResponseDto })
+  @ApiForbiddenResponse({ description: 'Forbidden - You can only update your own profile' })
   async updateUser(
     @Param('id') id: string,
     @Body() updateUserDto: UpdateUserDto,
     @CurrentUser() currentUser: CurrentUserData
   ): Promise<UserResponseDto> {
-    // Users can only update their own profile unless they're admin
     if (currentUser.userId !== id && currentUser.role !== 'ADMIN') {
-      throw new Error('Forbidden - You can only update your own profile');
+      throw new ForbiddenException('You can only update your own profile');
     }
 
     const command = new UpdateUserCommand(
@@ -135,39 +119,21 @@ export class UserController {
     );
 
     const user = await this.commandBus.execute(command);
-
-    return {
-      id: user.getId(),
-      email: user.getEmail().getValue(),
-      firstName: user.getFirstName(),
-      lastName: user.getLastName(),
-      role: user.getRole(),
-      isActive: user.isActive(),
-      createdAt: user.getCreatedAt(),
-      updatedAt: user.getUpdatedAt(),
-    };
+    return UserMapper.toResponseDto(user);
   }
 
   @Get('me/profile')
   @ApiOperation({ summary: 'Get current user profile' })
-  @ApiResponse({ status: 200, description: 'Current user profile', type: UserResponseDto })
+  @ApiOkResponse({ description: 'Current user profile', type: UserResponseDto })
+  @ApiNotFoundResponse({ description: 'User not found' })
   async getCurrentUser(@CurrentUser() currentUser: CurrentUserData): Promise<UserResponseDto> {
     const query = new GetUserByIdQuery(currentUser.userId);
     const user = await this.queryBus.execute(query);
 
     if (!user) {
-      throw new Error('User not found');
+      throw new NotFoundException('User not found');
     }
 
-    return {
-      id: user.getId(),
-      email: user.getEmail().getValue(),
-      firstName: user.getFirstName(),
-      lastName: user.getLastName(),
-      role: user.getRole(),
-      isActive: user.isActive(),
-      createdAt: user.getCreatedAt(),
-      updatedAt: user.getUpdatedAt(),
-    };
+    return UserMapper.toResponseDto(user);
   }
 }

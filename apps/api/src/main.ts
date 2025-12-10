@@ -1,40 +1,41 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
-import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import { GlobalExceptionFilter } from '@infrastructure/filters/GlobalExceptionFilter';
 import helmet from 'helmet';
 
-async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+import { AppModule } from './app.module';
+import { GlobalExceptionFilter } from '@infrastructure/filters/GlobalExceptionFilter';
 
-  // Security: Helmet for security headers
+async function bootstrap() {
+  const app = await NestFactory.create(AppModule, {
+    logger: ['error', 'warn', 'log'],
+  });
+
   app.use(
     helmet({
-      contentSecurityPolicy: {
+      contentSecurityPolicy: process.env.NODE_ENV === 'production' ? {
+        useDefaults: true,
         directives: {
           defaultSrc: ["'self'"],
           styleSrc: ["'self'", "'unsafe-inline'"],
           scriptSrc: ["'self'"],
           imgSrc: ["'self'", 'data:', 'https:'],
+          connectSrc: ["'self'", 'https:', 'http:'],
         },
-      },
+      } : false,
       hsts: {
         maxAge: 31536000,
         includeSubDomains: true,
         preload: true,
       },
-      frameguard: {
-        action: 'deny',
-      },
+      frameguard: { action: 'deny' },
       noSniff: true,
-      xssFilter: true,
     })
   );
 
-  // Enable CORS with security
+  // CORS
   app.enableCors({
-    origin: process.env.CORS_ORIGIN?.split(',') || ['http://localhost:3000'],
+    origin: (process.env.CORS_ORIGIN?.split(',') ?? ['http://localhost:3000']).map(o => o.trim()),
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Correlation-ID'],
@@ -42,89 +43,49 @@ async function bootstrap() {
     maxAge: 3600,
   });
 
-  // Global exception filter (RFC 7807)
+  // Global exception filter (RFC 7807 uyumlu tasarım)
   app.useGlobalFilters(new GlobalExceptionFilter());
 
-  // Global validation pipe with security
+  // Global validation pipe
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
       forbidNonWhitelisted: true,
       transform: true,
-      transformOptions: {
-        enableImplicitConversion: true,
-      },
+      transformOptions: { enableImplicitConversion: true },
       exceptionFactory: (errors) => {
         const formattedErrors = errors.map((error) => ({
           field: error.property,
           constraints: error.constraints,
-          value: error.value,
+          value: (error as any).value,
         }));
         return {
           statusCode: 422,
           message: 'Validation failed',
           errors: formattedErrors,
-        };
+        } as any; // custom object thrown — GlobalExceptionFilter ile normalize edebilirsin
       },
     })
   );
 
   // API prefix
-  app.setGlobalPrefix(process.env.API_PREFIX || 'api/v1');
+  const apiPrefix = process.env.API_PREFIX || 'api/v1';
+  app.setGlobalPrefix(apiPrefix);
 
-  // Enhanced Swagger configuration
+  // Swagger config (bearer auth, sunucular, tag’lar)
   const config = new DocumentBuilder()
     .setTitle('Diet Management System API')
     .setDescription(`
 # Diet Management System API Documentation
 
-## Overview
-Production-ready RESTful API for comprehensive diet and nutrition management.
+Clean Architecture + DDD + CQRS prensipleriyle inşa edildi. Üretim güvenliği için Helmet, oran sınırlama, doğrulama ve problem-details hata yapısı uygulanmıştır.
 
-## Architecture
-- **Clean Architecture** with DDD principles
-- **CQRS Pattern** for command/query separation
-- **Event-Driven** architecture with domain events
-- **Repository Pattern** for data access abstraction
-
-## Security
-- **Helmet** - Security headers (CSP, HSTS, XSS protection)
-- **Input Sanitization** - XSS and SQL injection prevention
-- **CSRF Protection** - Cross-site request forgery protection
-- **Rate Limiting** - 100 requests per minute
-- **Encryption** - AES-256-GCM for sensitive data
-
-## Authentication
-All endpoints (except /auth/login) require JWT Bearer token authentication.
-
-### Getting Started
-1. Login with credentials to get access token
-2. Include token in Authorization header: \`Bearer <token>\`
-3. Refresh token before expiration using /auth/refresh
-
-## Rate Limiting
-- 100 requests per 15 minutes per IP
-- Authenticated users: 1000 requests per hour
-
-## Error Responses
-All errors follow RFC 7807 Problem Details format:
-\`\`\`json
-{
-  "type": "https://httpstatuses.com/404",
-  "title": "Not Found",
-  "status": 404,
-  "detail": "User with id xyz not found",
-  "instance": "/api/v1/users/xyz",
-  "timestamp": "2024-01-15T10:30:00Z"
-}
-\`\`\`
-    `)
+Authentication: JWT Bearer.
+- Authorization header: \`Bearer <token>\`
+- /auth/login haricindeki tüm endpoint’ler token ister.
+`)
     .setVersion('1.0.0')
-    .setContact(
-      'API Support',
-      'https://github.com/your-repo',
-      'support@dietapp.com'
-    )
+    .setContact('API Support', 'https://github.com/your-repo', 'support@dietapp.com')
     .setLicense('MIT', 'https://opensource.org/licenses/MIT')
     .addBearerAuth(
       {
@@ -140,12 +101,9 @@ All errors follow RFC 7807 Problem Details format:
     .addTag('Authentication', 'User authentication and token management')
     .addTag('Users', 'User account management (Admin only)')
     .addTag('Clients', 'Client profile and health management')
-    .addTag('Client Metrics', 'Health metrics tracking (weight, BMI, body composition)')
+    .addTag('Client Metrics', 'Health metrics tracking')
     .addTag('Diet Plans', 'Diet plan creation and management')
-    .addTag('Meal Plans', 'Daily meal planning and scheduling')
-    .addTag('Meals', 'Individual meal management with nutritional info')
-    .addTag('Food Items', 'Food database and nutritional information')
-    .addTag('Health', 'API health check and monitoring')
+    .addTag('Health', 'API health check')
     .addServer('http://localhost:3001', 'Local Development')
     .addServer('https://api-staging.dietapp.com', 'Staging')
     .addServer('https://api.dietapp.com', 'Production')
@@ -158,29 +116,28 @@ All errors follow RFC 7807 Problem Details format:
       docExpansion: 'none',
       filter: true,
       showRequestDuration: true,
-      syntaxHighlight: {
-        activate: true,
-        theme: 'monokai',
-      },
+      syntaxHighlight: { activate: true, theme: 'monokai' },
     },
     customSiteTitle: 'Diet Management API Docs',
     customCss: '.swagger-ui .topbar { display: none }',
   });
 
-  const port = process.env.PORT || 3001;
+  const port = parseInt(process.env.PORT ?? '3001', 10);
   await app.listen(port);
 
+  // Startup banner
+  const baseUrl = `http://localhost:${port}`;
   console.log(`
   ╔═══════════════════════════════════════════════════════════╗
   ║                                                           ║
-  ║   🚀 Diet Management System API                          ║
-  ║   🔒 Security: Helmet + CSRF + Input Sanitization        ║
+  ║   🚀 Diet Management System API                           ║
+  ║   🔒 Security: Helmet + Validation + Rate Limiting        ║
   ║                                                           ║
-  ║   📍 API:     http://localhost:${port}/api/v1                ║
-  ║   📚 Docs:    http://localhost:${port}/api/docs              ║
-  ║   ❤️  Health:  http://localhost:${port}/api/v1/health        ║
+  ║   📍 API:     ${baseUrl}/${apiPrefix}                         ║
+  ║   📚 Docs:    ${baseUrl}/api/docs                          ║
+  ║   ❤️  Health: ${baseUrl}/${apiPrefix}/health               ║
   ║                                                           ║
-  ║   Environment: ${process.env.NODE_ENV || 'development'}                              ║
+  ║   Environment: ${process.env.NODE_ENV || 'development'}                       ║
   ║   Version: 1.0.0                                          ║
   ║                                                           ║
   ╚═══════════════════════════════════════════════════════════╝
@@ -188,5 +145,3 @@ All errors follow RFC 7807 Problem Details format:
 }
 
 bootstrap();
-
-
