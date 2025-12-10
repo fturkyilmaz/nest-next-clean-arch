@@ -1,34 +1,28 @@
 import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
-import { ConfigService } from '@nestjs/config';
+import { adapter } from '../../../prisma/lib/prisma';
 
 /**
- * Enhanced Prisma Service with connection pooling and performance optimizations
+ * Prisma Service with PostgreSQL adapter and extra helpers
  */
 @Injectable()
 export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
-  constructor(private configService: ConfigService) {
-    const databaseUrl = configService.get<string>('DATABASE_URL');
-    
+  constructor() {
+ 
     super({
-      datasources: {
-        db: {
-          url: databaseUrl,
-        },
-      },
+      adapter,
       log: [
         { level: 'query', emit: 'event' },
         { level: 'error', emit: 'stdout' },
         { level: 'warn', emit: 'stdout' },
       ],
-    } as any);
+    });
 
-    // Log slow queries in development
+    // Development ortamında yavaş query loglama
     if (process.env.NODE_ENV === 'development') {
-      // @ts-ignore
       this.$on('query', (e: any) => {
         if (e.duration > 1000) {
-          console.warn(`Slow query detected (${e.duration}ms): ${e.query}`);
+          console.warn(`🐢 Slow query (${e.duration}ms): ${e.query}`);
         }
       });
     }
@@ -36,7 +30,7 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
 
   async onModuleInit() {
     await this.$connect();
-    console.log('✅ Database connected with connection pool (2-10 connections)');
+    console.log('PostgreSQL connected via Prisma adapter');
   }
 
   async onModuleDestroy() {

@@ -18,6 +18,7 @@
     "@nestjs/cqrs": "^10.2.8",
     "@nestjs/passport": "^11.0.5",
     "@nestjs/swagger": "^7.4.2",
+    "@prisma/adapter-pg": "^7.1.0",
     "@prisma/client": "^7.1.0",
     "bcrypt": "^6.0.0",
     "cache-manager": "^7.2.5",
