@@ -12,7 +12,7 @@ describe('Authentication E2E Tests', () => {
     }).compile();
 
     app = moduleFixture.createNestApplication();
-    
+
     app.useGlobalPipes(
       new ValidationPipe({
         whitelist: true,
@@ -29,41 +29,33 @@ describe('Authentication E2E Tests', () => {
   });
 
   describe('/auth/login (POST)', () => {
-    it('should login with valid credentials', () => {
-      return request(app.getHttpServer())
+    it('should login with valid credentials', async () => {
+      const res = await request(app.getHttpServer())
         .post('/api/v1/auth/login')
-        .send({
-          email: 'admin@dietapp.com',
-          password: 'Password123!',
-        })
-        .expect(200)
-        .expect((res) => {
-          expect(res.body).toHaveProperty('accessToken');
-          expect(res.body).toHaveProperty('refreshToken');
-          expect(res.body).toHaveProperty('user');
-          expect(res.body.user.email).toBe('admin@dietapp.com');
-        });
+        .send({ email: 'admin@dietapp.com', password: 'Password123!' })
+        .expect(200);
+
+      expect(res.body).toHaveProperty('accessToken');
+      expect(res.body).toHaveProperty('refreshToken');
+      expect(res.body.user.email).toBe('admin@dietapp.com');
+      expect(res.body.user).toMatchObject({
+        firstName: expect.any(String),
+        lastName: expect.any(String),
+        role: expect.any(String),
+      });
     });
 
-    it('should reject invalid credentials', () => {
-      return request(app.getHttpServer())
+    it('should reject invalid credentials', () =>
+      request(app.getHttpServer())
         .post('/api/v1/auth/login')
-        .send({
-          email: 'admin@dietapp.com',
-          password: 'wrongpassword',
-        })
-        .expect(401);
-    });
+        .send({ email: 'admin@dietapp.com', password: 'wrongpassword' })
+        .expect(401));
 
-    it('should validate request body', () => {
-      return request(app.getHttpServer())
+    it('should validate request body', () =>
+      request(app.getHttpServer())
         .post('/api/v1/auth/login')
-        .send({
-          email: 'invalid-email',
-          password: '123',
-        })
-        .expect(422);
-    });
+        .send({ email: 'invalid-email', password: '123' })
+        .expect(422));
   });
 
   describe('/auth/refresh (POST)', () => {
