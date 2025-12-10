@@ -1,4 +1,11 @@
-import { ExceptionFilter, Catch, ArgumentsHost, HttpException, HttpStatus, Logger } from '@nestjs/common';
+import {
+  ExceptionFilter,
+  Catch,
+  ArgumentsHost,
+  HttpException,
+  HttpStatus,
+  Logger,
+} from '@nestjs/common';
 import { Request, Response } from 'express';
 
 /**
@@ -27,23 +34,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request>();
 
-    let status = HttpStatus.INTERNAL_SERVER_ERROR;
-    let message = 'Internal server error';
-    let errors: any = undefined;
-
-    if (exception instanceof HttpException) {
-      status = exception.getStatus();
-      const exceptionResponse = exception.getResponse();
-
-      if (typeof exceptionResponse === 'string') {
-        message = exceptionResponse;
-      } else if (typeof exceptionResponse === 'object') {
-        message = (exceptionResponse as any).message || message;
-        errors = (exceptionResponse as any).errors;
-      }
-    } else if (exception instanceof Error) {
-      message = exception.message;
-    }
+    const { status, message, errors } = this.extractExceptionInfo(exception);
 
     const problemDetails: ProblemDetails = {
       type: this.getErrorType(status),
@@ -57,23 +48,58 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       errors,
     };
 
-    // Add stack trace in development
     if (process.env.NODE_ENV === 'development' && exception instanceof Error) {
       problemDetails.stack = exception.stack;
+      problemDetails.title = exception.name;
+      problemDetails.errors = {
+        message: exception.message,
+        name: exception.name,
+      };
     }
 
-    // Log error
+    // Log error (her ortamda)
     this.logger.error(
       `${request.method} ${request.url} - ${status} - ${message}`,
-      exception instanceof Error ? exception.stack : undefined
+      exception instanceof Error ? exception.stack : undefined,
     );
 
     response.status(status).json(problemDetails);
   }
 
+  private extractExceptionInfo(exception: unknown): {
+    status: number;
+    message: string;
+    errors?: any;
+  } {
+    let status = HttpStatus.INTERNAL_SERVER_ERROR;
+    let message = 'Internal server error';
+    let errors: any;
+
+    if (exception instanceof HttpException) {
+      status = exception.getStatus();
+      const exceptionResponse = exception.getResponse();
+
+      if (typeof exceptionResponse === 'string') {
+        message = exceptionResponse;
+      } else if (typeof exceptionResponse === 'object') {
+        const resp: any = exceptionResponse;
+        if (Array.isArray(resp.message)) {
+          message = 'Validation failed';
+          errors = resp.message;
+        } else {
+          message = resp.message || message;
+          errors = resp.errors;
+        }
+      }
+    } else if (exception instanceof Error) {
+      message = exception.message;
+    }
+
+    return { status, message, errors };
+  }
+
   private getErrorType(status: number): string {
-    const baseUrl = 'https://httpstatuses.com';
-    return `${baseUrl}/${status}`;
+    return `https://httpstatuses.com/${status}`;
   }
 
   private getErrorTitle(status: number): string {
@@ -89,7 +115,6 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       502: 'Bad Gateway',
       503: 'Service Unavailable',
     };
-
     return titles[status] || 'Error';
   }
 }

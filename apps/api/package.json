@@ -5,8 +5,8 @@
   "type": "commonjs",
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "start": "node dist/main.js",
-    "start:dev": "ts-node-dev -r tsconfig-paths/register --respawn --transpile-only src/main.ts",
+    "start": "NODE_ENV=production node dist/main.js",
+    "start:dev": "NODE_ENV=development ts-node-dev -r tsconfig-paths/register --respawn --transpile-only src/main.ts",
     "lint": "eslint .",
     "test": "jest"
   },
