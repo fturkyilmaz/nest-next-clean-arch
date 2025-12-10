@@ -4,6 +4,12 @@
 /build
 /tmp
 
+# Node modules (root + all workspaces)
+/node_modules/
+/**/node_modules/
+/.pnpm/
+/.pnpm-store/
+
 # Logs
 logs
 *.log

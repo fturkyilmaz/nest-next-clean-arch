@@ -30,7 +30,6 @@
         "@nestjs/swagger": "7.4.2",
         "@nestjs/cache-manager": "3.0.1",
         "@prisma/client": "^7.1.0",
-        "@tanstack/react-query": "^5.90.12",
         "axios": "^1.13.2",
         "bcrypt": "^6.0.0",
         "cache-manager": "^7.2.5",

@@ -6,7 +6,13 @@ import {
     TouchableOpacity,
     RefreshControl,
     ActivityIndicator,
+    StyleSheet,
 } from 'react-native';
+import {
+    UserGroupIcon,
+    ClipboardDocumentListIcon,
+    ArrowRightIcon,
+} from 'react-native-heroicons/outline';
 import { useCurrentUser, useClients, useDietPlans } from '../lib/api-hooks';
 
 export default function HomeScreen({ navigation }: any) {
@@ -27,61 +33,75 @@ export default function HomeScreen({ navigation }: any) {
 
     if (userLoading) {
         return (
-            <View className="flex-1 bg-slate-900 items-center justify-center">
-                <ActivityIndicator size="large" color="#10b981" />
+            <View className="flex-1 bg-gray-900 items-center justify-center">
+                <ActivityIndicator size="large" color="#6366f1" />
             </View>
         );
     }
 
     return (
         <ScrollView
-            className="flex-1 bg-slate-900"
+            className="flex-1 bg-gray-900"
             refreshControl={
-                <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#10b981" />
+                <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#6366f1" />
             }
         >
-            <View className="px-4 pt-4 pb-24">
-                {/* Header */}
-                <View className="mb-6">
-                    <Text className="text-slate-400">Welcome back,</Text>
-                    <Text className="text-2xl font-bold text-white">{user?.firstName} {user?.lastName}</Text>
+            <View className="p-6 pb-24">
+                {/* Hero Section */}
+                <View className="bg-gradient-to-br from-indigo-700 to-purple-800 rounded-3xl p-6 mb-8 shadow-xl">
+                    <Text className="text-gray-200 text-base mb-1">Welcome back,</Text>
+                    <Text className="text-4xl font-extrabold text-white mb-4 leading-tight">{user?.firstName} {user?.lastName}</Text>
+                    <Text className="text-indigo-200 text-sm">Your dashboard at a glance.</Text>
                 </View>
 
-                {/* Stats */}
-                <View className="flex-row gap-4 mb-6">
-                    <StatCard title="Total Clients" value={totalClients} icon="👥" loading={clientsLoading} />
-                    <StatCard title="Active Plans" value={activePlans} icon="📋" loading={plansLoading} />
+                {/* Stats Cards */}
+                <View className="flex-row gap-4 mb-8">
+                    <StatCard
+                        title="Total Clients"
+                        value={totalClients}
+                        icon={<UserGroupIcon size={24} color="#818cf8" />}
+                        loading={clientsLoading}
+                        onPress={() => navigation.navigate('Clients')}
+                    />
+                    <StatCard
+                        title="Active Plans"
+                        value={activePlans}
+                        icon={<ClipboardDocumentListIcon size={24} color="#818cf8" />}
+                        loading={plansLoading}
+                        onPress={() => navigation.navigate('DietPlans')}
+                    />
                 </View>
 
                 {/* Recent Clients */}
-                <View className="bg-white/5 rounded-2xl p-4 mb-6">
-                    <View className="flex-row justify-between items-center mb-4">
-                        <Text className="text-lg font-semibold text-white">Recent Clients</Text>
-                        <TouchableOpacity onPress={() => navigation.navigate('Clients')}>
-                            <Text className="text-emerald-400 text-sm">View all →</Text>
+                <View className="bg-gray-800 rounded-2xl p-5 mb-8 shadow-md">
+                    <View className="flex-row justify-between items-center mb-5">
+                        <Text className="text-xl font-semibold text-white">Recent Clients</Text>
+                        <TouchableOpacity onPress={() => navigation.navigate('Clients')} className="flex-row items-center">
+                            <Text className="text-indigo-400 text-sm mr-1">View all</Text>
+                            <ArrowRightIcon size={16} color="#818cf8" />
                         </TouchableOpacity>
                     </View>
 
                     {clientsLoading ? (
-                        <ActivityIndicator color="#10b981" />
+                        <ActivityIndicator color="#6366f1" />
                     ) : (
                         clients?.slice(0, 3).map((client: any) => (
                             <TouchableOpacity
                                 key={client.id}
-                                className="flex-row items-center bg-white/5 rounded-xl p-3 mb-2"
+                                className="flex-row items-center bg-gray-700 rounded-xl p-4 mb-3 shadow-sm active:bg-gray-600"
                                 onPress={() => navigation.navigate('ClientDetail', { clientId: client.id })}
                             >
-                                <View className="w-10 h-10 rounded-full bg-pink-500 items-center justify-center mr-3">
-                                    <Text className="text-white font-semibold">
+                                <View className="w-12 h-12 rounded-full bg-pink-600 items-center justify-center mr-4 shadow-md">
+                                    <Text className="text-white font-bold text-lg">
                                         {client.firstName[0]}{client.lastName[0]}
                                     </Text>
                                 </View>
                                 <View className="flex-1">
-                                    <Text className="text-white font-medium">{client.firstName} {client.lastName}</Text>
-                                    <Text className="text-slate-400 text-sm">{client.email}</Text>
+                                    <Text className="text-white font-medium text-base">{client.firstName} {client.lastName}</Text>
+                                    <Text className="text-gray-400 text-sm">{client.email}</Text>
                                 </View>
-                                <View className={`px-2 py-1 rounded-full ${client.isActive ? 'bg-emerald-500/20' : 'bg-slate-500/20'}`}>
-                                    <Text className={client.isActive ? 'text-emerald-400 text-xs' : 'text-slate-400 text-xs'}>
+                                <View className={`px-3 py-1 rounded-full ${client.isActive ? 'bg-emerald-500/20' : 'bg-red-500/20'}`}>
+                                    <Text className={`text-xs ${client.isActive ? 'text-emerald-400' : 'text-red-400'} font-semibold`}>
                                         {client.isActive ? 'Active' : 'Inactive'}
                                     </Text>
                                 </View>
@@ -90,34 +110,35 @@ export default function HomeScreen({ navigation }: any) {
                     )}
 
                     {clients?.length === 0 && !clientsLoading && (
-                        <Text className="text-slate-400 text-center py-4">No clients yet</Text>
+                        <Text className="text-gray-400 text-center py-6 text-sm">No clients added yet.</Text>
                     )}
                 </View>
 
                 {/* Recent Diet Plans */}
-                <View className="bg-white/5 rounded-2xl p-4">
-                    <View className="flex-row justify-between items-center mb-4">
-                        <Text className="text-lg font-semibold text-white">Recent Plans</Text>
-                        <TouchableOpacity onPress={() => navigation.navigate('DietPlans')}>
-                            <Text className="text-emerald-400 text-sm">View all →</Text>
+                <View className="bg-gray-800 rounded-2xl p-5 shadow-md">
+                    <View className="flex-row justify-between items-center mb-5">
+                        <Text className="text-xl font-semibold text-white">Recent Diet Plans</Text>
+                        <TouchableOpacity onPress={() => navigation.navigate('DietPlans')} className="flex-row items-center">
+                            <Text className="text-indigo-400 text-sm mr-1">View all</Text>
+                            <ArrowRightIcon size={16} color="#818cf8" />
                         </TouchableOpacity>
                     </View>
 
                     {plansLoading ? (
-                        <ActivityIndicator color="#10b981" />
+                        <ActivityIndicator color="#6366f1" />
                     ) : (
                         dietPlans?.slice(0, 3).map((plan: any) => (
                             <TouchableOpacity
                                 key={plan.id}
-                                className="flex-row items-center bg-white/5 rounded-xl p-3 mb-2"
+                                className="flex-row items-center bg-gray-700 rounded-xl p-4 mb-3 shadow-sm active:bg-gray-600"
                                 onPress={() => navigation.navigate('DietPlanDetail', { planId: plan.id })}
                             >
-                                <View className="w-10 h-10 rounded-lg bg-cyan-500 items-center justify-center mr-3">
-                                    <Text className="text-lg">📋</Text>
+                                <View className="w-12 h-12 rounded-full bg-cyan-600 items-center justify-center mr-4 shadow-md">
+                                    <Text className="text-white font-bold text-lg">DP</Text>
                                 </View>
                                 <View className="flex-1">
-                                    <Text className="text-white font-medium">{plan.name}</Text>
-                                    <Text className="text-slate-400 text-sm">{plan.targetCalories} kcal/day</Text>
+                                    <Text className="text-white font-medium text-base">{plan.name}</Text>
+                                    <Text className="text-gray-400 text-sm">{plan.targetCalories} kcal/day</Text>
                                 </View>
                                 <StatusBadge status={plan.status} />
                             </TouchableOpacity>
@@ -125,7 +146,7 @@ export default function HomeScreen({ navigation }: any) {
                     )}
 
                     {dietPlans?.length === 0 && !plansLoading && (
-                        <Text className="text-slate-400 text-center py-4">No diet plans yet</Text>
+                        <Text className="text-gray-400 text-center py-6 text-sm">No diet plans created yet.</Text>
                     )}
                 </View>
             </View>
@@ -133,21 +154,33 @@ export default function HomeScreen({ navigation }: any) {
     );
 }
 
-function StatCard({ title, value, icon, loading }: { title: string; value: number; icon: string; loading?: boolean }) {
+function StatCard({ title, value, icon, loading, onPress }: {
+    title: string;
+    value: number;
+    icon: React.ReactNode;
+    loading?: boolean;
+    onPress: () => void;
+}) {
     return (
-        <View className="flex-1 bg-white/5 rounded-2xl p-4">
-            <View className="flex-row justify-between items-start">
+        <TouchableOpacity onPress={onPress} className="flex-1 bg-gray-800 rounded-2xl p-5 shadow-md active:bg-gray-700">
+            <View className="flex-row justify-between items-start mb-4">
                 <View>
-                    <Text className="text-slate-400 text-sm">{title}</Text>
+                    <Text className="text-gray-300 text-sm">{title}</Text>
                     {loading ? (
-                        <ActivityIndicator color="#10b981" className="mt-2" />
+                        <ActivityIndicator color="#6366f1" className="mt-3" />
                     ) : (
-                        <Text className="text-2xl font-bold text-white mt-1">{value}</Text>
+                        <Text className="text-3xl font-bold text-white mt-2">{value}</Text>
                     )}
                 </View>
-                <Text className="text-2xl">{icon}</Text>
+                <View className="p-2 bg-indigo-500/20 rounded-full">
+                    {icon}
+                </View>
             </View>
-        </View>
+            <View className="flex-row items-center mt-2">
+                <Text className="text-indigo-400 text-sm">View details</Text>
+                <ArrowRightIcon size={14} color="#818cf8" className="ml-1" />
+            </View>
+        </TouchableOpacity>
     );
 }
 
@@ -160,8 +193,8 @@ function StatusBadge({ status }: { status: string }) {
     };
     const color = colors[status] || colors.DRAFT;
     return (
-        <View className={`px-2 py-1 rounded-full ${color.bg}`}>
-            <Text className={`text-xs ${color.text}`}>{status}</Text>
+        <View className={`px-3 py-1 rounded-full ${color.bg}`}>
+            <Text className={`text-xs ${color.text} font-semibold`}>{status}</Text>
         </View>
     );
 }

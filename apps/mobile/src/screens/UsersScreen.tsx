@@ -9,6 +9,7 @@ import {
     ActivityIndicator,
 } from 'react-native';
 import { useUsers } from '../lib/api-hooks';
+import { MagnifyingGlassIcon, UserIcon, ArrowRightIcon } from 'react-native-heroicons/outline';
 
 export default function UsersScreen({ navigation }: any) {
     const { data: users, isLoading, refetch } = useUsers();
@@ -28,43 +29,49 @@ export default function UsersScreen({ navigation }: any) {
     };
 
     return (
-        <View className="flex-1 bg-slate-900">
+        <View className="flex-1 bg-gray-900">
             {/* Header */}
-            <View className="px-4 pt-12 pb-4 bg-slate-800">
-                <Text className="text-white text-2xl font-bold">Users</Text>
+            <View className="px-6 pt-6 pb-4 bg-gray-900 border-b border-gray-800">
+                <Text className="text-3xl font-bold text-white mb-2">Users</Text>
+                <Text className="text-gray-400 text-base">Manage all application users.</Text>
             </View>
 
             {/* Search */}
-            <View className="px-4 pt-4 pb-2">
-                <TextInput
-                    value={searchTerm}
-                    onChangeText={setSearchTerm}
-                    placeholder="Search users..."
-                    placeholderTextColor="#64748b"
-                    className="bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white"
-                />
+            <View className="px-6 pt-4 pb-4">
+                <View className="flex-row items-center bg-gray-800 rounded-xl px-4 py-3 border border-gray-700">
+                    <MagnifyingGlassIcon size={20} color="#a1a1aa" className="mr-3" />
+                    <TextInput
+                        value={searchTerm}
+                        onChangeText={setSearchTerm}
+                        placeholder="Search users..."
+                        placeholderTextColor="#a1a1aa"
+                        className="flex-1 text-white text-base"
+                    />
+                </View>
             </View>
 
             <ScrollView
                 refreshControl={
-                    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#10b981" />
+                    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#6366f1" />
                 }
                 className="flex-1"
             >
-                <View className="px-4 pb-24">
+                <View className="px-6 pb-24">
                     {isLoading ? (
-                        <View className="py-8 items-center">
-                            <ActivityIndicator size="large" color="#10b981" />
+                        <View className="py-12 items-center">
+                            <ActivityIndicator size="large" color="#6366f1" />
                         </View>
                     ) : (
                         filteredUsers?.map((user: any) => (
-                            <View
+                            <TouchableOpacity
                                 key={user.id}
-                                className="bg-white/5 rounded-2xl p-4 mb-3"
+                                className="bg-gray-800 rounded-2xl p-4 mb-4 shadow-md active:bg-gray-700"
+                                // Assuming there might be a UserDetailScreen in the future
+                                // onPress={() => navigation.navigate('UserDetail', { userId: user.id })}
                             >
                                 <View className="flex-row items-center">
-                                    <View className="w-12 h-12 rounded-full bg-indigo-500/20 items-center justify-center mr-3">
-                                        <Text className="text-indigo-400 text-lg font-semibold">
+                                    <View className="w-14 h-14 rounded-full bg-primary-500 items-center justify-center mr-4 shadow-sm">
+                                        <Text className="text-white text-xl font-bold">
                                             {user.firstName[0]}{user.lastName[0]}
                                         </Text>
                                     </View>
@@ -72,32 +79,34 @@ export default function UsersScreen({ navigation }: any) {
                                         <Text className="text-white font-semibold text-lg">
                                             {user.firstName} {user.lastName}
                                         </Text>
-                                        <Text className="text-slate-400">{user.email}</Text>
+                                        <Text className="text-gray-400 text-sm">{user.email}</Text>
                                     </View>
                                     <View className="items-end">
-                                        <View className={`px-2 py-1 rounded-full mb-1 ${user.role === 'ADMIN' ? 'bg-purple-500/20' :
+                                        <View className={`px-3 py-1 rounded-full mb-2 ${
+                                                user.role === 'ADMIN' ? 'bg-purple-500/20' :
                                                 user.role === 'DIETITIAN' ? 'bg-blue-500/20' : 'bg-green-500/20'
                                             }`}>
-                                            <Text className={`text-xs ${user.role === 'ADMIN' ? 'text-purple-400' :
+                                            <Text className={`text-xs font-semibold ${
+                                                    user.role === 'ADMIN' ? 'text-purple-400' :
                                                     user.role === 'DIETITIAN' ? 'text-blue-400' : 'text-green-400'
                                                 }`}>
                                                 {user.role}
                                             </Text>
                                         </View>
-                                        <View className={`px-2 py-1 rounded-full ${user.isActive ? 'bg-emerald-500/20' : 'bg-slate-500/20'}`}>
-                                            <Text className={user.isActive ? 'text-emerald-400 text-xs' : 'text-slate-400 text-xs'}>
+                                        <View className={`px-3 py-1 rounded-full ${user.isActive ? 'bg-emerald-500/20' : 'bg-red-500/20'}`}>
+                                            <Text className={`text-xs ${user.isActive ? 'text-emerald-400' : 'text-red-400'} font-semibold`}>
                                                 {user.isActive ? 'Active' : 'Inactive'}
                                             </Text>
                                         </View>
                                     </View>
                                 </View>
-                            </View>
+                            </TouchableOpacity>
                         ))
                     )}
 
                     {filteredUsers?.length === 0 && !isLoading && (
-                        <View className="py-8 items-center">
-                            <Text className="text-slate-400">No users found</Text>
+                        <View className="py-12 items-center">
+                            <Text className="text-gray-400 text-base">No users found.</Text>
                         </View>
                     )}
                 </View>

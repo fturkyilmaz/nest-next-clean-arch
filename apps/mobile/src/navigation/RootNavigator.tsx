@@ -3,6 +3,13 @@ import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { RootStackParamList, MainTabParamList } from "./types";
+import {
+    HomeIcon,
+    UserGroupIcon,
+    ClipboardDocumentListIcon,
+    CalculatorIcon,
+    ChartBarIcon,
+} from 'react-native-heroicons/outline';
 
 // Screens
 import HomeScreen from "../screens/HomeScreen";
@@ -25,22 +32,39 @@ const Tab = createBottomTabNavigator<MainTabParamList>() as any;
 function MainTabNavigator() {
     return (
         <Tab.Navigator
-            screenOptions={{
+            screenOptions={({ route }) => ({
                 headerShown: false,
-                tabBarActiveTintColor: "#2563eb",
-                tabBarInactiveTintColor: "#6b7280",
+                tabBarActiveTintColor: "#818cf8", // Indigo 400
+                tabBarInactiveTintColor: "#a1a1aa", // Zinc 400
                 tabBarStyle: {
-                    backgroundColor: "#ffffff",
-                    borderTopColor: "#e5e7eb",
-                    paddingBottom: 8,
+                    backgroundColor: "#1f2937", // Gray 800
+                    borderTopWidth: 0,
+                    paddingBottom: 4,
                     paddingTop: 8,
-                    height: 64,
+                    height: 60,
                 },
                 tabBarLabelStyle: {
-                    fontSize: 12,
-                    fontWeight: "500",
+                    fontSize: 10,
+                    fontWeight: "600",
                 },
-            }}
+                tabBarIcon: ({ color, size }) => {
+                    let IconComponent;
+
+                    if (route.name === 'Home') {
+                        IconComponent = HomeIcon;
+                    } else if (route.name === 'Clients') {
+                        IconComponent = UserGroupIcon;
+                    } else if (route.name === 'DietPlans') {
+                        IconComponent = ClipboardDocumentListIcon;
+                    } else if (route.name === 'Meals') {
+                        IconComponent = CalculatorIcon;
+                    } else if (route.name === 'Progress') {
+                        IconComponent = ChartBarIcon;
+                    }
+                    // You can return any component that you like here!
+                    return IconComponent ? <IconComponent name={route.name} size={size} color={color} /> : null;
+                },
+            })}
         >
             <Tab.Screen
                 name="Home"

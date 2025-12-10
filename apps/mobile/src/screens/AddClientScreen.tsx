@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, TextInput, ActivityIndicator, Alert } from 'react-native';
 import { useCreateClient, useCurrentUser } from '../lib/api-hooks';
+import { ChevronLeftIcon, CheckIcon, UserIcon, EnvelopeIcon, PhoneIcon, CalendarIcon, IdentificationIcon, TagIcon, DocumentTextIcon } from 'react-native-heroicons/outline';
 
 export default function AddClientScreen({ navigation }: any) {
     const createMutation = useCreateClient();
@@ -56,95 +57,117 @@ export default function AddClientScreen({ navigation }: any) {
         }
     };
 
+    // Custom Input Component
+    const CustomInput = ({ label, placeholder, value, onChangeText, keyboardType, autoCapitalize, multiline, numberOfLines, icon }: {
+        label: string;
+        placeholder?: string;
+        value: string;
+        onChangeText: (text: string) => void;
+        keyboardType?: 'default' | 'email-address' | 'numeric' | 'phone-pad';
+        autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters';
+        multiline?: boolean;
+        numberOfLines?: number;
+        icon?: React.ReactNode;
+    }) => (
+        <View className="mb-5">
+            <Text className="text-gray-300 text-base font-semibold mb-2">{label}</Text>
+            <View className="flex-row items-center bg-gray-800 rounded-xl px-4 border border-gray-700">
+                {icon && <View className="mr-3">{icon}</View>}
+                <TextInput
+                    value={value}
+                    onChangeText={onChangeText}
+                    placeholder={placeholder}
+                    placeholderTextColor="#a1a1aa"
+                    keyboardType={keyboardType}
+                    autoCapitalize={autoCapitalize}
+                    multiline={multiline}
+                    numberOfLines={numberOfLines}
+                    className={`flex-1 text-white text-base py-3 ${multiline ? 'h-24 align-top' : ''}`}
+                    style={multiline ? { textAlignVertical: 'top' } : {}}
+                />
+            </View>
+        </View>
+    );
+
     return (
-        <View className="flex-1 bg-slate-900">
-            <View className="px-4 py-4 pt-12 border-b border-white/10 flex-row items-center justify-between">
-                <TouchableOpacity onPress={() => navigation.goBack()}>
-                    <Text className="text-white text-lg">Cancel</Text>
+        <View className="flex-1 bg-gray-900">
+            {/* Header */}
+            <View className="px-6 pt-6 pb-4 bg-gray-900 flex-row items-center justify-between border-b border-gray-800">
+                <TouchableOpacity onPress={() => navigation.goBack()} className="p-2 -ml-2">
+                    <ChevronLeftIcon size={24} color="#d1d5db" />
                 </TouchableOpacity>
-                <Text className="text-white text-lg font-bold">New Client</Text>
-                <TouchableOpacity onPress={handleSubmit} disabled={createMutation.isPending}>
+                <Text className="text-2xl font-bold text-white">Add New Client</Text>
+                <TouchableOpacity onPress={handleSubmit} disabled={createMutation.isPending} className="p-2 -mr-2">
                     {createMutation.isPending ? (
-                        <ActivityIndicator color="#10b981" />
+                        <ActivityIndicator color="#34d399" />
                     ) : (
-                        <Text className="text-emerald-400 text-lg font-bold">Save</Text>
+                        <CheckIcon size={24} color="#34d399" />
                     )}
                 </TouchableOpacity>
             </View>
 
-            <ScrollView className="flex-1 px-4 py-6">
-                <View className="space-y-4 mb-8">
-                    <Text className="text-slate-400 uppercase text-xs font-bold mb-2">Personal Info</Text>
+            <ScrollView className="flex-1 p-6">
+                <View className="mb-8 bg-gray-800 rounded-2xl p-6 shadow-md">
+                    <Text className="text-xl font-bold text-white mb-5">Personal Information</Text>
 
-                    <View className="flex-row gap-3">
+                    <CustomInput
+                        label="First Name *"
+                        placeholder="John"
+                        value={form.firstName}
+                        onChangeText={(t) => handleChange('firstName', t)}
+                        icon={<UserIcon size={20} color="#a1a1aa" />}
+                    />
+                    <CustomInput
+                        label="Last Name *"
+                        placeholder="Doe"
+                        value={form.lastName}
+                        onChangeText={(t) => handleChange('lastName', t)}
+                        icon={<UserIcon size={20} color="#a1a1aa" />}
+                    />
+                    <CustomInput
+                        label="Email *"
+                        placeholder="john@example.com"
+                        value={form.email}
+                        onChangeText={(t) => handleChange('email', t)}
+                        keyboardType="email-address"
+                        autoCapitalize="none"
+                        icon={<EnvelopeIcon size={20} color="#a1a1aa" />}
+                    />
+                    <CustomInput
+                        label="Phone"
+                        placeholder="+1 234 567 8900"
+                        value={form.phone}
+                        onChangeText={(t) => handleChange('phone', t)}
+                        keyboardType="phone-pad"
+                        icon={<PhoneIcon size={20} color="#a1a1aa" />}
+                    />
+
+                    <View className="flex-row gap-4 mb-5">
                         <View className="flex-1">
-                            <Text className="text-white mb-1">First Name *</Text>
-                            <TextInput
-                                value={form.firstName}
-                                onChangeText={(t) => handleChange('firstName', t)}
-                                placeholder="John"
-                                placeholderTextColor="#64748b"
-                                className="bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white"
-                            />
+                            <Text className="text-gray-300 text-base font-semibold mb-2">Date of Birth</Text>
+                            <View className="flex-row items-center bg-gray-800 rounded-xl px-4 border border-gray-700">
+                                <CalendarIcon size={20} color="#a1a1aa" className="mr-3" />
+                                <TextInput
+                                    value={form.dateOfBirth}
+                                    onChangeText={(t) => handleChange('dateOfBirth', t)}
+                                    placeholder="YYYY-MM-DD"
+                                    placeholderTextColor="#a1a1aa"
+                                    className="flex-1 text-white text-base py-3"
+                                />
+                            </View>
                         </View>
                         <View className="flex-1">
-                            <Text className="text-white mb-1">Last Name *</Text>
-                            <TextInput
-                                value={form.lastName}
-                                onChangeText={(t) => handleChange('lastName', t)}
-                                placeholder="Doe"
-                                placeholderTextColor="#64748b"
-                                className="bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white"
-                            />
-                        </View>
-                    </View>
-
-                    <View>
-                        <Text className="text-white mb-1">Email *</Text>
-                        <TextInput
-                            value={form.email}
-                            onChangeText={(t) => handleChange('email', t)}
-                            placeholder="john@example.com"
-                            keyboardType="email-address"
-                            autoCapitalize="none"
-                            placeholderTextColor="#64748b"
-                            className="bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white"
-                        />
-                    </View>
-
-                    <View>
-                        <Text className="text-white mb-1">Phone</Text>
-                        <TextInput
-                            value={form.phone}
-                            onChangeText={(t) => handleChange('phone', t)}
-                            placeholder="+1 234 567 8900"
-                            keyboardType="phone-pad"
-                            placeholderTextColor="#64748b"
-                            className="bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white"
-                        />
-                    </View>
-
-                    <View className="flex-row gap-3">
-                        <View className="flex-1">
-                            <Text className="text-white mb-1">Date of Birth</Text>
-                            <TextInput
-                                value={form.dateOfBirth}
-                                onChangeText={(t) => handleChange('dateOfBirth', t)}
-                                placeholder="YYYY-MM-DD"
-                                placeholderTextColor="#64748b"
-                                className="bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white"
-                            />
-                        </View>
-                        <View className="flex-1">
-                            <Text className="text-white mb-1">Gender</Text>
-                            <View className="flex-row bg-white/5 rounded-xl border border-white/10 overflow-hidden">
+                            <Text className="text-gray-300 text-base font-semibold mb-2">Gender</Text>
+                            <View className="flex-row bg-gray-800 rounded-xl border border-gray-700 overflow-hidden">
                                 {['MALE', 'FEMALE'].map((g) => (
                                     <TouchableOpacity
                                         key={g}
                                         onPress={() => handleChange('gender', g)}
-                                        className={`flex-1 py-3 items-center ${form.gender === g ? 'bg-emerald-500' : ''}`}
+                                        className={`flex-1 py-3 items-center ${
+                                            form.gender === g ? 'bg-primary-600' : ''
+                                        }`}
                                     >
-                                        <Text className={form.gender === g ? 'text-white font-bold' : 'text-slate-400'}>
+                                        <Text className={`text-base font-bold ${form.gender === g ? 'text-white' : 'text-gray-400'}`}>
                                             {g === 'MALE' ? 'M' : 'F'}
                                         </Text>
                                     </TouchableOpacity>
@@ -154,54 +177,39 @@ export default function AddClientScreen({ navigation }: any) {
                     </View>
                 </View>
 
-                <View className="space-y-4 mb-12">
-                    <Text className="text-slate-400 uppercase text-xs font-bold mb-2">Medical Info</Text>
+                <View className="mb-8 bg-gray-800 rounded-2xl p-6 shadow-md">
+                    <Text className="text-xl font-bold text-white mb-5">Medical Information</Text>
 
-                    <View>
-                        <Text className="text-white mb-1">Allergies (comma separated)</Text>
-                        <TextInput
-                            value={form.allergies}
-                            onChangeText={(t) => handleChange('allergies', t)}
-                            placeholder="Peanuts, Shellfish..."
-                            placeholderTextColor="#64748b"
-                            className="bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white"
-                        />
-                    </View>
-
-                    <View>
-                        <Text className="text-white mb-1">Conditions</Text>
-                        <TextInput
-                            value={form.conditions}
-                            onChangeText={(t) => handleChange('conditions', t)}
-                            placeholder="Diabetes, Hypertension..."
-                            placeholderTextColor="#64748b"
-                            className="bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white"
-                        />
-                    </View>
-
-                    <View>
-                        <Text className="text-white mb-1">Medications</Text>
-                        <TextInput
-                            value={form.medications}
-                            onChangeText={(t) => handleChange('medications', t)}
-                            placeholder="Insulin, Aspirin..."
-                            placeholderTextColor="#64748b"
-                            className="bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white"
-                        />
-                    </View>
-
-                    <View>
-                        <Text className="text-white mb-1">Notes</Text>
-                        <TextInput
-                            value={form.notes}
-                            onChangeText={(t) => handleChange('notes', t)}
-                            placeholder="Additional client notes..."
-                            multiline
-                            numberOfLines={3}
-                            placeholderTextColor="#64748b"
-                            className="bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-top h-24"
-                        />
-                    </View>
+                    <CustomInput
+                        label="Allergies (comma separated)"
+                        placeholder="Peanuts, Shellfish..."
+                        value={form.allergies}
+                        onChangeText={(t) => handleChange('allergies', t)}
+                        icon={<TagIcon size={20} color="#a1a1aa" />}
+                    />
+                    <CustomInput
+                        label="Conditions (comma separated)"
+                        placeholder="Diabetes, Hypertension..."
+                        value={form.conditions}
+                        onChangeText={(t) => handleChange('conditions', t)}
+                        icon={<IdentificationIcon size={20} color="#a1a1aa" />}
+                    />
+                    <CustomInput
+                        label="Medications (comma separated)"
+                        placeholder="Insulin, Aspirin..."
+                        value={form.medications}
+                        onChangeText={(t) => handleChange('medications', t)}
+                        icon={<TagIcon size={20} color="#a1a1aa" />}
+                    />
+                    <CustomInput
+                        label="Notes"
+                        placeholder="Additional client notes..."
+                        value={form.notes}
+                        onChangeText={(t) => handleChange('notes', t)}
+                        multiline
+                        numberOfLines={4}
+                        icon={<DocumentTextIcon size={20} color="#a1a1aa" />}
+                    />
                 </View>
             </ScrollView>
         </View>
