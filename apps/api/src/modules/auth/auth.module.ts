@@ -7,9 +7,6 @@ import { CqrsModule } from '@nestjs/cqrs';
 import { RepositoryModule } from '@infrastructure/repositories/RepositoryModule';
 import { JwtStrategy, AuthService } from '@infrastructure/auth';
 import { AuthController } from './auth.controller';
-import { APP_GUARD } from '@nestjs/core';
-import { RolesGuard } from '@shared/guards/RolesGuard';
-
 @Module({
   imports: [
     ConfigModule,
@@ -26,15 +23,7 @@ import { RolesGuard } from '@shared/guards/RolesGuard';
     RepositoryModule,
   ],
   controllers: [AuthController],
-  providers: [
-    ConfigService,
-    JwtStrategy,
-    AuthService,
-    {
-      provide: APP_GUARD,
-      useClass: RolesGuard,
-    },
-  ],
+  providers: [ConfigService, JwtStrategy, AuthService],
   exports: [JwtStrategy, PassportModule, AuthService],
 })
 export class AuthModule {}
