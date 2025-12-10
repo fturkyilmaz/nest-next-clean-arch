@@ -88,6 +88,18 @@ export function useUser(id: string) {
     });
 }
 
+export function useUpdateUser(id: string) {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (data: Partial<any>) => api.updateUser(id, data),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['users'] });
+            queryClient.invalidateQueries({ queryKey: ['users', id] });
+            queryClient.invalidateQueries({ queryKey: ['currentUser'] });
+        },
+    });
+}
+
 // Clients
 export function useClients() {
     return useQuery({
