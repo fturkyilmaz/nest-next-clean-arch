@@ -2,13 +2,18 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { CreateUserCommandHandler } from '@application/use-cases/user/commands/CreateUserCommandHandler';
 import { CreateUserCommand } from '@application/use-cases/user/commands/CreateUserCommand';
 
+
+jest.mock('uuid', () => ({
+  v4: jest.fn().mockReturnValue('uuid-123')
+}));
+
 describe('CreateUserCommandHandler', () => {
   let handler: CreateUserCommandHandler;
   let mockUserRepository: any;
 
   beforeEach(async () => {
     mockUserRepository = {
-      existsByEmail: jest.fn(),
+      findByEmail: jest.fn(),
       create: jest.fn(),
     };
 
@@ -18,6 +23,13 @@ describe('CreateUserCommandHandler', () => {
         {
           provide: 'IUserRepository',
           useValue: mockUserRepository,
+        },
+        {
+          provide: 'IPasswordHasher',
+          useValue: {
+            hash: jest.fn().mockResolvedValue('hashed-password'),
+            compare: jest.fn().mockResolvedValue(true),
+          },
         },
       ],
     }).compile();
@@ -39,7 +51,7 @@ describe('CreateUserCommandHandler', () => {
         'DIETITIAN'
       );
 
-      mockUserRepository.existsByEmail.mockResolvedValue(false);
+      mockUserRepository.findByEmail.mockResolvedValue(null);
       mockUserRepository.create.mockResolvedValue({
         getId: () => '123',
         getEmail: () => ({ getValue: () => 'test@example.com' }),
@@ -50,9 +62,11 @@ describe('CreateUserCommandHandler', () => {
 
       const result = await handler.execute(command);
 
-      expect(mockUserRepository.existsByEmail).toHaveBeenCalledWith('test@example.com');
+
+      expect(mockUserRepository.findByEmail).toHaveBeenCalledWith('test@example.com');
       expect(mockUserRepository.create).toHaveBeenCalled();
-      expect(result.getId()).toBe('123');
+      expect(result.isSuccess).toBeTruthy();
+      expect(result.getValue().getId()).toBe('123');
     });
 
     it('should throw error if email already exists', async () => {
@@ -64,11 +78,12 @@ describe('CreateUserCommandHandler', () => {
         'DIETITIAN'
       );
 
-      mockUserRepository.existsByEmail.mockResolvedValue(true);
+      mockUserRepository.findByEmail.mockResolvedValue({ id: 'existing-123' });
 
-      await expect(handler.execute(command)).rejects.toThrow(
-        'User with email existing@example.com already exists'
-      );
+      const result = await handler.execute(command);
+
+      expect(result.isFailure).toBeTruthy();
+      expect(result.getError().toString()).toContain('User with email existing@example.com already exists');
     });
   });
 });
