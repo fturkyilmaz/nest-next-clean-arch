@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, Inject } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { IUserRepository } from '@application/interfaces/IUserRepository';
@@ -32,14 +32,13 @@ export class AuthService {
   private readonly refreshExpiresIn: string;
 
   constructor(
-    private readonly userRepository: IUserRepository,
-    private readonly jwtService: JwtService,
-    private readonly configService: ConfigService
+    @Inject('IUserRepository') private readonly userRepository: IUserRepository,
+    private readonly jwtService: JwtService
   ) {
-    this.jwtSecret = this.configService.get<string>('JWT_SECRET') || 'your-super-secret-jwt-key-change-this-in-production';
-    this.jwtExpiresIn = this.configService.get<string>('JWT_EXPIRES_IN') || '1h';
-    this.refreshSecret = this.configService.get<string>('JWT_REFRESH_SECRET') || 'your-super-secret-refresh-key-change-this-in-production';
-    this.refreshExpiresIn = this.configService.get<string>('JWT_REFRESH_EXPIRES_IN') || '7d';
+    this.jwtSecret = process.env.JWT_SECRET || 'your-super-secret-jwt-key-change-this-in-production';
+    this.jwtExpiresIn = process.env.JWT_EXPIRES_IN || '1h';
+    this.refreshSecret = process.env.JWT_REFRESH_SECRET || 'your-super-secret-refresh-key-change-this-in-production';
+    this.refreshExpiresIn = process.env.JWT_REFRESH_EXPIRES_IN || '7d';
   }
 
   async login(email: string, password: string): Promise<LoginResult> {

@@ -1,4 +1,5 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
+import { v4 as uuidv4 } from 'uuid';
 import { Inject } from '@nestjs/common';
 import { CreateUserCommand } from './CreateUserCommand';
 import { User } from '@domain/entities/User.entity';
@@ -19,7 +20,7 @@ export class CreateUserCommandHandler implements ICommandHandler<CreateUserComma
     private readonly userRepository: IUserRepository,
     @Inject('IPasswordHasher')
     private readonly passwordHasher: IPasswordHasher
-  ) {}
+  ) { }
 
   async execute(command: CreateUserCommand): Promise<Result<User, ValidationError | ConflictError>> {
     // Validate email
@@ -49,6 +50,7 @@ export class CreateUserCommandHandler implements ICommandHandler<CreateUserComma
 
     // Create user entity
     const user = User.create({
+      id: uuidv4(),
       email: emailResult.getValue(),
       password: Password.fromHash(hashedPassword),
       firstName: command.firstName,
