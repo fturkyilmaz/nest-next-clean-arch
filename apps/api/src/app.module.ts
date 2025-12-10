@@ -1,4 +1,4 @@
-import { Module, NestModule, MiddlewareConsumer } from '@nestjs/common';
+import { Module, NestModule, MiddlewareConsumer, RequestMethod } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { CqrsModule } from '@nestjs/cqrs';
 import { ThrottlerModule } from '@nestjs/throttler';
@@ -26,7 +26,7 @@ import { RequestLoggingMiddleware } from '@infrastructure/middleware/RequestLogg
       envFilePath: '.env',
     }),
 
-    // Rate limiting
+    // Rate limiting 
     ThrottlerModule.forRoot([
       {
         ttl: parseInt(process.env.RATE_LIMIT_TTL || '60000', 10), // 60 seconds
@@ -53,6 +53,6 @@ export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     consumer
       .apply(CorrelationIdMiddleware, RequestLoggingMiddleware)
-      .forRoutes('*');
+      .forRoutes({ path: '*', method: RequestMethod.ALL }); 
   }
 }
