@@ -9,26 +9,28 @@ import {
   UseGuards,
   HttpCode,
   HttpStatus,
-  ForbiddenException,
 } from '@nestjs/common';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiBearerAuth,
+  ApiCreatedResponse,
+  ApiOkResponse,
+  ApiForbiddenResponse,
+  ApiQuery,
+} from '@nestjs/swagger';
 import { JwtAuthGuard, Roles, CurrentUser, CurrentUserData } from '@infrastructure/auth';
-import { RolesGuard } from '@infrastructure/auth/RolesGuard';
 import {
   CreateDietPlanCommand,
   ActivateDietPlanCommand,
   GetDietPlansByClientQuery,
 } from '@application/use-cases/diet-plan';
-import {
-  CreateDietPlanDto,
-  UpdateDietPlanDto,
-  DietPlanResponseDto,
-} from '@application/dto/DietPlanDto';
+import { CreateDietPlanDto, DietPlanResponseDto } from '@application/dto/DietPlanDto';
 
 @ApiTags('Diet Plans')
 @Controller('diet-plans')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
 export class DietPlanController {
   constructor(
@@ -40,39 +42,33 @@ export class DietPlanController {
   @Roles('ADMIN', 'DIETITIAN')
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Create a new diet plan' })
-  @ApiResponse({
-    status: 201,
-    description: 'Diet plan created successfully',
-    type: DietPlanResponseDto,
-  })
-  @ApiResponse({ status: 403, description: 'Forbidden - Admin or Dietitian role required' })
+  @ApiCreatedResponse({ description: 'Diet plan created successfully', type: DietPlanResponseDto })
+  @ApiForbiddenResponse({ description: 'Forbidden - Admin or Dietitian role required' })
   async createDietPlan(
-    @Body() createDietPlanDto: CreateDietPlanDto,
+    @Body() dto: CreateDietPlanDto,
     @CurrentUser() currentUser: CurrentUserData
   ): Promise<DietPlanResponseDto> {
-    // If user is dietitian, set dietitianId to current user
     const dietitianId =
-      currentUser.role === 'DIETITIAN' ? currentUser.userId : currentUser.userId;
+      currentUser.role === 'DIETITIAN' ? currentUser.userId : dto.dietitianId;
 
     const command = new CreateDietPlanCommand(
-      createDietPlanDto.name,
-      createDietPlanDto.clientId,
+      dto.name,
+      dto.clientId,
       dietitianId,
-      new Date(createDietPlanDto.startDate),
-      createDietPlanDto.description,
-      createDietPlanDto.endDate ? new Date(createDietPlanDto.endDate) : undefined,
-      createDietPlanDto.nutritionalGoals
+      new Date(dto.startDate),
+      dto.description,
+      dto.endDate ? new Date(dto.endDate) : undefined,
+      dto.nutritionalGoals
     );
 
     const dietPlan = await this.commandBus.execute(command);
-
-    return this.toResponseDto(dietPlan);
+    return this.mapToResponse(dietPlan);
   }
 
   @Get('client/:clientId')
   @Roles('ADMIN', 'DIETITIAN')
   @ApiOperation({ summary: 'Get all diet plans for a client' })
-  @ApiResponse({ status: 200, description: 'Diet plans retrieved', type: [DietPlanResponseDto] })
+  @ApiOkResponse({ description: 'Diet plans retrieved', type: [DietPlanResponseDto] })
   @ApiQuery({ name: 'status', required: false, type: String })
   @ApiQuery({ name: 'isActive', required: false, type: Boolean })
   @ApiQuery({ name: 'skip', required: false, type: Number })
@@ -86,32 +82,30 @@ export class DietPlanController {
     @Query('take') take?: number
   ): Promise<DietPlanResponseDto[]> {
     // TODO: Verify that dietitian has access to this client
-    // For now, we'll allow access
-
     const query = new GetDietPlansByClientQuery(clientId, status, isActive, skip, take);
     const dietPlans = await this.queryBus.execute(query);
 
-    return dietPlans.map((plan) => this.toResponseDto(plan));
+    return dietPlans.map(this.mapToResponse);
   }
 
   @Put(':id/activate')
   @Roles('ADMIN', 'DIETITIAN')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Activate a diet plan' })
-  @ApiResponse({ status: 200, description: 'Diet plan activated', type: DietPlanResponseDto })
+  @ApiOkResponse({ description: 'Diet plan activated', type: DietPlanResponseDto })
   async activateDietPlan(
     @Param('id') id: string,
     @CurrentUser() currentUser: CurrentUserData
   ): Promise<DietPlanResponseDto> {
     // TODO: Verify that dietitian owns this diet plan
-
     const command = new ActivateDietPlanCommand(id);
     const dietPlan = await this.commandBus.execute(command);
 
-    return this.toResponseDto(dietPlan);
+    return this.mapToResponse(dietPlan);
   }
 
-  private toResponseDto(dietPlan: any): DietPlanResponseDto {
+  /** Helper mapper function */
+  private mapToResponse(dietPlan: any): DietPlanResponseDto {
     return {
       id: dietPlan.getId(),
       name: dietPlan.getName(),

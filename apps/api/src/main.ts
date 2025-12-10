@@ -1,79 +1,33 @@
-import { NestFactory } from '@nestjs/core';
+import { NestFactory, Reflector } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import helmet from 'helmet';
 
 import { AppModule } from './app.module';
 import { GlobalExceptionFilter } from '@infrastructure/filters/GlobalExceptionFilter';
+import { RolesGuard } from '@shared/guards/RolesGuard';
 
-async function bootstrap() {
-  const app = await NestFactory.create(AppModule, {
-    logger: ['error', 'warn', 'log'],
-  });
-
-  app.use(
-    helmet({
-      contentSecurityPolicy: process.env.NODE_ENV === 'production' ? {
-        useDefaults: true,
-        directives: {
-          defaultSrc: ["'self'"],
-          styleSrc: ["'self'", "'unsafe-inline'"],
-          scriptSrc: ["'self'"],
-          imgSrc: ["'self'", 'data:', 'https:'],
-          connectSrc: ["'self'", 'https:', 'http:'],
-        },
-      } : false,
-      hsts: {
-        maxAge: 31536000,
-        includeSubDomains: true,
-        preload: true,
-      },
-      frameguard: { action: 'deny' },
-      noSniff: true,
-    })
-  );
-
-  // CORS
-  app.enableCors({
-    origin: (process.env.CORS_ORIGIN?.split(',') ?? ['http://localhost:3000']).map(o => o.trim()),
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Correlation-ID'],
-    exposedHeaders: ['X-Correlation-ID'],
-    maxAge: 3600,
-  });
-
-  // Global exception filter (RFC 7807 uyumlu tasarım)
-  app.useGlobalFilters(new GlobalExceptionFilter());
-
-  // Global validation pipe
-  app.useGlobalPipes(
-    new ValidationPipe({
-      whitelist: true,
-      forbidNonWhitelisted: true,
-      transform: true,
-      transformOptions: { enableImplicitConversion: true },
-      exceptionFactory: (errors) => {
-        const formattedErrors = errors.map((error) => ({
+function buildValidationPipe() {
+  return new ValidationPipe({
+    whitelist: true,
+    forbidNonWhitelisted: true,
+    transform: true,
+    transformOptions: { enableImplicitConversion: true },
+    exceptionFactory: (errors) =>
+      ({
+        statusCode: 422,
+        message: 'Validation failed',
+        errors: errors.map((error) => ({
           field: error.property,
           constraints: error.constraints,
           value: (error as any).value,
-        }));
-        return {
-          statusCode: 422,
-          message: 'Validation failed',
-          errors: formattedErrors,
-        } as any; // custom object thrown — GlobalExceptionFilter ile normalize edebilirsin
-      },
-    })
-  );
+        })),
+      } as any),
+  });
+}
 
-  // API prefix
-  const apiPrefix = process.env.API_PREFIX || 'api/v1';
-  app.setGlobalPrefix(apiPrefix);
-
-  // Swagger config (bearer auth, sunucular, tag’lar)
-  const config = new DocumentBuilder()
+function buildSwaggerConfig() {
+  return new DocumentBuilder()
     .setTitle('Diet Management System API')
     .setDescription(`
 # Diet Management System API Documentation
@@ -96,7 +50,7 @@ Authentication: JWT Bearer.
         description: 'Enter JWT token',
         in: 'header',
       },
-      'JWT-auth'
+      'JWT-auth',
     )
     .addTag('Authentication', 'User authentication and token management')
     .addTag('Users', 'User account management (Admin only)')
@@ -108,8 +62,78 @@ Authentication: JWT Bearer.
     .addServer('https://api-staging.dietapp.com', 'Staging')
     .addServer('https://api.dietapp.com', 'Production')
     .build();
+}
 
-  const document = SwaggerModule.createDocument(app, config);
+function printStartupBanner(port: number, apiPrefix: string) {
+  const baseUrl = `http://localhost:${port}`;
+  console.log(`
+  ╔═══════════════════════════════════════════════════════════╗
+  ║   🚀 Diet Management System API                           ║
+  ║   🔒 Security: Helmet + Validation + Rate Limiting        ║
+  ║                                                           ║
+  ║   📍 API:     ${baseUrl}/${apiPrefix}                     ║
+  ║   📚 Docs:    ${baseUrl}/api/docs                         ║
+  ║   ❤️  Health: ${baseUrl}/${apiPrefix}/health              ║
+  ║                                                           ║
+  ║   Environment: ${process.env.NODE_ENV || 'development'}   ║
+  ║   Version: 1.0.0                                          ║
+  ╚═══════════════════════════════════════════════════════════╝
+  `);
+}
+
+async function bootstrap() {
+  const app = await NestFactory.create(AppModule, {
+    logger: ['error', 'warn', 'log'],
+  });
+
+  const reflector = app.get(Reflector);
+  app.useGlobalGuards(new RolesGuard(reflector));
+
+  // Security headers
+  app.use(
+    helmet({
+      contentSecurityPolicy:
+        process.env.NODE_ENV === 'production'
+          ? {
+              useDefaults: true,
+              directives: {
+                defaultSrc: ["'self'"],
+                styleSrc: ["'self'", "'unsafe-inline'"],
+                scriptSrc: ["'self'"],
+                imgSrc: ["'self'", 'data:', 'https:'],
+                connectSrc: ["'self'", 'https:', 'http:'],
+              },
+            }
+          : false,
+      hsts: { maxAge: 31536000, includeSubDomains: true, preload: true },
+      frameguard: { action: 'deny' },
+      noSniff: true,
+    }),
+  );
+
+  // CORS
+  app.enableCors({
+    origin: (process.env.CORS_ORIGIN?.split(',') ?? ['http://localhost:3000']).map((o) =>
+      o.trim(),
+    ),
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Correlation-ID'],
+    exposedHeaders: ['X-Correlation-ID'],
+    maxAge: 3600,
+  });
+
+  // Global filters & pipes
+  app.useGlobalFilters(new GlobalExceptionFilter());
+  app.useGlobalPipes(buildValidationPipe());
+
+  // API prefix
+  const apiPrefix = process.env.API_PREFIX || 'api/v1';
+  app.setGlobalPrefix(apiPrefix);
+
+  // Swagger
+  const swaggerConfig = buildSwaggerConfig();
+  const document = SwaggerModule.createDocument(app, swaggerConfig);
   SwaggerModule.setup('api/docs', app, document, {
     swaggerOptions: {
       persistAuthorization: true,
@@ -125,23 +149,7 @@ Authentication: JWT Bearer.
   const port = parseInt(process.env.PORT ?? '3001', 10);
   await app.listen(port);
 
-  // Startup banner
-  const baseUrl = `http://localhost:${port}`;
-  console.log(`
-  ╔═══════════════════════════════════════════════════════════╗
-  ║                                                           ║
-  ║   🚀 Diet Management System API                           ║
-  ║   🔒 Security: Helmet + Validation + Rate Limiting        ║
-  ║                                                           ║
-  ║   📍 API:     ${baseUrl}/${apiPrefix}                         ║
-  ║   📚 Docs:    ${baseUrl}/api/docs                          ║
-  ║   ❤️  Health: ${baseUrl}/${apiPrefix}/health               ║
-  ║                                                           ║
-  ║   Environment: ${process.env.NODE_ENV || 'development'}                       ║
-  ║   Version: 1.0.0                                          ║
-  ║                                                           ║
-  ╚═══════════════════════════════════════════════════════════╝
-  `);
+  printStartupBanner(port, apiPrefix);
 }
 
 bootstrap();

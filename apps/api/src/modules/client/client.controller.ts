@@ -14,7 +14,8 @@ import {
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import { JwtAuthGuard, Roles, CurrentUser, CurrentUserData } from '@infrastructure/auth';
-import { RolesGuard } from '@infrastructure/auth/RolesGuard';
+
+// Application layer
 import {
   CreateClientCommand,
   UpdateClientCommand,
@@ -29,7 +30,7 @@ import {
 
 @ApiTags('Clients')
 @Controller('clients')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
 export class ClientController {
   constructor(
@@ -47,7 +48,6 @@ export class ClientController {
     @Body() createClientDto: CreateClientDto,
     @CurrentUser() currentUser: CurrentUserData
   ): Promise<ClientResponseDto> {
-    // If user is dietitian, set dietitianId to current user
     const dietitianId =
       currentUser.role === 'DIETITIAN'
         ? currentUser.userId
@@ -68,7 +68,6 @@ export class ClientController {
     );
 
     const client = await this.commandBus.execute(command);
-
     return this.toResponseDto(client);
   }
 
@@ -85,18 +84,16 @@ export class ClientController {
     @Query('skip') skip?: number,
     @Query('take') take?: number
   ): Promise<ClientResponseDto[]> {
-    // Dietitians can only see their own clients
     const dietitianId = currentUser.role === 'DIETITIAN' ? currentUser.userId : undefined;
 
     const query = new GetClientsByDietitianQuery(
-      dietitianId || '', // If admin, this will be ignored in the handler
+      dietitianId || '',
       isActive,
       skip,
       take
     );
 
     const clients = await this.queryBus.execute(query);
-
     return clients.map((client) => this.toResponseDto(client));
   }
 
@@ -113,7 +110,6 @@ export class ClientController {
     @Query('skip') skip?: number,
     @Query('take') take?: number
   ): Promise<ClientResponseDto[]> {
-    // Dietitians can only search their own clients
     const dietitianId = currentUser.role === 'DIETITIAN' ? currentUser.userId : undefined;
 
     const query = new SearchClientsQuery(searchTerm, dietitianId, skip, take);
@@ -131,7 +127,6 @@ export class ClientController {
     @Param('id') id: string,
     @CurrentUser() currentUser: CurrentUserData
   ): Promise<ClientResponseDto> {
-    // First get the client
     const query = new GetClientsByDietitianQuery(
       currentUser.role === 'DIETITIAN' ? currentUser.userId : '',
       undefined,
@@ -145,7 +140,6 @@ export class ClientController {
       throw new Error('Client not found');
     }
 
-    // Check if dietitian has access to this client
     if (
       currentUser.role === 'DIETITIAN' &&
       client.getDietitianId() !== currentUser.userId
@@ -165,7 +159,6 @@ export class ClientController {
     @Body() updateClientDto: UpdateClientDto,
     @CurrentUser() currentUser: CurrentUserData
   ): Promise<ClientResponseDto> {
-    // Verify access first
     const query = new GetClientsByDietitianQuery(
       currentUser.role === 'DIETITIAN' ? currentUser.userId : '',
       undefined,
@@ -200,7 +193,6 @@ export class ClientController {
     );
 
     const client = await this.commandBus.execute(command);
-
     return this.toResponseDto(client);
   }
 
