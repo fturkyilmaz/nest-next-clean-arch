@@ -2,14 +2,9 @@ import React from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { RootStackParamList, MainTabParamList } from "./types";
-import {
-    HomeIcon,
-    UserGroupIcon,
-    ClipboardDocumentListIcon,
-    CalculatorIcon,
-    ChartBarIcon,
-} from 'react-native-heroicons/outline';
+import { RootStackParamList, MainTabParamList, AuthStackParamList } from "./types";
+import { useCurrentUser } from '../lib/api-hooks';
+import { View, ActivityIndicator } from 'react-native';
 
 // Screens
 import HomeScreen from "../screens/HomeScreen";
@@ -22,9 +17,23 @@ import DietPlanDetailScreen from "../screens/DietPlanDetailScreen";
 import CreateDietPlanScreen from "../screens/CreateDietPlanScreen";
 import ClientDetailScreen from "../screens/ClientDetailScreen";
 import AddClientScreen from "../screens/AddClientScreen";
+import LoginScreen from "../screens/LoginScreen";
 
 const Stack = createNativeStackNavigator<RootStackParamList>() as any;
 const Tab = createBottomTabNavigator<MainTabParamList>() as any;
+const AuthStack = createNativeStackNavigator<AuthStackParamList>() as any;
+
+/**
+ * Auth Stack Navigator for authentication screens
+ */
+function AuthNavigator() {
+    return (
+        <AuthStack.Navigator screenOptions={{ headerShown: false }}>
+            <AuthStack.Screen name="Login" component={LoginScreen} />
+            {/* Add RegisterScreen and ForgotPasswordScreen here if they exist */}
+        </AuthStack.Navigator>
+    );
+}
 
 /**
  * Bottom Tab Navigator for main app screens
@@ -99,6 +108,17 @@ function MainTabNavigator() {
  * Root Stack Navigator
  */
 export default function RootNavigator() {
+    const { data: user, isLoading } = useCurrentUser();
+
+    if (isLoading) {
+        // Or a splash screen
+        return (
+            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#111827' }}>
+                <ActivityIndicator size="large" color="#6366f1" />
+            </View>
+        );
+    }
+
     return (
         // @ts-ignore
         <NavigationContainer>
@@ -108,12 +128,22 @@ export default function RootNavigator() {
                     animation: "slide_from_right",
                 }}
             >
-                <Stack.Screen name="MainTabs" component={MainTabNavigator} />
-                <Stack.Screen name="Users" component={UsersScreen} />
-                <Stack.Screen name="DietPlanDetail" component={DietPlanDetailScreen} />
-                <Stack.Screen name="CreateDietPlan" component={CreateDietPlanScreen} />
-                <Stack.Screen name="ClientDetail" component={ClientDetailScreen} />
-                <Stack.Screen name="AddClient" component={AddClientScreen} />
+                {user ? (
+                    // User is authenticated
+                    <Stack.Group>
+                        <Stack.Screen name="MainTabs" component={MainTabNavigator} />
+                        <Stack.Screen name="Users" component={UsersScreen} />
+                        <Stack.Screen name="DietPlanDetail" component={DietPlanDetailScreen} />
+                        <Stack.Screen name="CreateDietPlan" component={CreateDietPlanScreen} />
+                        <Stack.Screen name="ClientDetail" component={ClientDetailScreen} />
+                        <Stack.Screen name="AddClient" component={AddClientScreen} />
+                    </Stack.Group>
+                ) : (
+                    // User is not authenticated
+                    <Stack.Group>
+                        <Stack.Screen name="Auth" component={AuthNavigator} />
+                    </Stack.Group>
+                )}
             </Stack.Navigator>
         </NavigationContainer>
     );

@@ -6,11 +6,8 @@ import { NavigatorScreenParams } from "@react-navigation/native";
 export type RootStackParamList = {
     // Main tab navigator
     MainTabs: NavigatorScreenParams<MainTabParamList>;
-    // Auth screens
-    Login: undefined;
-    Register: undefined;
-    ForgotPassword: undefined;
-    // Detail screens
+    // Auth stack navigator
+    Auth: NavigatorScreenParams<AuthStackParamList>;
     // Detail screens
     DietPlanDetail: { planId: string };
     CreateDietPlan: undefined;
@@ -20,6 +17,15 @@ export type RootStackParamList = {
     Users: undefined;
     ClientDetail: { clientId: string };
     AddClient: undefined;
+};
+
+/**
+ * Auth Stack Navigator Types
+ */
+export type AuthStackParamList = {
+    Login: undefined;
+    Register: undefined;
+    ForgotPassword: undefined;
 };
 
 /**
