@@ -1,9 +1,8 @@
 import { Injectable, UnauthorizedException, Inject } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
 
-import { JwtPayload, TokenResult } from '@application/interfaces/services/IJwtService';
+import { JwtPayload, TokenResult, IJwtService } from '@application/interfaces/services/IJwtService';
 import { IUserRepository } from '@application/interfaces/IUserRepository';
 
 export interface LoginResult extends TokenResult {
@@ -35,7 +34,7 @@ export class AuthService {
 
   constructor(
     @Inject('IUserRepository') private readonly userRepository: IUserRepository,
-    private readonly jwtService: JwtService,
+    @Inject('IJwtService') private readonly jwtAuthService: IJwtService,
     private readonly configService: ConfigService
   ) {
     this.jwtSecret = this.configService.get<string>('JWT_SECRET', 'fallback-secret');
@@ -58,13 +57,12 @@ export class AuthService {
     }
 
     const payload: JwtPayload = { sub: user.getId(), username: user.getEmail().getValue() };
-    const accessToken = this.generateAccessToken(payload);
-    const refreshToken = this.generateRefreshToken(user.getId());
+    const { accessToken, refreshToken, expiresIn } = this.jwtAuthService.generateTokens(payload);
 
     return {
       accessToken,
       refreshToken,
-      expiresIn: this.parseExpiresIn(this.jwtExpiresIn),
+      expiresIn,
       user: {
         id: user.getId(),
         email: user.getEmail().getValue(),
@@ -77,21 +75,20 @@ export class AuthService {
 
   async refreshToken(refreshToken: string): Promise<RefreshTokenResult> {
     try {
-      const payload = this.jwtService.verify(refreshToken, { secret: this.refreshSecret });
-      const user = await this.userRepository.findById(payload.sub);
+      const { sub } = this.jwtAuthService.verifyRefreshToken(refreshToken);
+      const user = await this.userRepository.findById(sub);
 
       if (!user || !user.isActive()) {
         throw new UnauthorizedException('Invalid refresh token');
       }
 
       const newPayload: JwtPayload = { sub: user.getId(), username: user.getEmail().getValue() };
-      const accessToken = this.generateAccessToken(newPayload);
-      const newRefreshToken = this.generateRefreshToken(user.getId());
+      const { accessToken, refreshToken: newRefreshToken, expiresIn } = this.jwtAuthService.generateTokens(newPayload);
 
       return {
         accessToken,
         refreshToken: newRefreshToken,
-        expiresIn: this.parseExpiresIn(this.jwtExpiresIn),
+        expiresIn,
       };
     } catch (error: any) {
       if (error.name === 'TokenExpiredError') {
@@ -112,20 +109,6 @@ export class AuthService {
       firstName: user.getFirstName(),
       lastName: user.getLastName(),
     };
-  }
-
-  private generateAccessToken(payload: JwtPayload): string {
-    return this.jwtService.sign(payload, {
-      secret: this.jwtSecret,
-      expiresIn: this.jwtExpiresIn,
-    });
-  }
-
-  private generateRefreshToken(userId: string): string {
-    return this.jwtService.sign({ sub: userId }, {
-      secret: this.refreshSecret,
-      expiresIn: this.refreshExpiresIn,
-    });
   }
 
   private parseExpiresIn(expiresIn: string): number {

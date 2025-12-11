@@ -1,14 +1,16 @@
 import { Module } from '@nestjs/common';
-import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
+import { JwtModule, JwtService } from '@nestjs/jwt'; // Added JwtService here
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { CqrsModule } from '@nestjs/cqrs';
 import { RepositoryModule } from '@infrastructure/repositories/RepositoryModule';
 import { AuthService, JwtStrategy } from '@infrastructure/auth';
 import { AuthController } from './auth.controller';
 import { LoginUseCase } from '@application/use-cases/auth/LoginUseCase';
 import { RefreshTokenUseCase } from '@application/use-cases/auth/RefreshTokenUseCase';
 import { JwtAuthService } from '@infrastructure/auth/JwtAuthService';
+import { PrismaUserRepository } from '@infrastructure/repositories';
+import { IJwtService } from '@application/interfaces/services/IJwtService';
+import { IUserRepository } from '@application/interfaces/IUserRepository';
 
 @Module({
   imports: [
@@ -16,20 +18,19 @@ import { JwtAuthService } from '@infrastructure/auth/JwtAuthService';
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.registerAsync({
       imports: [ConfigModule],
-      useFactory: async (cfg: ConfigService) => ({
-        secret: cfg.get<string>('JWT_SECRET') || 'dev-secret',
-        signOptions: { expiresIn: cfg.get<string>('JWT_EXPIRES_IN') || '1h' },
+      useFactory: async (configService: ConfigService) => ({
+        secret: configService.get<string>('JWT_SECRET', 'dev-secret'),
+        signOptions: { expiresIn: configService.get<string>('JWT_EXPIRES_IN', '1h') },
       }),
       inject: [ConfigService],
     }),
-    CqrsModule,
     RepositoryModule,
   ],
-  controllers: [AuthController],
   providers: [
+    { provide: 'IUserRepository', useClass: PrismaUserRepository },
+    { provide: 'IJwtService', useClass: JwtAuthService },
     AuthService,
     JwtStrategy,
-    JwtAuthService,
     LoginUseCase,
     RefreshTokenUseCase,
   ],
@@ -37,8 +38,9 @@ import { JwtAuthService } from '@infrastructure/auth/JwtAuthService';
     AuthService,
     JwtStrategy,
     PassportModule,
-    JwtAuthService,
-    JwtModule,
+    'IJwtService',
+    JwtModule, // 🔑 export edilmeli
+    'IUserRepository',
   ],
 })
 export class AuthModule { }

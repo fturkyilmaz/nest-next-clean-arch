@@ -2,9 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@infrastructure/database/PrismaService';
 import {
   IAdvancedRepository,
-  PaginatedResult,
-  QueryOptions,
-} from '@application/interfaces/repositories/IRepositorySpecification';
+  IRepositorySpecification,
+} from '@application/interfaces/repositories/common/IAdvancedRepository';
 import { Specification } from '@domain/specifications/Specification';
 
 /**
@@ -13,8 +12,26 @@ import { Specification } from '@domain/specifications/Specification';
  */
 @Injectable()
 export abstract class PrismaRepositoryBase<T, TDomain, ID = string>
-  implements IAdvancedRepository<TDomain, ID>
+  implements IAdvancedRepository<TDomain>
 {
+  protected toPrismaOrderBy(orderBy?: string): any {
+    if (!orderBy) {
+      return undefined;
+    }
+    const [field, order] = orderBy.split(':');
+    return { [field]: order || 'asc' };
+  }
+
+  protected toPrismaInclude(includes?: string[]): any {
+    if (!includes || includes.length === 0) {
+      return undefined;
+    }
+    return includes.reduce((acc, field) => {
+      acc[field] = true;
+      return acc;
+    }, {} as any);
+  }
+
   constructor(
     protected readonly prisma: PrismaService,
     protected readonly modelName: string
@@ -30,7 +47,7 @@ export abstract class PrismaRepositoryBase<T, TDomain, ID = string>
   /**
    * Convert specification to Prisma where clause
    */
-  protected toPrismaWhere(spec: Specification<TDomain>): any {
+  protected toPrismaWhere(spec: IRepositorySpecification<TDomain>): any {
     if ('toPrismaWhere' in spec && typeof spec.toPrismaWhere === 'function') {
       return (spec as any).toPrismaWhere();
     }
@@ -48,41 +65,7 @@ export abstract class PrismaRepositoryBase<T, TDomain, ID = string>
   protected abstract toPrisma(domain: TDomain): Partial<T>;
 
   /**
-   * Find entities matching specification
-   */
-  async find(spec: Specification<TDomain>): Promise<TDomain[]> {
-    const where = this.toPrismaWhere(spec);
-    const models = await this.model.findMany({ where });
-    return models.map((m: T) => this.toDomain(m));
-  }
-
-  /**
-   * Find single entity matching specification
-   */
-  async findOne(spec: Specification<TDomain>): Promise<TDomain | null> {
-    const where = this.toPrismaWhere(spec);
-    const model = await this.model.findFirst({ where });
-    return model ? this.toDomain(model) : null;
-  }
-
-  /**
-   * Count entities matching specification
-   */
-  async count(spec: Specification<TDomain>): Promise<number> {
-    const where = this.toPrismaWhere(spec);
-    return this.model.count({ where });
-  }
-
-  /**
-   * Check if any entity matches specification
-   */
-  async exists(spec: Specification<TDomain>): Promise<boolean> {
-    const count = await this.count(spec);
-    return count > 0;
-  }
-
-  /**
-   * Find by ID
+   * Find entity by ID
    */
   async findById(id: ID): Promise<TDomain | null> {
     const model = await this.model.findUnique({ where: { id } });
@@ -90,206 +73,87 @@ export abstract class PrismaRepositoryBase<T, TDomain, ID = string>
   }
 
   /**
-   * Save entity
+   * Find all entities
    */
-  async save(entity: TDomain): Promise<TDomain> {
-    const data = this.toPrisma(entity);
-    const id = (entity as any).getId?.() || (entity as any).id;
-
-    let model: T;
-    if (id) {
-      model = await this.model.update({ where: { id }, data });
-    } else {
-      model = await this.model.create({ data });
-    }
-
-    return this.toDomain(model);
-  }
-
-  /**
-   * Delete entity
-   */
-  async delete(id: ID): Promise<void> {
-    await this.model.delete({ where: { id } });
-  }
-
-  /**
-   * Find with pagination
-   */
-  async findPaginated(
-    spec: Specification<TDomain>,
-    page: number,
-    pageSize: number
-  ): Promise<PaginatedResult<TDomain>> {
-    const where = this.toPrismaWhere(spec);
-    const skip = (page - 1) * pageSize;
-
-    const [models, total] = await Promise.all([
-      this.model.findMany({
-        where,
-        skip,
-        take: pageSize,
-      }),
-      this.model.count({ where }),
-    ]);
-
-    const totalPages = Math.ceil(total / pageSize);
-
-    return {
-      data: models.map((m: T) => this.toDomain(m)),
-      total,
-      page,
-      pageSize,
-      totalPages,
-      hasNext: page < totalPages,
-      hasPrevious: page > 1,
-    };
-  }
-
-  /**
-   * Find with sorting
-   */
-  async findSorted(
-    spec: Specification<TDomain>,
-    sortBy: keyof TDomain,
-    order: 'asc' | 'desc'
-  ): Promise<TDomain[]> {
-    const where = this.toPrismaWhere(spec);
-    const models = await this.model.findMany({
-      where,
-      orderBy: { [sortBy as string]: order },
-    });
+  async findAll(): Promise<TDomain[]> {
+    const models = await this.model.findMany({});
     return models.map((m: T) => this.toDomain(m));
   }
 
   /**
-   * Find with advanced options
+   * Create a new entity
    */
-  async findAdvanced(options: QueryOptions<TDomain>): Promise<PaginatedResult<TDomain>> {
-    const where = options.specification
-      ? this.toPrismaWhere(options.specification)
-      : {};
+  async create(entity: TDomain): Promise<TDomain> {
+    const data = this.toPrisma(entity);
+    const model = await this.model.create({ data });
+    return this.toDomain(model);
+  }
 
-    const orderBy = options.sorting?.map((sort) => ({
-      [sort.field as string]: sort.order,
-    }));
+  /**
+   * Update an existing entity
+   */
+  async update(id: ID, entity: TDomain): Promise<TDomain | null> {
+    const data = this.toPrisma(entity);
+    const model = await this.model.update({ where: { id }, data });
+    return model ? this.toDomain(model) : null;
+  }
 
-    const include = options.includes?.reduce((acc, field) => {
-      acc[field] = true;
-      return acc;
-    }, {} as any);
+  /**
+   * Delete an entity by ID
+   */
+  async delete(id: ID): Promise<boolean> {
+    try {
+      await this.model.delete({ where: { id } });
+      return true;
+    } catch (error) {
+      return false;
+    }
+  }
 
-    const page = options.pagination?.page || 1;
-    const pageSize = options.pagination?.pageSize || 10;
-    const skip = (page - 1) * pageSize;
+  /**
+   * Find entities by specification
+   */
+  async findBySpecification(specification: IRepositorySpecification<TDomain>): Promise<TDomain[]> {
+    const where = this.toPrismaWhere(specification);
+    const models = await this.model.findMany({ where });
+    return models.map((m: T) => this.toDomain(m));
+  }
+
+  /**
+   * Count entities by specification
+   */
+  async countBySpecification(specification: IRepositorySpecification<TDomain>): Promise<number> {
+    const where = this.toPrismaWhere(specification);
+    return this.model.count({ where });
+  }
+
+  /**
+   * Find and paginate entities by specification
+   */
+  async findAndPaginate(
+    specification: IRepositorySpecification<TDomain>,
+    page: number,
+    limit: number,
+    orderBy?: string, // e.g., "createdAt:desc"
+  ): Promise<{ data: TDomain[]; total: number; page: number; limit: number }> {
+    const where = this.toPrismaWhere(specification);
+    const skip = (page - 1) * limit;
 
     const [models, total] = await Promise.all([
       this.model.findMany({
         where,
-        orderBy,
-        include,
         skip,
-        take: pageSize,
+        take: limit,
+        orderBy: this.toPrismaOrderBy(orderBy),
       }),
       this.model.count({ where }),
     ]);
-
-    const totalPages = Math.ceil(total / pageSize);
 
     return {
       data: models.map((m: T) => this.toDomain(m)),
       total,
       page,
-      pageSize,
-      totalPages,
-      hasNext: page < totalPages,
-      hasPrevious: page > 1,
-    };
-  }
-
-  /**
-   * Bulk save
-   */
-  async saveMany(entities: TDomain[]): Promise<TDomain[]> {
-    const data = entities.map((e) => this.toPrisma(e));
-    
-    // Use transaction for atomicity
-    return this.prisma.$transaction(
-      data.map((d) => this.model.create({ data: d }))
-    ).then((models: T[]) => models.map((m) => this.toDomain(m)));
-  }
-
-  /**
-   * Bulk delete
-   */
-  async deleteMany(spec: Specification<TDomain>): Promise<number> {
-    const where = this.toPrismaWhere(spec);
-    const result = await this.model.deleteMany({ where });
-    return result.count;
-  }
-}
-
-/**
- * Example: User Repository Implementation
- */
-@Injectable()
-export class PrismaUserRepository extends PrismaRepositoryBase<any, any, string> {
-  constructor(prisma: PrismaService) {
-    super(prisma, 'user');
-  }
-
-  protected toDomain(model: any): any {
-    // Convert Prisma model to User domain entity
-    return {
-      id: model.id,
-      email: model.email,
-      role: model.role,
-      firstName: model.firstName,
-      lastName: model.lastName,
-      isActive: model.isActive,
-      createdAt: model.createdAt,
-      updatedAt: model.updatedAt,
-    };
-  }
-
-  protected toPrisma(domain: any): any {
-    // Convert User domain entity to Prisma model
-    return {
-      email: domain.email,
-      password: domain.password,
-      role: domain.role,
-      firstName: domain.firstName,
-      lastName: domain.lastName,
-      isActive: domain.isActive,
+      limit,
     };
   }
 }
-
-/**
- * Usage:
- * 
- * @Injectable()
- * export class UserService {
- *   constructor(private userRepo: PrismaUserRepository) {}
- * 
- *   async getActiveDietitians() {
- *     const spec = new ActiveUsersSpec()
- *       .and(new UserByRoleSpec('DIETITIAN'));
- *     return this.userRepo.find(spec);
- *   }
- * 
- *   async searchUsers(query: string, page: number) {
- *     const spec = new UserSearchSpec(query);
- *     return this.userRepo.findPaginated(spec, page, 20);
- *   }
- * 
- *   async getRecentUsers() {
- *     return this.userRepo.findAdvanced({
- *       specification: new UserCreatedAfterSpec(new Date('2024-01-01')),
- *       pagination: { page: 1, pageSize: 10 },
- *       sorting: [{ field: 'createdAt', order: 'desc' }],
- *       includes: ['profile', 'clients'],
- *     });
- *   }
- * }
- */
