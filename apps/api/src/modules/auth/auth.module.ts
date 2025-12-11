@@ -1,12 +1,15 @@
-// apps/api/src/modules/auth/auth.module.ts
 import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { CqrsModule } from '@nestjs/cqrs';
 import { RepositoryModule } from '@infrastructure/repositories/RepositoryModule';
-import { JwtStrategy, AuthService } from '@infrastructure/auth';
+import { AuthService, JwtStrategy } from '@infrastructure/auth';
 import { AuthController } from './auth.controller';
+import { LoginUseCase } from '@application/use-cases/auth/LoginUseCase';
+import { RefreshTokenUseCase } from '@application/use-cases/auth/RefreshTokenUseCase';
+import { JwtAuthService } from '@infrastructure/auth/JwtAuthService';
+
 @Module({
   imports: [
     ConfigModule,
@@ -23,7 +26,19 @@ import { AuthController } from './auth.controller';
     RepositoryModule,
   ],
   controllers: [AuthController],
-  providers: [ConfigService, JwtStrategy, AuthService],
-  exports: [JwtStrategy, PassportModule, AuthService],
+  providers: [
+    AuthService,
+    JwtStrategy,
+    JwtAuthService,
+    LoginUseCase,
+    RefreshTokenUseCase,
+  ],
+  exports: [
+    AuthService,
+    JwtStrategy,
+    PassportModule,
+    JwtAuthService,
+    JwtModule,
+  ],
 })
-export class AuthModule {}
+export class AuthModule { }

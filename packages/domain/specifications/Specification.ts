@@ -77,12 +77,15 @@ export class ClientAgeSpecification extends Specification<{ dateOfBirth: Date }>
   private calculateAge(dateOfBirth: Date): number {
     const today = new Date();
     let age = today.getFullYear() - dateOfBirth.getFullYear();
-    const monthDiff = today.getMonth() - dateOfBirth.getMonth();
-    
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dateOfBirth.getDate())) {
+
+    const hasBirthdayPassedThisYear =
+      today.getMonth() > dateOfBirth.getMonth() ||
+      (today.getMonth() === dateOfBirth.getMonth() && today.getDate() >= dateOfBirth.getDate());
+
+    if (!hasBirthdayPassedThisYear) {
       age--;
     }
-    
+
     return age;
   }
 }
@@ -99,7 +102,7 @@ export class ClientBMIRangeSpecification extends Specification<{ bmi: number }> 
 
 export class ClientHasAllergiesSpecification extends Specification<{ allergies: string[] }> {
   isSatisfiedBy(client: { allergies: string[] }): boolean {
-    return client.allergies && client.allergies.length > 0;
+    return Array.isArray(client.allergies) && client.allergies.length > 0;
   }
 }
 
