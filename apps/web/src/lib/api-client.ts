@@ -101,6 +101,25 @@ export interface LoginResponse {
     user: User;
 }
 
+export interface RegisterRequest {
+    firstName: string;
+    lastName: string;
+    email: string;
+    password: string;
+}
+
+export interface RegisterResponse {
+    user: User;
+}
+
+export interface CreateUserRequest {
+    firstName: string;
+    lastName: string;
+    email: string;
+    password: string;
+    role: 'ADMIN' | 'DIETITIAN' | 'CLIENT';
+}
+
 export interface CreateClientRequest {
     firstName: string;
     lastName: string;
@@ -197,6 +216,11 @@ export class ApiService {
         return res.data;
     }
 
+    async register(data: RegisterRequest): Promise<RegisterResponse> {
+        const res = await this.client.post<RegisterResponse>('/auth/register', data);
+        return res.data;
+    }
+
     async refreshToken(refreshToken: string): Promise<LoginResponse> {
         const res = await this.client.post<LoginResponse>('/auth/refresh', { refreshToken });
         return res.data;
@@ -224,6 +248,11 @@ export class ApiService {
 
     async updateUser(id: string, data: Partial<User>): Promise<User> {
         const res = await this.client.put<User>(`/users/${id}`, data);
+        return res.data;
+    }
+
+    async createUser(data: CreateUserRequest): Promise<User> {
+        const res = await this.client.post<User>('/users', data);
         return res.data;
     }
 

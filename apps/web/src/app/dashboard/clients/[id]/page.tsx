@@ -2,8 +2,11 @@
 
 import { useClient, useClientMetrics, useClientDietPlans, useAddClientMetrics } from '@/lib/api-hooks';
 import Link from 'next/link';
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useParams } from 'next/navigation';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { addClientMetricsSchema, AddClientMetricsFormInputs } from '@/lib/validationSchemas';
 
 export default function ClientDetailPage() {
     const params = useParams();
@@ -247,29 +250,27 @@ function MetricsModal({ onClose, onSubmit, isLoading }: {
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
             <div className="bg-slate-800 rounded-2xl p-6 w-full max-w-md border border-white/10">
                 <h2 className="text-xl font-bold text-white mb-6">Add Health Metrics</h2>
-                <form onSubmit={handleSubmit} className="space-y-4">
+                <form onSubmit={handleSubmit(onSubmitHandler)} className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
                         <div>
                             <label className="text-sm text-slate-400">Weight (kg) *</label>
                             <input
                                 type="number"
                                 step="0.1"
-                                required
-                                value={formData.weight}
-                                onChange={(e) => setFormData(f => ({ ...f, weight: e.target.value }))}
+                                {...register('weight')}
                                 className="w-full mt-1 px-4 py-3 rounded-lg bg-white/5 border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-emerald-400"
                             />
+                            {errors.weight && <p className="text-red-500 text-sm mt-1">{errors.weight.message}</p>}
                         </div>
                         <div>
                             <label className="text-sm text-slate-400">Height (cm) *</label>
                             <input
                                 type="number"
                                 step="0.1"
-                                required
-                                value={formData.height}
-                                onChange={(e) => setFormData(f => ({ ...f, height: e.target.value }))}
+                                {...register('height')}
                                 className="w-full mt-1 px-4 py-3 rounded-lg bg-white/5 border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-emerald-400"
                             />
+                            {errors.height && <p className="text-red-500 text-sm mt-1">{errors.height.message}</p>}
                         </div>
                     </div>
                     <div className="grid grid-cols-3 gap-4">
@@ -278,40 +279,40 @@ function MetricsModal({ onClose, onSubmit, isLoading }: {
                             <input
                                 type="number"
                                 step="0.1"
-                                value={formData.bodyFat}
-                                onChange={(e) => setFormData(f => ({ ...f, bodyFat: e.target.value }))}
+                                {...register('bodyFat')}
                                 className="w-full mt-1 px-4 py-3 rounded-lg bg-white/5 border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-emerald-400"
                             />
+                            {errors.bodyFat && <p className="text-red-500 text-sm mt-1">{errors.bodyFat.message}</p>}
                         </div>
                         <div>
                             <label className="text-sm text-slate-400">Waist (cm)</label>
                             <input
                                 type="number"
                                 step="0.1"
-                                value={formData.waist}
-                                onChange={(e) => setFormData(f => ({ ...f, waist: e.target.value }))}
+                                {...register('waist')}
                                 className="w-full mt-1 px-4 py-3 rounded-lg bg-white/5 border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-emerald-400"
                             />
+                            {errors.waist && <p className="text-red-500 text-sm mt-1">{errors.waist.message}</p>}
                         </div>
                         <div>
                             <label className="text-sm text-slate-400">Hip (cm)</label>
                             <input
                                 type="number"
                                 step="0.1"
-                                value={formData.hip}
-                                onChange={(e) => setFormData(f => ({ ...f, hip: e.target.value }))}
+                                {...register('hip')}
                                 className="w-full mt-1 px-4 py-3 rounded-lg bg-white/5 border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-emerald-400"
                             />
+                            {errors.hip && <p className="text-red-500 text-sm mt-1">{errors.hip.message}</p>}
                         </div>
                     </div>
                     <div>
                         <label className="text-sm text-slate-400">Notes</label>
                         <textarea
-                            value={formData.notes}
-                            onChange={(e) => setFormData(f => ({ ...f, notes: e.target.value }))}
+                            {...register('notes')}
                             rows={2}
                             className="w-full mt-1 px-4 py-3 rounded-lg bg-white/5 border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-emerald-400 resize-none"
                         />
+                        {errors.notes && <p className="text-red-500 text-sm mt-1">{errors.notes.message}</p>}
                     </div>
                     <div className="flex gap-3 pt-4">
                         <button

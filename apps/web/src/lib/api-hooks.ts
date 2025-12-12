@@ -1,7 +1,7 @@
 'use client';
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { createApiClient, ApiService, LoginRequest, CreateClientRequest, CreateDietPlanRequest, ClientMetrics } from './api-client';
+import { createApiClient, ApiService, LoginRequest, CreateClientRequest, CreateDietPlanRequest, ClientMetrics, RegisterRequest, RegisterResponse, CreateUserRequest } from './api-client';
 
 // Create API client for web
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
@@ -53,6 +53,17 @@ export function useLogin() {
     });
 }
 
+export function useRegister() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (data: RegisterRequest) => api.register(data),
+        onSuccess: (data) => {
+            queryClient.setQueryData(['currentUser'], data.user);
+        },
+    });
+}
+
+
 export function useLogout() {
     const queryClient = useQueryClient();
     return useMutation({
@@ -99,6 +110,17 @@ export function useUpdateUser(id: string) {
         },
     });
 }
+
+export function useCreateUser() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (data: CreateUserRequest) => api.createUser(data),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['users'] });
+        },
+    });
+}
+
 
 // Clients
 export function useClients() {

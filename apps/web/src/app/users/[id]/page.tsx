@@ -5,8 +5,11 @@ import { Button } from '@ui/components/Button';
 import { Input } from '@ui/components/Input';
 import { Card } from '@ui/components/Card';
 import { useParams, useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import Link from 'next/link';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { updateUserSchema, UpdateUserFormInputs } from '@/lib/validationSchemas';
 
 export default function UserDetailPage() {
     const params = useParams();
@@ -16,21 +19,18 @@ export default function UserDetailPage() {
     const { data: user, isLoading, error } = useUser(id);
     const updateMutation = useUpdateUser(id);
 
-    const [firstName, setFirstName] = useState('');
-    const [lastName, setLastName] = useState('');
-    const [email, setEmail] = useState('');
+    const { control, handleSubmit, reset, formState: { errors } } = useForm<UpdateUserFormInputs>({
+        resolver: zodResolver(updateUserSchema),
+    });
 
     useEffect(() => {
         if (user) {
-            setFirstName(user.firstName);
-            setLastName(user.lastName);
-            setEmail(user.email);
+            reset({ firstName: user.firstName, lastName: user.lastName });
         }
-    }, [user]);
+    }, [user, reset]);
 
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        updateMutation.mutate({ firstName, lastName }, {
+    const onSubmit = (data: UpdateUserFormInputs) => {
+        updateMutation.mutate(data, {
             onSuccess: () => {
                 alert('User updated successfully');
                 router.push('/users');
@@ -51,26 +51,26 @@ export default function UserDetailPage() {
             </div>
 
             <Card className="p-6">
-                <form onSubmit={handleSubmit} className="space-y-6">
+                <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                     <div className="space-y-4">
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
                                 <label className="text-sm font-medium leading-none text-gray-500">First Name</label>
                                 <Input
-                                    value={firstName}
-                                    onChange={(e) => setFirstName(e.target.value)}
+                                    {...register('firstName')}
                                     placeholder="First Name"
                                     required
                                 />
+                                {errors.firstName && <p className="text-red-500 text-sm mt-1">{errors.firstName.message}</p>}
                             </div>
                             <div className="space-y-2">
                                 <label className="text-sm font-medium leading-none text-gray-500">Last Name</label>
                                 <Input
-                                    value={lastName}
-                                    onChange={(e) => setLastName(e.target.value)}
+                                    {...register('lastName')}
                                     placeholder="Last Name"
                                     required
                                 />
+                                {errors.lastName && <p className="text-red-500 text-sm mt-1">{errors.lastName.message}</p>}
                             </div>
                         </div>
 

@@ -1,26 +1,25 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useLogin } from '@/lib/api-hooks';
+import { useRegister } from '@/lib/api-hooks';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { loginSchema, LoginFormInputs } from '@/lib/validationSchemas';
+import { registrationSchema, RegistrationFormInputs } from '@/lib/validationSchemas';
 
-export default function LoginPage() {
+export default function RegisterPage() {
     const router = useRouter();
-    const loginMutation = useLogin();
+    const registerMutation = useRegister(); // This will need to be implemented or mocked
 
-    const { register, handleSubmit, formState: { errors } } = useForm<LoginFormInputs>({
-        resolver: zodResolver(loginSchema),
+    const { register, handleSubmit, formState: { errors } } = useForm<RegistrationFormInputs>({
+        resolver: zodResolver(registrationSchema),
     });
 
-    const onSubmit = async (data: LoginFormInputs) => {
+    const onSubmit = async (data: RegistrationFormInputs) => {
         try {
-            await loginMutation.mutateAsync(data);
-            router.push('/dashboard');
+            await registerMutation.mutateAsync(data);
+            router.push('/dashboard'); // Redirect to dashboard or login after successful registration
         } catch (err: any) {
-            // Handle error, e.g., show a toast notification or a generic error message
-            console.error("Login failed:", err);
+            console.error("Registration failed:", err);
         }
     };
 
@@ -35,17 +34,26 @@ export default function LoginPage() {
                         </svg>
                     </div>
                     <h1 className="text-3xl font-bold text-white">Diet Management</h1>
-                    <p className="text-slate-400 mt-2">Sign in to your account</p>
+                    <p className="text-slate-400 mt-2">Create a new account</p>
                 </div>
 
-                {/* Login Card */}
+                {/* Registration Card */}
                 <div className="bg-white/10 backdrop-blur-xl rounded-2xl shadow-2xl p-8 border border-white/20">
                     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-                        {/* {error && (
-                            <div className="bg-red-500/20 border border-red-500/50 rounded-lg p-4">
-                                <p className="text-red-300 text-sm">{error}</p>
-                            </div>
-                        )} */}
+                        <div>
+                            <label htmlFor="name" className="block text-sm font-medium text-slate-300 mb-2">
+                                Full Name
+                            </label>
+                            <input
+                                id="name"
+                                type="text"
+                                {...register('name')}
+                                required
+                                className="w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent transition-all"
+                                placeholder="John Doe"
+                            />
+                            {errors.name && <p className="text-red-300 text-sm mt-1">{errors.name.message}</p>}
+                        </div>
 
                         <div>
                             <label htmlFor="email" className="block text-sm font-medium text-slate-300 mb-2">
@@ -57,7 +65,7 @@ export default function LoginPage() {
                                 {...register('email')}
                                 required
                                 className="w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent transition-all"
-                                placeholder="admin@dietapp.com"
+                                placeholder="john.doe@example.com"
                             />
                             {errors.email && <p className="text-red-300 text-sm mt-1">{errors.email.message}</p>}
                         </div>
@@ -77,39 +85,44 @@ export default function LoginPage() {
                             {errors.password && <p className="text-red-300 text-sm mt-1">{errors.password.message}</p>}
                         </div>
 
-                        <div className="flex items-center justify-between">
-                            <label className="flex items-center">
-                                <input type="checkbox" className="rounded bg-white/10 border-white/20 text-emerald-400 focus:ring-emerald-400" />
-                                <span className="ml-2 text-sm text-slate-400">Remember me</span>
+                        <div>
+                            <label htmlFor="confirmPassword" className="block text-sm font-medium text-slate-300 mb-2">
+                                Confirm Password
                             </label>
-                            <a href="#" className="text-sm text-emerald-400 hover:text-emerald-300">
-                                Forgot password?
-                            </a>
+                            <input
+                                id="confirmPassword"
+                                type="password"
+                                {...register('confirmPassword')}
+                                required
+                                className="w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent transition-all"
+                                placeholder="••••••••"
+                            />
+                            {errors.confirmPassword && <p className="text-red-300 text-sm mt-1">{errors.confirmPassword.message}</p>}
                         </div>
 
                         <button
                             type="submit"
-                            disabled={loginMutation.isPending}
+                            disabled={registerMutation.isPending} // Assuming registerMutation has an isPending property
                             className="w-full py-3 px-4 rounded-lg bg-gradient-to-r from-emerald-400 to-cyan-400 text-white font-semibold hover:from-emerald-500 hover:to-cyan-500 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:ring-offset-2 focus:ring-offset-slate-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all transform hover:scale-[1.02]"
                         >
-                            {loginMutation.isPending ? (
+                            {registerMutation.isPending ? (
                                 <span className="flex items-center justify-center">
                                     <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
                                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                     </svg>
-                                    Signing in...
+                                    Registering...
                                 </span>
                             ) : (
-                                'Sign In'
+                                'Register'
                             )}
                         </button>
                     </form>
 
                     <div className="mt-6 pt-6 border-t border-white/10 text-center">
                         <p className="text-sm text-slate-400">
-                            Don't have an account? {' '}
-                            <a href="/register" className="text-emerald-400 hover:text-emerald-300">Sign Up</a>
+                            Already have an account? {' '}
+                            <a href="/login" className="text-emerald-400 hover:text-emerald-300">Sign In</a>
                         </p>
                     </div>
                 </div>

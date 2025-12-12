@@ -1,12 +1,18 @@
 'use client';
 
-import { useUsers } from '@/lib/api-hooks';
+import { useUsers, useCreateUser } from '@/lib/api-hooks';
 import Link from 'next/link';
 import { Button } from '@ui/components/Button';
 import { Card } from '@ui/components/Card';
+import React, { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { createUserSchema, CreateUserFormInputs } from '@/lib/validationSchemas';
+import { Input } from '@ui/components/Input';
 
 export default function UsersPage() {
     const { data: users, isLoading, error } = useUsers();
+    const [showCreateUserModal, setShowCreateUserModal] = useState(false);
 
     if (isLoading) {
         return (
@@ -31,7 +37,7 @@ export default function UsersPage() {
                     <h1 className="text-3xl font-bold tracking-tight text-gray-900">Users</h1>
                     <p className="text-gray-500 mt-1">Manage system users (Admins, Dietitians, Clients)</p>
                 </div>
-                <Button onClick={() => window.alert('Create User functionality coming soon')}>Add User</Button>
+                <Button onClick={() => setShowCreateUserModal(true)}>Add User</Button>
             </div>
 
             <Card className="overflow-hidden border-gray-200 shadow-sm">
@@ -92,6 +98,82 @@ export default function UsersPage() {
                     </table>
                 </div>
             </Card>
+
+            {showCreateUserModal && (
+                <CreateUserModal
+                    onClose={() => setShowCreateUserModal(false)}
+                />
+            )}
+        </div>
+    );
+}
+
+function CreateUserModal({ onClose }: { onClose: () => void }) {
+    const createUserMutation = useCreateUser();
+
+    const { register, handleSubmit, formState: { errors } } = useForm<CreateUserFormInputs>({
+        resolver: zodResolver(createUserSchema),
+        defaultValues: {
+            role: 'CLIENT',
+        },
+    });
+
+    const onSubmit = async (data: CreateUserFormInputs) => {
+        try {
+            await createUserMutation.mutateAsync(data);
+            onClose();
+        } catch (err: any) {
+            alert(`Error creating user: ${err?.detail || err?.message || 'Unknown error'}`);
+        }
+    };
+
+    return (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 w-full max-w-md shadow-xl">
+                <h2 className="text-xl font-bold mb-4">Create New User</h2>
+                <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+                    <div>
+                        <label htmlFor="firstName" className="block text-sm font-medium text-gray-700">First Name *</label>
+                        <Input id="firstName" {...register('firstName')} required />
+                        {errors.firstName && <p className="text-red-500 text-sm mt-1">{errors.firstName.message}</p>}
+                    </div>
+                    <div>
+                        <label htmlFor="lastName" className="block text-sm font-medium text-gray-700">Last Name *</label>
+                        <Input id="lastName" {...register('lastName')} required />
+                        {errors.lastName && <p className="text-red-500 text-sm mt-1">{errors.lastName.message}</p>}
+                    </div>
+                    <div>
+                        <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email *</label>
+                        <Input id="email" type="email" {...register('email')} required />
+                        {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>}
+                    </div>
+                    <div>
+                        <label htmlFor="password" className="block text-sm font-medium text-gray-700">Password *</label>
+                        <Input id="password" type="password" {...register('password')} required />
+                        {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password.message}</p>}
+                    </div>
+                    <div>
+                        <label htmlFor="role" className="block text-sm font-medium text-gray-700">Role *</label>
+                        <select
+                            id="role"
+                            {...register('role')}
+                            required
+                            className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
+                        >
+                            <option value="CLIENT">Client</option>
+                            <option value="DIETITIAN">Dietitian</option>
+                            <option value="ADMIN">Admin</option>
+                        </select>
+                        {errors.role && <p className="text-red-500 text-sm mt-1">{errors.role.message}</p>}
+                    </div>
+                    <div className="flex justify-end space-x-3 mt-6">
+                        <Button type="button" variant="ghost" onClick={onClose}>Cancel</Button>
+                        <Button type="submit" disabled={createUserMutation.isPending}>
+                            {createUserMutation.isPending ? 'Creating...' : 'Create User'}
+                        </Button>
+                    </div>
+                </form>
+            </div>
         </div>
     );
 }

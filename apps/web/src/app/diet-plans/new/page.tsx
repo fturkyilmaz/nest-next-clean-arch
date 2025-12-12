@@ -5,8 +5,10 @@ import { Button } from '@ui/components/Button';
 import { Input } from '@ui/components/Input';
 import { Card } from '@ui/components/Card';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
 import Link from 'next/link';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { createDietPlanSchema, CreateDietPlanFormInputs } from '@/lib/validationSchemas';
 
 export default function CreateDietPlanPage() {
     const router = useRouter();
@@ -14,50 +16,30 @@ export default function CreateDietPlanPage() {
     const { data: clients } = useClients();
     const { data: currentUser } = useCurrentUser();
 
-    const [formData, setFormData] = useState({
-        name: '',
-        description: '',
-        clientId: '',
-        startDate: '',
-        endDate: '',
-        // Nutritional Goals
-        targetCalories: '',
-        targetProtein: '',
-        targetCarbs: '',
-        targetFat: '',
-        targetFiber: ''
+    const { register, handleSubmit, formState: { errors } } = useForm<CreateDietPlanFormInputs>({
+        resolver: zodResolver(createDietPlanSchema),
     });
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-        const { name, value } = e.target;
-        setFormData(prev => ({ ...prev, [name]: value }));
-    };
-
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-
+    const onSubmit = (data: CreateDietPlanFormInputs) => {
         if (!currentUser?.id) {
             alert('Error: Could not determine current dietitian');
             return;
         }
 
         const nutritionalGoals = {
-            targetCalories: formData.targetCalories ? Number(formData.targetCalories) : undefined,
-            targetProtein: formData.targetProtein ? Number(formData.targetProtein) : undefined,
-            targetCarbs: formData.targetCarbs ? Number(formData.targetCarbs) : undefined,
-            targetFat: formData.targetFat ? Number(formData.targetFat) : undefined,
-            targetFiber: formData.targetFiber ? Number(formData.targetFiber) : undefined,
+            targetCalories: data.targetCalories ? Number(data.targetCalories) : undefined,
+            targetProtein: data.targetProtein ? Number(data.targetProtein) : undefined,
+            targetCarbs: data.targetCarbs ? Number(data.targetCarbs) : undefined,
+            targetFat: data.targetFat ? Number(data.targetFat) : undefined,
+            targetFiber: data.targetFiber ? Number(data.targetFiber) : undefined,
         };
 
-        // Filter out undefined values if the API doesn't like them, or just send partial object
-        // Actually interface expects object with optional keys.
-
         createMutation.mutate({
-            name: formData.name,
-            description: formData.description,
-            clientId: formData.clientId,
-            startDate: formData.startDate,
-            endDate: formData.endDate || undefined,
+            name: data.name,
+            description: data.description || undefined,
+            clientId: data.clientId,
+            startDate: data.startDate,
+            endDate: data.endDate || undefined,
             nutritionalGoals: Object.values(nutritionalGoals).some(v => v !== undefined) ? nutritionalGoals : undefined
         }, {
             onSuccess: () => {
@@ -82,7 +64,7 @@ export default function CreateDietPlanPage() {
             </div>
 
             <Card className="p-6">
-                <form onSubmit={handleSubmit} className="space-y-8">
+                <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
                     {/* Basic Info */}
                     <div className="space-y-4">
                         <h3 className="text-lg font-medium text-gray-900 border-b pb-2">Plan Details</h3>
@@ -90,9 +72,7 @@ export default function CreateDietPlanPage() {
                             <div className="space-y-2">
                                 <label className="text-sm font-medium leading-none text-gray-700">Client *</label>
                                 <select
-                                    name="clientId"
-                                    value={formData.clientId}
-                                    onChange={handleChange}
+                                    {...register('clientId')}
                                     required
                                     className="flex h-10 w-full rounded-md border border-gray-300 bg-transparent px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
                                 >
@@ -103,30 +83,33 @@ export default function CreateDietPlanPage() {
                                         </option>
                                     ))}
                                 </select>
+                                {errors.clientId && <p className="text-red-500 text-sm mt-1">{errors.clientId.message}</p>}
                             </div>
                             <div className="space-y-2">
                                 <label className="text-sm font-medium leading-none text-gray-700">Plan Name *</label>
-                                <Input name="name" value={formData.name} onChange={handleChange} required placeholder="Weight Loss Phase 1" />
+                                <Input {...register('name')} required placeholder="Weight Loss Phase 1" />
+                                {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name.message}</p>}
                             </div>
                             <div className="space-y-2">
                                 <label className="text-sm font-medium leading-none text-gray-700">Description</label>
                                 <textarea
-                                    name="description"
-                                    value={formData.description}
-                                    onChange={handleChange}
+                                    {...register('description')}
                                     rows={3}
                                     className="flex w-full rounded-md border border-gray-300 bg-transparent px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
                                     placeholder="Weekly plan description..."
                                 />
+                                {errors.description && <p className="text-red-500 text-sm mt-1">{errors.description.message}</p>}
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-2">
                                     <label className="text-sm font-medium leading-none text-gray-700">Start Date *</label>
-                                    <Input name="startDate" type="date" value={formData.startDate} onChange={handleChange} required />
+                                    <Input {...register('startDate')} type="date" required />
+                                {errors.startDate && <p className="text-red-500 text-sm mt-1">{errors.startDate.message}</p>}
                                 </div>
                                 <div className="space-y-2">
                                     <label className="text-sm font-medium leading-none text-gray-700">End Date</label>
-                                    <Input name="endDate" type="date" value={formData.endDate} onChange={handleChange} />
+                                    <Input {...register('endDate')} type="date" />
+                                {errors.endDate && <p className="text-red-500 text-sm mt-1">{errors.endDate.message}</p>}
                                 </div>
                             </div>
                         </div>
@@ -138,23 +121,28 @@ export default function CreateDietPlanPage() {
                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                             <div className="space-y-2">
                                 <label className="text-sm font-medium leading-none text-gray-700">Calories (kcal)</label>
-                                <Input name="targetCalories" type="number" value={formData.targetCalories} onChange={handleChange} placeholder="2000" />
+                                <Input {...register('targetCalories')} type="number" placeholder="2000" />
+                                {errors.targetCalories && <p className="text-red-500 text-sm mt-1">{errors.targetCalories.message}</p>}
                             </div>
                             <div className="space-y-2">
                                 <label className="text-sm font-medium leading-none text-gray-700">Protein (g)</label>
-                                <Input name="targetProtein" type="number" value={formData.targetProtein} onChange={handleChange} placeholder="150" />
+                                <Input {...register('targetProtein')} type="number" placeholder="150" />
+                                {errors.targetProtein && <p className="text-red-500 text-sm mt-1">{errors.targetProtein.message}</p>}
                             </div>
                             <div className="space-y-2">
                                 <label className="text-sm font-medium leading-none text-gray-700">Carbs (g)</label>
-                                <Input name="targetCarbs" type="number" value={formData.targetCarbs} onChange={handleChange} placeholder="200" />
+                                <Input {...register('targetCarbs')} type="number" placeholder="200" />
+                                {errors.targetCarbs && <p className="text-red-500 text-sm mt-1">{errors.targetCarbs.message}</p>}
                             </div>
                             <div className="space-y-2">
                                 <label className="text-sm font-medium leading-none text-gray-700">Fat (g)</label>
-                                <Input name="targetFat" type="number" value={formData.targetFat} onChange={handleChange} placeholder="70" />
+                                <Input {...register('targetFat')} type="number" placeholder="70" />
+                                {errors.targetFat && <p className="text-red-500 text-sm mt-1">{errors.targetFat.message}</p>}
                             </div>
                             <div className="space-y-2">
                                 <label className="text-sm font-medium leading-none text-gray-700">Fiber (g)</label>
-                                <Input name="targetFiber" type="number" value={formData.targetFiber} onChange={handleChange} placeholder="30" />
+                                <Input {...register('targetFiber')} type="number" placeholder="30" />
+                                {errors.targetFiber && <p className="text-red-500 text-sm mt-1">{errors.targetFiber.message}</p>}
                             </div>
                         </div>
                     </div>
