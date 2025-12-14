@@ -10,16 +10,69 @@ import {
 } from 'react-native';
 import { useUsers } from '../lib/api-hooks';
 import { MagnifyingGlassIcon, UserIcon, ArrowRightIcon } from 'react-native-heroicons/outline';
+import { useForm, Controller } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+
+// Custom Input Component (copied from AddClientScreen.tsx, should be shared)
+const CustomInput = ({ label, placeholder, keyboardType, autoCapitalize, multiline, numberOfLines, icon, onChange, onBlur, value, error }: {
+    label?: string;
+    placeholder?: string;
+    onChange: (...event: any[]) => void;
+    onBlur: (...event: any[]) => void;
+    value: string;
+    keyboardType?: 'default' | 'email-address' | 'numeric' | 'phone-pad';
+    autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters';
+    multiline?: boolean;
+    numberOfLines?: number;
+    icon?: React.ReactNode;
+    error?: string;
+}) => (
+    <View className="mb-5">
+        {label && <Text className="text-gray-300 text-base font-semibold mb-2">{label}</Text>}
+        <View className="flex-row items-center bg-gray-800 rounded-xl px-4 border border-gray-700">
+            {icon && <View className="mr-3">{icon}</View>}
+            <TextInput
+                onBlur={onBlur}
+                onChangeText={onChange}
+                value={value}
+                placeholder={placeholder}
+                placeholderTextColor="#a1a1aa"
+                keyboardType={keyboardType}
+                autoCapitalize={autoCapitalize}
+                multiline={multiline}
+                numberOfLines={numberOfLines}
+                className={`flex-1 text-white text-base py-3 ${multiline ? 'h-24 align-top' : ''}`}
+                style={multiline ? { textAlignVertical: 'top' } : {}}
+            />
+        </View>
+        {error && <Text className="text-red-400 text-sm mt-1">{error}</Text>}
+    </View>
+);
+
+const searchSchema = z.object({
+    searchTerm: z.string().optional(),
+});
+
+type SearchFormInputs = z.infer<typeof searchSchema>;
 
 export default function UsersScreen({ navigation }: any) {
     const { data: users, isLoading, refetch } = useUsers();
-    const [searchTerm, setSearchTerm] = useState('');
     const [refreshing, setRefreshing] = useState(false);
+
+    const { control, watch } = useForm<SearchFormInputs>({
+        resolver: zodResolver(searchSchema),
+        defaultValues: {
+            searchTerm: '',
+        },
+    });
+
+    const searchTerm = watch('searchTerm');
 
     const filteredUsers = users?.filter((user: any) =>
         `${user.firstName} ${user.lastName} ${user.email}`
             .toLowerCase()
-            .includes(searchTerm.toLowerCase())
+            .includes(searchTerm?.toLowerCase() || '')
     );
 
     const onRefresh = async () => {
@@ -38,16 +91,19 @@ export default function UsersScreen({ navigation }: any) {
 
             {/* Search */}
             <View className="px-6 pt-4 pb-4">
-                <View className="flex-row items-center bg-gray-800 rounded-xl px-4 py-3 border border-gray-700">
-                    <MagnifyingGlassIcon size={20} color="#a1a1aa" className="mr-3" />
-                    <TextInput
-                        value={searchTerm}
-                        onChangeText={setSearchTerm}
-                        placeholder="Search users..."
-                        placeholderTextColor="#a1a1aa"
-                        className="flex-1 text-white text-base"
-                    />
-                </View>
+                <Controller
+                    control={control}
+                    name="searchTerm"
+                    render={({ field: { onChange, onBlur, value } }) => (
+                        <CustomInput
+                            placeholder="Search users..."
+                            value={value}
+                            onChange={onChange}
+                            onBlur={onBlur}
+                            icon={<MagnifyingGlassIcon size={20} color="#a1a1aa" />}
+                        />
+                    )}
+                />
             </View>
 
             <ScrollView

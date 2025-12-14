@@ -130,6 +130,11 @@ export interface CreateDietPlanRequest {
     };
 }
 
+export interface ChangePasswordRequest {
+    currentPassword: string;
+    newPassword: string;
+}
+
 /**
  * Create configured API client instance
  */
@@ -292,6 +297,10 @@ export class ApiService {
     async completeDietPlan(id: string): Promise<DietPlan> {
         const res = await this.client.post<DietPlan>(`/diet-plans/${id}/complete`);
         return res.data;
+    }
+
+    async changePassword(data: ChangePasswordRequest): Promise<void> {
+        await this.client.post('/auth/change-password', data);
     }
 
     // Health

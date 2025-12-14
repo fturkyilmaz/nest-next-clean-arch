@@ -36,7 +36,15 @@ export default function ClientDetailScreen({ route, navigation }: any) {
                 <Text className="text-2xl font-bold text-white ml-3">Client Details</Text>
             </View>
 
-            <View className="p-6 pb-24">
+                <View className="p-6 pb-24">
+                    <View className="flex-row justify-end mb-4">
+                        <TouchableOpacity
+                            onPress={() => navigation.navigate('EditClient', { clientId: client.id })}
+                            className="bg-blue-600 px-4 py-2 rounded-lg shadow-md active:bg-blue-500"
+                        >
+                            <Text className="text-white font-semibold text-sm">Edit Client</Text>
+                        </TouchableOpacity>
+                    </View>
                 {/* Client Profile Summary */}
                 <View className="bg-gray-800 rounded-3xl p-6 mb-8 shadow-xl flex-row items-center">
                     <View className="w-20 h-20 rounded-full bg-primary-600 items-center justify-center mr-5 shadow-md">

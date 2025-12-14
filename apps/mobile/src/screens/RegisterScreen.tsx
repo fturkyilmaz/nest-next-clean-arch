@@ -9,27 +9,25 @@ import {
     Platform,
     StyleSheet,
 } from 'react-native';
-import { useLogin } from '../lib/api-hooks';
-import { HeartIcon, EnvelopeIcon, LockClosedIcon } from 'react-native-heroicons/outline';
-import { Checkbox } from 'expo-checkbox';
+import { useRegister } from '../lib/api-hooks'; // Assuming useRegister hook exists or will be created
+import { HeartIcon, UserIcon, EnvelopeIcon, LockClosedIcon } from 'react-native-heroicons/outline';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { loginSchema, LoginFormInputs } from '../lib/validationSchemas';
+import { registrationSchema, RegistrationFormInputs } from '../lib/validationSchemas';
 
-export default function LoginScreen({ navigation }: any) {
-    const loginMutation = useLogin();
-    const [rememberMe, setRememberMe] = React.useState(false);
+export default function RegisterScreen({ navigation }: any) {
+    const registerMutation = useRegister(); // This will need to be implemented or mocked
 
-    const { control, handleSubmit, formState: { errors } } = useForm<LoginFormInputs>({
-        resolver: zodResolver(loginSchema),
+    const { control, handleSubmit, formState: { errors } } = useForm<RegistrationFormInputs>({
+        resolver: zodResolver(registrationSchema),
     });
 
-    const handleLogin = async (data: LoginFormInputs) => {
+    const handleRegister = async (data: RegistrationFormInputs) => {
         try {
-            await loginMutation.mutateAsync(data);
-            navigation.replace('MainTabs');
+            await registerMutation.mutateAsync(data);
+            navigation.replace('Login'); // Redirect to login after successful registration
         } catch (err: any) {
-            console.error("Login failed:", err);
+            console.error("Registration failed:", err);
         }
     };
 
@@ -47,15 +45,37 @@ export default function LoginScreen({ navigation }: any) {
                         <HeartIcon size={48} color="#ffffff" />
                     </View>
                     <Text className="text-4xl font-extrabold text-white mb-2">Diet Management</Text>
-                    <Text className="text-gray-300 text-lg">Sign in to your account</Text>
+                    <Text className="text-gray-300 text-lg">Create a new account</Text>
                 </View>
 
-                {/* Login Form Container */}
+                {/* Registration Form Container */}
                 <View className="bg-gray-800/60 rounded-3xl p-8 shadow-2xl backdrop-blur-lg border border-gray-700/50">
-                    {/* Error */}
                     {/* Error handling can be added here if needed for server-side errors */}
 
                     {/* Form Fields */}
+                    <View className="mb-6">
+                        <Text className="text-gray-300 text-base font-semibold mb-2">Full Name</Text>
+                        <Controller
+                            control={control}
+                            name="name"
+                            render={({ field: { onChange, onBlur, value } }) => (
+                                <View className="flex-row items-center bg-gray-700 rounded-xl px-4 border border-gray-600">
+                                    <UserIcon size={20} color="#a1a1aa" className="mr-3" />
+                                    <TextInput
+                                        onBlur={onBlur}
+                                        onChangeText={onChange}
+                                        value={value}
+                                        placeholder="John Doe"
+                                        placeholderTextColor="#a1a1aa"
+                                        autoCapitalize="words"
+                                        className="flex-1 text-white text-base py-3"
+                                    />
+                                </View>
+                            )}
+                        />
+                        {errors.name && <Text className="text-red-400 text-sm mt-1">{errors.name.message}</Text>}
+                    </View>
+
                     <View className="mb-6">
                         <Text className="text-gray-300 text-base font-semibold mb-2">Email Address</Text>
                         <Controller
@@ -68,7 +88,7 @@ export default function LoginScreen({ navigation }: any) {
                                         onBlur={onBlur}
                                         onChangeText={onChange}
                                         value={value}
-                                        placeholder="admin@dietapp.com"
+                                        placeholder="john.doe@example.com"
                                         placeholderTextColor="#a1a1aa"
                                         keyboardType="email-address"
                                         autoCapitalize="none"
@@ -103,57 +123,57 @@ export default function LoginScreen({ navigation }: any) {
                         {errors.password && <Text className="text-red-400 text-sm mt-1">{errors.password.message}</Text>}
                     </View>
 
-                    {/* Remember me and Forgot password */}
-                    <View className="flex-row justify-between items-center mb-8">
-                        <TouchableOpacity className="flex-row items-center" onPress={() => setRememberMe(!rememberMe)}>
-                            <Checkbox
-                                value={rememberMe}
-                                onValueChange={setRememberMe}
-                                color={rememberMe ? '#34d399' : '#a1a1aa'}
-                                className="rounded-md mr-2"
-                            />
-                            <Text className="text-gray-300 text-sm">Remember me</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity>
-                            <Text className="text-primary-400 text-sm font-semibold">Forgot password?</Text>
-                        </TouchableOpacity>
+                    <View className="mb-8">
+                        <Text className="text-gray-300 text-base font-semibold mb-2">Confirm Password</Text>
+                        <Controller
+                            control={control}
+                            name="confirmPassword"
+                            render={({ field: { onChange, onBlur, value } }) => (
+                                <View className="flex-row items-center bg-gray-700 rounded-xl px-4 border border-gray-600">
+                                    <LockClosedIcon size={20} color="#a1a1aa" className="mr-3" />
+                                    <TextInput
+                                        onBlur={onBlur}
+                                        onChangeText={onChange}
+                                        value={value}
+                                        placeholder="••••••••"
+                                        placeholderTextColor="#a1a1aa"
+                                        secureTextEntry
+                                        className="flex-1 text-white text-base py-3"
+                                    />
+                                </View>
+                            )}
+                        />
+                        {errors.confirmPassword && <Text className="text-red-400 text-sm mt-1">{errors.confirmPassword.message}</Text>}
                     </View>
 
-                    {/* Sign In Button */}
+                    {/* Register Button */}
                     <TouchableOpacity
-                        onPress={handleSubmit(handleLogin)}
-                        disabled={loginMutation.isPending}
+                        onPress={handleSubmit(handleRegister)}
+                        disabled={registerMutation.isPending}
                         className="bg-gradient-to-r from-secondary-500 to-primary-500 rounded-xl py-4 shadow-lg active:from-secondary-600 active:to-primary-600"
                     >
-                        {loginMutation.isPending ? (
+                        {registerMutation.isPending ? (
                             <ActivityIndicator color="white" size="small" />
                         ) : (
                             <Text className="text-white text-center font-bold text-lg">
-                                Sign In
+                                Register
                             </Text>
                         )}
                     </TouchableOpacity>
 
-                    {/* Demo credentials */}
-                    <View className="mt-8 bg-gray-700/50 rounded-xl p-4">
-                        <Text className="text-gray-300 text-center text-sm mb-3">Demo Credentials:</Text>
-                        <View className="flex-row justify-center space-x-4">
-                            <View className="items-center">
-                                <Text className="text-gray-400 text-xs">Admin</Text>
-                                <Text className="text-white font-medium text-sm">admin@dietapp.com</Text>
-                            </View>
-                            <View className="items-center">
-                                <Text className="text-gray-400 text-xs">Password</Text>
-                                <Text className="text-white font-medium text-sm">Admin123!@#</Text>
-                            </View>
-                        </View>
+                    <View className="mt-8 text-center">
+                        <Text className="text-gray-300 text-base">
+                            Already have an account? {' '}
+                            <Text
+                                className="text-primary-400 font-semibold"
+                                onPress={() => navigation.navigate('Login')}
+                            >
+                                Sign In
+                            </Text>
+                        </Text>
                     </View>
                 </View>
             </View>
         </KeyboardAvoidingView>
     );
 }
-
-const styles = StyleSheet.create({
-    // No custom styles needed beyond NativeWind
-});

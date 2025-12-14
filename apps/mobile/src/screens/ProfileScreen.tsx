@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
     View,
     Text,
@@ -6,6 +6,8 @@ import {
     TouchableOpacity,
     ActivityIndicator,
     Alert,
+    Modal,
+    TextInput
 } from 'react-native';
 import {
     UserCircleIcon,
@@ -20,11 +22,15 @@ import {
     ClipboardDocumentListIcon,
     ArrowRightIcon,
 } from 'react-native-heroicons/outline';
-import { useCurrentUser, useLogout, clearTokens } from '../lib/api-hooks';
+import { useCurrentUser, useLogout, useChangePassword } from '../lib/api-hooks';
+import { useForm, Controller } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { changePasswordSchema, ChangePasswordFormInputs } from '../lib/validationSchemas';
 
 export default function ProfileScreen({ navigation }: any) {
     const { data: user, isLoading } = useCurrentUser();
     const logoutMutation = useLogout();
+    const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
 
     const handleLogout = () => {
         Alert.alert(
@@ -92,7 +98,7 @@ export default function ProfileScreen({ navigation }: any) {
                     <Text className="text-xl font-bold text-white p-6 pb-4">Settings</Text>
 
                     <SettingItem icon={<BellIcon size={20} color="#a1a1aa" />} label="Notifications" value="" />
-                    <SettingItem icon={<LockClosedIcon size={20} color="#a1a1aa" />} label="Change Password" value="" />
+                    <SettingItem icon={<LockClosedIcon size={20} color="#a1a1aa" />} label="Change Password" value="" onPress={() => setShowChangePasswordModal(true)} />
                     <SettingItem icon={<MoonIcon size={20} color="#a1a1aa" />} label="Dark Mode" value="On" isLast={true} />
                 </View>
 
@@ -141,14 +147,17 @@ function InfoRow({ icon, label, value, valueColor, isLast }: {
 }
 
 // Helper component for setting items
-function SettingItem({ icon, label, value, isLast }: {
+function SettingItem({ icon, label, value, isLast, onPress }: {
     icon: React.ReactNode;
     label: string;
     value?: string;
     isLast?: boolean;
+    onPress?: () => void;
 }) {
     return (
-        <TouchableOpacity className={`flex-row items-center justify-between p-4 active:bg-gray-700 ${!isLast ? 'border-b border-gray-700' : ''}`}>
+        <TouchableOpacity className={`flex-row items-center justify-between p-4 active:bg-gray-700 ${!isLast ? 'border-b border-gray-700' : ''}`}
+            onPress={onPress}
+        >
             <View className="flex-row items-center">
                 {icon}
                 <Text className="text-white text-base ml-3">{label}</Text>

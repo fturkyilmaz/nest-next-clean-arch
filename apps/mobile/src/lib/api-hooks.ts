@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { createApiClient, ApiService, LoginRequest, CreateClientRequest, CreateDietPlanRequest, ClientMetrics } from './api-client';
+import { createApiClient, ApiService, LoginRequest, CreateClientRequest, CreateDietPlanRequest, ClientMetrics, CreateUserRequest, RegisterRequest, ChangePasswordRequest } from './api-client';
 
 // Create API client for mobile
 const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
@@ -125,6 +125,18 @@ export function useCreateClient() {
     });
 }
 
+export function useUpdateClient(id: string) {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (data: Partial<CreateClientRequest>) => api.updateClient(id, data),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['clients'] });
+            queryClient.invalidateQueries({ queryKey: ['clients', id] });
+        },
+    });
+}
+
+
 export function useClientMetrics(clientId: string) {
     return useQuery({
         queryKey: ['clients', clientId, 'metrics'],
@@ -177,6 +189,18 @@ export function useCreateDietPlan() {
     });
 }
 
+export function useUpdateDietPlan(id: string) {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (data: Partial<CreateDietPlanRequest>) => api.updateDietPlan(id, data),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['dietPlans'] });
+            queryClient.invalidateQueries({ queryKey: ['dietPlans', id] });
+        },
+    });
+}
+
+
 export function useActivateDietPlan() {
     const queryClient = useQueryClient();
     return useMutation({
@@ -196,6 +220,21 @@ export function useCompleteDietPlan() {
         },
     });
 }
+
+export function useChangePassword() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (data: ChangePasswordRequest) => api.changePassword(data),
+        onSuccess: () => {
+            Alert.alert('Success', 'Password changed successfully.');
+            queryClient.invalidateQueries({ queryKey: ['currentUser'] });
+        },
+        onError: (error: any) => {
+            Alert.alert('Error', error.detail || error.message || 'Failed to change password.');
+        },
+    });
+}
+
 
 export function useHealthCheck() {
     return useQuery({

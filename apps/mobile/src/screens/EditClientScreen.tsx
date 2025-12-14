@@ -1,94 +1,111 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, TextInput, ActivityIndicator, Alert } from 'react-native';
-import { useCreateClient, useCurrentUser } from '../lib/api-hooks';
+import { useClient, useUpdateClient } from '../lib/api-hooks';
 import { ChevronLeftIcon, CheckIcon, UserIcon, EnvelopeIcon, PhoneIcon, CalendarIcon, IdentificationIcon, TagIcon, DocumentTextIcon } from 'react-native-heroicons/outline';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { createClientSchema, CreateClientFormInputs } from '../lib/validationSchemas';
+import { updateClientSchema, UpdateClientFormInputs } from '../lib/validationSchemas';
 
-export default function AddClientScreen({ navigation }: any) {
-    const createMutation = useCreateClient();
-    const { data: currentUser } = useCurrentUser();
+// Custom Input Component (reused from AddClientScreen.tsx, assuming it's defined elsewhere or in a shared component)
+const CustomInput = ({ label, placeholder, keyboardType, autoCapitalize, multiline, numberOfLines, icon, onChange, onBlur, value, error }: {
+    label: string;
+    placeholder?: string;
+    onChange: (...event: any[]) => void;
+    onBlur: (...event: any[]) => void;
+    value: string;
+    keyboardType?: 'default' | 'email-address' | 'numeric' | 'phone-pad';
+    autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters';
+    multiline?: boolean;
+    numberOfLines?: number;
+    icon?: React.ReactNode;
+    error?: string;
+}) => (
+    <View className="mb-5">
+        <Text className="text-gray-300 text-base font-semibold mb-2">{label}</Text>
+        <View className="flex-row items-center bg-gray-800 rounded-xl px-4 border border-gray-700">
+            {icon && <View className="mr-3">{icon}</View>}
+            <TextInput
+                onBlur={onBlur}
+                onChangeText={onChange}
+                value={value}
+                placeholder={placeholder}
+                placeholderTextColor="#a1a1aa"
+                keyboardType={keyboardType}
+                autoCapitalize={autoCapitalize}
+                multiline={multiline}
+                numberOfLines={numberOfLines}
+                className={`flex-1 text-white text-base py-3 ${multiline ? 'h-24 align-top' : ''}`}
+                style={multiline ? { textAlignVertical: 'top' } : {}}
+            />
+        </View>
+        {error && <Text className="text-red-400 text-sm mt-1">{error}</Text>}
+    </View>
+);
 
-    const { control, handleSubmit, formState: { errors } } = useForm<CreateClientFormInputs>({
-        resolver: zodResolver(createClientSchema),
-        defaultValues: {
-            gender: 'MALE',
-            firstName: '',
-            lastName: '',
-            email: '',
-            phone: '',
-            dateOfBirth: '',
-            allergies: '',
-            conditions: '',
-            medications: '',
-            notes: ''
-        }
+export default function EditClientScreen({ route, navigation }: any) {
+    const { clientId } = route.params;
+    const { data: client, isLoading, error: fetchError } = useClient(clientId);
+    const updateMutation = useUpdateClient(clientId);
+
+    const { control, handleSubmit, reset, formState: { errors } } = useForm<UpdateClientFormInputs>({
+        resolver: zodResolver(updateClientSchema),
     });
 
-    const onSubmit = async (data: CreateClientFormInputs) => {
-        if (!currentUser?.id) {
-            Alert.alert('Error', 'Could not identify current user. Please re-login.');
-            return;
+    useEffect(() => {
+        if (client) {
+            reset({
+                firstName: client.firstName,
+                lastName: client.lastName,
+                phone: client.phone || '',
+                dateOfBirth: client.dateOfBirth ? new Date(client.dateOfBirth).toISOString().split('T')[0] : '',
+                gender: client.gender || 'MALE',
+                allergies: client.allergies ? client.allergies.join(', ') : '',
+                conditions: client.conditions ? client.conditions.join(', ') : '',
+                medications: client.medications ? client.medications.join(', ') : '',
+                notes: client.notes || '',
+            });
         }
+    }, [client, reset]);
 
+    const onSubmit = async (data: UpdateClientFormInputs) => {
         try {
-            await createMutation.mutateAsync({
+            await updateMutation.mutateAsync({
                 firstName: data.firstName,
                 lastName: data.lastName,
-                email: data.email,
                 phone: data.phone || undefined,
                 dateOfBirth: data.dateOfBirth || undefined,
                 gender: data.gender,
-                dietitianId: currentUser.id,
                 allergies: data.allergies ? data.allergies.split(',').map(s => s.trim()) : [],
                 conditions: data.conditions ? data.conditions.split(',').map(s => s.trim()) : [],
                 medications: data.medications ? data.medications.split(',').map(s => s.trim()) : [],
-                notes: data.notes || undefined
+                notes: data.notes || undefined,
             });
-            Alert.alert('Success', 'Client created successfully', [
+            Alert.alert('Success', 'Client updated successfully', [
                 { text: 'OK', onPress: () => navigation.goBack() }
             ]);
         } catch (err: any) {
-            Alert.alert('Error', err.detail || err.message || 'Failed to create client');
+            Alert.alert('Error', err.detail || err.message || 'Failed to update client');
         }
     };
 
-    // Custom Input Component
-    const CustomInput = ({ label, placeholder, keyboardType, autoCapitalize, multiline, numberOfLines, icon, onChange, onBlur, value, error }: {
-        label: string;
-        placeholder?: string;
-        onChange: (...event: any[]) => void;
-        onBlur: (...event: any[]) => void;
-        value: string;
-        keyboardType?: 'default' | 'email-address' | 'numeric' | 'phone-pad';
-        autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters';
-        multiline?: boolean;
-        numberOfLines?: number;
-        icon?: React.ReactNode;
-        error?: string;
-    }) => (
-        <View className="mb-5">
-            <Text className="text-gray-300 text-base font-semibold mb-2">{label}</Text>
-            <View className="flex-row items-center bg-gray-800 rounded-xl px-4 border border-gray-700">
-                {icon && <View className="mr-3">{icon}</View>}
-                <TextInput
-                    onBlur={onBlur}
-                    onChangeText={onChange}
-                    value={value}
-                    placeholder={placeholder}
-                    placeholderTextColor="#a1a1aa"
-                    keyboardType={keyboardType}
-                    autoCapitalize={autoCapitalize}
-                    multiline={multiline}
-                    numberOfLines={numberOfLines}
-                    className={`flex-1 text-white text-base py-3 ${multiline ? 'h-24 align-top' : ''}`}
-                    style={multiline ? { textAlignVertical: 'top' } : {}}
-                />
+    if (isLoading) {
+        return (
+            <View className="flex-1 bg-gray-900 items-center justify-center">
+                <ActivityIndicator size="large" color="#6366f1" />
             </View>
-            {error && <Text className="text-red-400 text-sm mt-1">{error}</Text>}
-        </View>
-    );
+        );
+    }
+
+    if (fetchError || !client) {
+        return (
+            <View className="flex-1 bg-gray-900 items-center justify-center p-6">
+                <Text className="text-red-400 text-lg mb-4">Error loading client profile. Please try again.</Text>
+                <TouchableOpacity onPress={() => navigation.goBack()} className="mt-4 bg-primary-700 px-6 py-3 rounded-full shadow-md active:bg-primary-600">
+                    <Text className="text-white font-semibold text-base">Go Back</Text>
+                </TouchableOpacity>
+            </View>
+        );
+    }
 
     return (
         <View className="flex-1 bg-gray-900">
@@ -97,9 +114,9 @@ export default function AddClientScreen({ navigation }: any) {
                 <TouchableOpacity onPress={() => navigation.goBack()} className="p-2 -ml-2">
                     <ChevronLeftIcon size={24} color="#d1d5db" />
                 </TouchableOpacity>
-                <Text className="text-2xl font-bold text-white">Add New Client</Text>
-                <TouchableOpacity onPress={handleSubmit(onSubmit)} disabled={createMutation.isPending} className="p-2 -mr-2">
-                    {createMutation.isPending ? (
+                <Text className="text-2xl font-bold text-white ml-3">Edit Client</Text>
+                <TouchableOpacity onPress={handleSubmit(onSubmit)} disabled={updateMutation.isPending} className="p-2 -mr-2">
+                    {updateMutation.isPending ? (
                         <ActivityIndicator color="#34d399" />
                     ) : (
                         <CheckIcon size={24} color="#34d399" />
@@ -138,23 +155,6 @@ export default function AddClientScreen({ navigation }: any) {
                                 onBlur={onBlur}
                                 icon={<UserIcon size={20} color="#a1a1aa" />}
                                 error={errors.lastName?.message}
-                            />
-                        )}
-                    />
-                    <Controller
-                        control={control}
-                        name="email"
-                        render={({ field: { onChange, onBlur, value } }) => (
-                            <CustomInput
-                                label="Email *"
-                                placeholder="john@example.com"
-                                value={value}
-                                onChange={onChange}
-                                onBlur={onBlur}
-                                keyboardType="email-address"
-                                autoCapitalize="none"
-                                icon={<EnvelopeIcon size={20} color="#a1a1aa" />}
-                                error={errors.email?.message}
                             />
                         )}
                     />
@@ -204,7 +204,7 @@ export default function AddClientScreen({ navigation }: any) {
                                 name="gender"
                                 render={({ field: { onChange, value } }) => (
                                     <View className="flex-row bg-gray-800 rounded-xl border border-gray-700 overflow-hidden">
-                                        {['MALE', 'FEMALE'].map((g) => (
+                                        {['MALE', 'FEMALE', 'OTHER'].map((g) => (
                                             <TouchableOpacity
                                                 key={g}
                                                 onPress={() => onChange(g)}
@@ -213,7 +213,7 @@ export default function AddClientScreen({ navigation }: any) {
                                                 }`}
                                             >
                                                 <Text className={`text-base font-bold ${value === g ? 'text-white' : 'text-gray-400'}`}>
-                                                    {g === 'MALE' ? 'M' : 'F'}
+                                                    {g === 'MALE' ? 'M' : g === 'FEMALE' ? 'F' : 'O'}
                                                 </Text>
                                             </TouchableOpacity>
                                         ))}

@@ -92,7 +92,8 @@ export default function DietPlanDetailScreen({ route, navigation }: any) {
                             <Text className="text-white font-bold mt-2 text-sm">Complete Plan</Text>
                         </TouchableOpacity>
                     )}
-                    <TouchableOpacity className="flex-1 bg-gray-700 py-4 rounded-xl items-center shadow-md active:bg-gray-600">
+                    <TouchableOpacity className="flex-1 bg-gray-700 py-4 rounded-xl items-center shadow-md active:bg-gray-600"
+                        onPress={() => navigation.navigate('EditDietPlan', { planId: plan.id })}>
                         <PencilSquareIcon size={24} color="#d1d5db" />
                         <Text className="text-gray-300 font-bold mt-2 text-sm">Edit Plan</Text>
                     </TouchableOpacity>

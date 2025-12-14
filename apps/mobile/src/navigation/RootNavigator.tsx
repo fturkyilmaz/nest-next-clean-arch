@@ -15,9 +15,13 @@ import ProgressScreen from "../screens/ProgressScreen";
 import UsersScreen from "../screens/UsersScreen";
 import DietPlanDetailScreen from "../screens/DietPlanDetailScreen";
 import CreateDietPlanScreen from "../screens/CreateDietPlanScreen";
+import EditDietPlanScreen from "../screens/EditDietPlanScreen";
 import ClientDetailScreen from "../screens/ClientDetailScreen";
 import AddClientScreen from "../screens/AddClientScreen";
 import LoginScreen from "../screens/LoginScreen";
+import RegisterScreen from "../screens/RegisterScreen";
+import EditClientScreen from "../screens/EditClientScreen";
+import { CalculatorIcon, ChartBarIcon, ClipboardDocumentListIcon, HomeIcon, UserGroupIcon } from "react-native-heroicons/outline";
 
 const Stack = createNativeStackNavigator<RootStackParamList>() as any;
 const Tab = createBottomTabNavigator<MainTabParamList>() as any;
@@ -30,7 +34,7 @@ function AuthNavigator() {
     return (
         <AuthStack.Navigator screenOptions={{ headerShown: false }}>
             <AuthStack.Screen name="Login" component={LoginScreen} />
-            {/* Add RegisterScreen and ForgotPasswordScreen here if they exist */}
+            <AuthStack.Screen name="Register" component={RegisterScreen} />
         </AuthStack.Navigator>
     );
 }
@@ -41,7 +45,7 @@ function AuthNavigator() {
 function MainTabNavigator() {
     return (
         <Tab.Navigator
-            screenOptions={({ route }) => ({
+            screenOptions={({ route }: { route: any }) => ({
                 headerShown: false,
                 tabBarActiveTintColor: "#818cf8", // Indigo 400
                 tabBarInactiveTintColor: "#a1a1aa", // Zinc 400
@@ -56,7 +60,7 @@ function MainTabNavigator() {
                     fontSize: 10,
                     fontWeight: "600",
                 },
-                tabBarIcon: ({ color, size }) => {
+                tabBarIcon: ({ color, size }: { color: string; size: number }) => {
                     let IconComponent;
 
                     if (route.name === 'Home') {
@@ -135,8 +139,10 @@ export default function RootNavigator() {
                         <Stack.Screen name="Users" component={UsersScreen} />
                         <Stack.Screen name="DietPlanDetail" component={DietPlanDetailScreen} />
                         <Stack.Screen name="CreateDietPlan" component={CreateDietPlanScreen} />
+                        <Stack.Screen name="EditDietPlan" component={EditDietPlanScreen} />
                         <Stack.Screen name="ClientDetail" component={ClientDetailScreen} />
                         <Stack.Screen name="AddClient" component={AddClientScreen} />
+                        <Stack.Screen name="EditClient" component={EditClientScreen} />
                     </Stack.Group>
                 ) : (
                     // User is not authenticated

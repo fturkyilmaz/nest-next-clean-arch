@@ -11,12 +11,14 @@ export type RootStackParamList = {
     // Detail screens
     DietPlanDetail: { planId: string };
     CreateDietPlan: undefined;
+    EditDietPlan: { planId: string };
     MealDetails: { mealId: string };
     Profile: undefined;
     Settings: undefined;
     Users: undefined;
     ClientDetail: { clientId: string };
     AddClient: undefined;
+    EditClient: { clientId: string };
 };
 
 /**
