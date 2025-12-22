@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { PassportModule } from '@nestjs/passport';
-import { JwtModule, JwtService } from '@nestjs/jwt'; // Added JwtService here
+import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { RepositoryModule } from '@infrastructure/repositories/RepositoryModule';
 import { AuthService, JwtStrategy } from '@infrastructure/auth';
@@ -9,8 +9,6 @@ import { LoginUseCase } from '@application/use-cases/auth/LoginUseCase';
 import { RefreshTokenUseCase } from '@application/use-cases/auth/RefreshTokenUseCase';
 import { JwtAuthService } from '@infrastructure/auth/JwtAuthService';
 import { PrismaUserRepository } from '@infrastructure/repositories';
-import { IJwtService } from '@application/interfaces/services/IJwtService';
-import { IUserRepository } from '@application/interfaces/IUserRepository';
 
 @Module({
   imports: [
@@ -26,6 +24,7 @@ import { IUserRepository } from '@application/interfaces/IUserRepository';
     }),
     RepositoryModule,
   ],
+  controllers: [AuthController], 
   providers: [
     { provide: 'IUserRepository', useClass: PrismaUserRepository },
     { provide: 'IJwtService', useClass: JwtAuthService },
@@ -39,8 +38,8 @@ import { IUserRepository } from '@application/interfaces/IUserRepository';
     JwtStrategy,
     PassportModule,
     'IJwtService',
-    JwtModule, // 🔑 export edilmeli
+    JwtModule,
     'IUserRepository',
   ],
 })
-export class AuthModule { }
+export class AuthModule {}

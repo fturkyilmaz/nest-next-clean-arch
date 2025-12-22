@@ -1,12 +1,39 @@
 import { Controller, Post, Body, HttpCode, HttpStatus } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { AuthService } from '@infrastructure/auth/AuthService';
-import { LoginDto, LoginResponseDto, RefreshTokenDto, RefreshTokenResponseDto } from '@application/dto/AuthDto';
+import {
+  LoginDto,
+  LoginResponseDto,
+  RefreshTokenDto,
+  RefreshTokenResponseDto,
+  RegisterDto,
+  RegisterResponseDto,
+} from '@application/dto/AuthDto';
 
 @ApiTags('Authentication')
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
+
+  @Post('register')
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ summary: 'User registration' })
+  @ApiResponse({
+    status: 201,
+    description: 'User registered successfully',
+    type: RegisterResponseDto,
+  })
+  @ApiResponse({ status: 409, description: 'Email already registered' })
+  async register(@Body() registerDto: RegisterDto): Promise<RegisterResponseDto> {
+    const result = await this.authService.register(registerDto);
+
+    return {
+      accessToken: result.accessToken,
+      refreshToken: result.refreshToken,
+      expiresIn: result.expiresIn,
+      user: result.user,
+    };
+  }
 
   @Post('login')
   @HttpCode(HttpStatus.OK)
@@ -54,11 +81,6 @@ export class AuthController {
   @ApiOperation({ summary: 'User logout' })
   @ApiResponse({ status: 204, description: 'Logout successful' })
   async logout(): Promise<void> {
-    // In a stateless JWT implementation, logout is handled client-side
-    // by removing the token. For a more robust solution, you could:
-    // 1. Implement a token blacklist
-    // 2. Use Redis to store active tokens
-    // 3. Implement token revocation
     return;
   }
 }

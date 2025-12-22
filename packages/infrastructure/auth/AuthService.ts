@@ -1,10 +1,22 @@
-import { Injectable, UnauthorizedException, Inject } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import * as bcrypt from 'bcrypt';
+import {
+  Injectable,
+  UnauthorizedException,
+  Inject,
+  ConflictException,
+} from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import * as bcrypt from "bcrypt";
 
-import { JwtPayload, TokenResult, IJwtService } from '@application/interfaces/services/IJwtService';
-import { IUserRepository } from '@application/interfaces/IUserRepository';
-
+import {
+  JwtPayload,
+  TokenResult,
+  IJwtService,
+} from "@application/interfaces/services/IJwtService";
+import { IUserRepository } from "@application/interfaces/IUserRepository";
+import { RegisterDto, RegisterResponseDto } from "@application/dto/AuthDto";
+import { Role } from "prisma/generated/prisma/enums";
+import { Email, Password } from "@domain/value-objects";
+import { User, UserRole } from "@domain/entities/User.entity";
 export interface LoginResult extends TokenResult {
   user: {
     id: string;
@@ -15,7 +27,7 @@ export interface LoginResult extends TokenResult {
   };
 }
 
-export interface RefreshTokenResult extends TokenResult { }
+export interface RefreshTokenResult extends TokenResult {}
 
 export interface ValidatedUser {
   userId: string;
@@ -33,31 +45,86 @@ export class AuthService {
   private readonly refreshExpiresIn: string;
 
   constructor(
-    @Inject('IUserRepository') private readonly userRepository: IUserRepository,
-    @Inject('IJwtService') private readonly jwtAuthService: IJwtService,
+    @Inject("IUserRepository") private readonly userRepository: IUserRepository,
+    @Inject("IJwtService") private readonly jwtAuthService: IJwtService,
     private readonly configService: ConfigService
   ) {
-    this.jwtSecret = this.configService.get<string>('JWT_SECRET', 'fallback-secret');
-    this.jwtExpiresIn = this.configService.get<string>('JWT_EXPIRES_IN', '1h');
-    this.refreshSecret = this.configService.get<string>('JWT_REFRESH_SECRET', 'fallback-refresh');
-    this.refreshExpiresIn = this.configService.get<string>('JWT_REFRESH_EXPIRES_IN', '7d');
+    this.jwtSecret = this.configService.get<string>(
+      "JWT_SECRET",
+      "fallback-secret"
+    );
+    this.jwtExpiresIn = this.configService.get<string>("JWT_EXPIRES_IN", "1h");
+    this.refreshSecret = this.configService.get<string>(
+      "JWT_REFRESH_SECRET",
+      "fallback-refresh"
+    );
+    this.refreshExpiresIn = this.configService.get<string>(
+      "JWT_REFRESH_EXPIRES_IN",
+      "7d"
+    );
+  }
+
+  async register(dto: RegisterDto): Promise<RegisterResponseDto> {
+    const existing = await this.userRepository.findByEmail(dto.email);
+    if (existing) {
+      throw new ConflictException("Email already registered");
+    }
+
+    const hashedPassword = await bcrypt.hash(dto.password, 10);
+
+    const user = User.create({
+      id: crypto.randomUUID(),
+      email: Email.create(dto.email).getValue(),
+      password: Password.fromHash(hashedPassword),
+      firstName: dto.firstName,
+      lastName: dto.lastName,
+      role: dto.role as UserRole,
+      isActive: true,
+    });
+
+    // Token üret
+    const payload: JwtPayload = {
+      sub: user.getId(),
+      username: user.getEmail().getValue(),
+    };
+    const { accessToken, refreshToken, expiresIn } =
+      this.jwtAuthService.generateTokens(payload);
+
+    return {
+      accessToken,
+      refreshToken,
+      expiresIn,
+      user: {
+        id: user.getId(),
+        email: user.getEmail().getValue(),
+        firstName: user.getFirstName(),
+        lastName: user.getLastName(),
+        role: user.getRole(),
+      },
+    };
   }
 
   async login(email: string, password: string): Promise<LoginResult> {
-    // IUserRepository interface'inde findByEmail tanımlı
     const user = await this.userRepository.findByEmail(email);
 
     if (!user || !user.isActive()) {
-      throw new UnauthorizedException('Invalid credentials');
+      throw new UnauthorizedException("Invalid credentials");
     }
 
-    const isPasswordValid = await bcrypt.compare(password, user.getPassword().getValue());
+    const isPasswordValid = await bcrypt.compare(
+      password,
+      user.getPassword().getValue()
+    );
     if (!isPasswordValid) {
-      throw new UnauthorizedException('Invalid credentials');
+      throw new UnauthorizedException("Invalid credentials");
     }
 
-    const payload: JwtPayload = { sub: user.getId(), username: user.getEmail().getValue() };
-    const { accessToken, refreshToken, expiresIn } = this.jwtAuthService.generateTokens(payload);
+    const payload: JwtPayload = {
+      sub: user.getId(),
+      username: user.getEmail().getValue(),
+    };
+    const { accessToken, refreshToken, expiresIn } =
+      this.jwtAuthService.generateTokens(payload);
 
     return {
       accessToken,
@@ -79,11 +146,18 @@ export class AuthService {
       const user = await this.userRepository.findById(sub);
 
       if (!user || !user.isActive()) {
-        throw new UnauthorizedException('Invalid refresh token');
+        throw new UnauthorizedException("Invalid refresh token");
       }
 
-      const newPayload: JwtPayload = { sub: user.getId(), username: user.getEmail().getValue() };
-      const { accessToken, refreshToken: newRefreshToken, expiresIn } = this.jwtAuthService.generateTokens(newPayload);
+      const newPayload: JwtPayload = {
+        sub: user.getId(),
+        username: user.getEmail().getValue(),
+      };
+      const {
+        accessToken,
+        refreshToken: newRefreshToken,
+        expiresIn,
+      } = this.jwtAuthService.generateTokens(newPayload);
 
       return {
         accessToken,
@@ -91,10 +165,10 @@ export class AuthService {
         expiresIn,
       };
     } catch (error: any) {
-      if (error.name === 'TokenExpiredError') {
-        throw new UnauthorizedException('Refresh token expired');
+      if (error.name === "TokenExpiredError") {
+        throw new UnauthorizedException("Refresh token expired");
       }
-      throw new UnauthorizedException('Invalid refresh token');
+      throw new UnauthorizedException("Invalid refresh token");
     }
   }
 
@@ -116,11 +190,16 @@ export class AuthService {
     const value = parseInt(expiresIn.slice(0, -1));
 
     switch (unit) {
-      case 's': return value;
-      case 'm': return value * 60;
-      case 'h': return value * 3600;
-      case 'd': return value * 86400;
-      default: return 3600; // default 1 hour
+      case "s":
+        return value;
+      case "m":
+        return value * 60;
+      case "h":
+        return value * 3600;
+      case "d":
+        return value * 86400;
+      default:
+        return 3600; // default 1 hour
     }
   }
 }

@@ -23,7 +23,7 @@ import { RequestLoggingMiddleware } from '@infrastructure/middleware/RequestLogg
     // Global configuration
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: '.env',
+      envFilePath: 'apps/api/.env',
     }),
 
     // Rate limiting 
