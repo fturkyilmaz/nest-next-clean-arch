@@ -8,10 +8,6 @@ import {
 } from '@nestjs/common';
 import { Request, Response } from 'express';
 
-/**
- * RFC 7807 Problem Details for HTTP APIs
- * https://tools.ietf.org/html/rfc7807
- */
 export interface ProblemDetails {
   type: string;
   title: string;
@@ -23,6 +19,7 @@ export interface ProblemDetails {
   method: string;
   errors?: any;
   stack?: string;
+  cause?: any;
 }
 
 @Catch()
@@ -48,16 +45,22 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       errors,
     };
 
+    console.log(exception);
+
+    // Development ortamında daha fazla trace
     if (process.env.NODE_ENV === 'development' && exception instanceof Error) {
       problemDetails.stack = exception.stack;
       problemDetails.title = exception.name;
       problemDetails.errors = {
         message: exception.message,
         name: exception.name,
+        ...(errors && { validation: errors }),
       };
+      if ((exception as any).cause) {
+        problemDetails.cause = (exception as any).cause;
+      }
     }
 
-    // Log error (her ortamda)
     this.logger.error(
       `${request.method} ${request.url} - ${status} - ${message}`,
       exception instanceof Error ? exception.stack : undefined,

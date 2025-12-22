@@ -2,18 +2,17 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@infrastructure/database/PrismaService';
 import { PrismaRepositoryBase } from './PrismaRepositoryBase';
 import { User } from '@domain/entities/User.entity';
-import { User as PrismaUser } from '@prisma/client';
+import { User as PrismaUser,Role as UserRole } from '@prisma/client'; // Prisma enum'u da import et
 import { Email } from '@domain/value-objects/Email.vo';
 import { Password } from '@domain/value-objects/Password.vo';
 import { IUserRepository } from '@application/interfaces/IUserRepository';
-import { UserByEmailSpec } from '@application/interfaces/repositories/common/IRepositorySpecification';
 import { Prisma } from 'prisma/generated/prisma/client';
 
-/**
- * User Repository using Generic Base
- */
 @Injectable()
-export class PrismaUserRepository extends PrismaRepositoryBase<PrismaUser, User, string> implements IUserRepository {
+export class PrismaUserRepository
+  extends PrismaRepositoryBase<PrismaUser, User, string>
+  implements IUserRepository
+{
   constructor(prisma: PrismaService) {
     super(prisma, 'user');
   }
@@ -28,7 +27,7 @@ export class PrismaUserRepository extends PrismaRepositoryBase<PrismaUser, User,
       password: Password.fromHash(model.password),
       firstName: model.firstName,
       lastName: model.lastName,
-      role: model.role,
+      role: model.role as UserRole, // Prisma enum ile uyumlu hale getir
       isActive: model.isActive,
       createdAt: model.createdAt,
       updatedAt: model.updatedAt,
@@ -42,16 +41,27 @@ export class PrismaUserRepository extends PrismaRepositoryBase<PrismaUser, User,
       password: domain.getPassword().getValue(),
       firstName: domain.getFirstName(),
       lastName: domain.getLastName(),
-      role: domain.getRole(),
+      role: domain.getRole() as UserRole,
       isActive: domain.isActive(),
     };
   }
 
   async findByEmail(email: string): Promise<User | null> {
-    return this.findOne(new UserByEmailSpec(email));
+    const model = await this.prisma.user.findUnique({
+      where: { email },
+    });
+    return model ? this.toDomain(model) : null;
   }
 
   async existsByEmail(email: string): Promise<boolean> {
-    return this.exists(new UserByEmailSpec(email));
+    const model = await this.prisma.user.findUnique({
+      where: { email },
+      select: { id: true },
+    });
+    return !!model;
+  }
+
+  async count(): Promise<number> {
+    return this.prisma.user.count();
   }
 }
