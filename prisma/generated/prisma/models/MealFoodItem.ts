@@ -224,8 +224,8 @@ export type MealFoodItemWhereInput = {
   quantity?: Prisma.FloatFilter<"MealFoodItem"> | number
   notes?: Prisma.StringNullableFilter<"MealFoodItem"> | string | null
   createdAt?: Prisma.DateTimeFilter<"MealFoodItem"> | Date | string
-  meal?: Prisma.XOR<Prisma.MealScalarRelationFilter, Prisma.MealWhereInput>
   foodItem?: Prisma.XOR<Prisma.FoodItemScalarRelationFilter, Prisma.FoodItemWhereInput>
+  meal?: Prisma.XOR<Prisma.MealScalarRelationFilter, Prisma.MealWhereInput>
 }
 
 export type MealFoodItemOrderByWithRelationInput = {
@@ -235,8 +235,8 @@ export type MealFoodItemOrderByWithRelationInput = {
   quantity?: Prisma.SortOrder
   notes?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
-  meal?: Prisma.MealOrderByWithRelationInput
   foodItem?: Prisma.FoodItemOrderByWithRelationInput
+  meal?: Prisma.MealOrderByWithRelationInput
 }
 
 export type MealFoodItemWhereUniqueInput = Prisma.AtLeast<{
@@ -250,8 +250,8 @@ export type MealFoodItemWhereUniqueInput = Prisma.AtLeast<{
   quantity?: Prisma.FloatFilter<"MealFoodItem"> | number
   notes?: Prisma.StringNullableFilter<"MealFoodItem"> | string | null
   createdAt?: Prisma.DateTimeFilter<"MealFoodItem"> | Date | string
-  meal?: Prisma.XOR<Prisma.MealScalarRelationFilter, Prisma.MealWhereInput>
   foodItem?: Prisma.XOR<Prisma.FoodItemScalarRelationFilter, Prisma.FoodItemWhereInput>
+  meal?: Prisma.XOR<Prisma.MealScalarRelationFilter, Prisma.MealWhereInput>
 }, "id" | "mealId_foodItemId">
 
 export type MealFoodItemOrderByWithAggregationInput = {
@@ -285,8 +285,8 @@ export type MealFoodItemCreateInput = {
   quantity: number
   notes?: string | null
   createdAt?: Date | string
-  meal: Prisma.MealCreateNestedOneWithoutFoodItemsInput
   foodItem: Prisma.FoodItemCreateNestedOneWithoutMealFoodItemsInput
+  meal: Prisma.MealCreateNestedOneWithoutFoodItemsInput
 }
 
 export type MealFoodItemUncheckedCreateInput = {
@@ -303,8 +303,8 @@ export type MealFoodItemUpdateInput = {
   quantity?: Prisma.FloatFieldUpdateOperationsInput | number
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  meal?: Prisma.MealUpdateOneRequiredWithoutFoodItemsNestedInput
   foodItem?: Prisma.FoodItemUpdateOneRequiredWithoutMealFoodItemsNestedInput
+  meal?: Prisma.MealUpdateOneRequiredWithoutFoodItemsNestedInput
 }
 
 export type MealFoodItemUncheckedUpdateInput = {
@@ -644,8 +644,8 @@ export type MealFoodItemSelect<ExtArgs extends runtime.Types.Extensions.Internal
   quantity?: boolean
   notes?: boolean
   createdAt?: boolean
-  meal?: boolean | Prisma.MealDefaultArgs<ExtArgs>
   foodItem?: boolean | Prisma.FoodItemDefaultArgs<ExtArgs>
+  meal?: boolean | Prisma.MealDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["mealFoodItem"]>
 
 export type MealFoodItemSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -655,8 +655,8 @@ export type MealFoodItemSelectCreateManyAndReturn<ExtArgs extends runtime.Types.
   quantity?: boolean
   notes?: boolean
   createdAt?: boolean
-  meal?: boolean | Prisma.MealDefaultArgs<ExtArgs>
   foodItem?: boolean | Prisma.FoodItemDefaultArgs<ExtArgs>
+  meal?: boolean | Prisma.MealDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["mealFoodItem"]>
 
 export type MealFoodItemSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -666,8 +666,8 @@ export type MealFoodItemSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.
   quantity?: boolean
   notes?: boolean
   createdAt?: boolean
-  meal?: boolean | Prisma.MealDefaultArgs<ExtArgs>
   foodItem?: boolean | Prisma.FoodItemDefaultArgs<ExtArgs>
+  meal?: boolean | Prisma.MealDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["mealFoodItem"]>
 
 export type MealFoodItemSelectScalar = {
@@ -681,23 +681,23 @@ export type MealFoodItemSelectScalar = {
 
 export type MealFoodItemOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "mealId" | "foodItemId" | "quantity" | "notes" | "createdAt", ExtArgs["result"]["mealFoodItem"]>
 export type MealFoodItemInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  meal?: boolean | Prisma.MealDefaultArgs<ExtArgs>
   foodItem?: boolean | Prisma.FoodItemDefaultArgs<ExtArgs>
+  meal?: boolean | Prisma.MealDefaultArgs<ExtArgs>
 }
 export type MealFoodItemIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  meal?: boolean | Prisma.MealDefaultArgs<ExtArgs>
   foodItem?: boolean | Prisma.FoodItemDefaultArgs<ExtArgs>
+  meal?: boolean | Prisma.MealDefaultArgs<ExtArgs>
 }
 export type MealFoodItemIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  meal?: boolean | Prisma.MealDefaultArgs<ExtArgs>
   foodItem?: boolean | Prisma.FoodItemDefaultArgs<ExtArgs>
+  meal?: boolean | Prisma.MealDefaultArgs<ExtArgs>
 }
 
 export type $MealFoodItemPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "MealFoodItem"
   objects: {
-    meal: Prisma.$MealPayload<ExtArgs>
     foodItem: Prisma.$FoodItemPayload<ExtArgs>
+    meal: Prisma.$MealPayload<ExtArgs>
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1100,8 +1100,8 @@ readonly fields: MealFoodItemFieldRefs;
  */
 export interface Prisma__MealFoodItemClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
-  meal<T extends Prisma.MealDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.MealDefaultArgs<ExtArgs>>): Prisma.Prisma__MealClient<runtime.Types.Result.GetResult<Prisma.$MealPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   foodItem<T extends Prisma.FoodItemDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.FoodItemDefaultArgs<ExtArgs>>): Prisma.Prisma__FoodItemClient<runtime.Types.Result.GetResult<Prisma.$FoodItemPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  meal<T extends Prisma.MealDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.MealDefaultArgs<ExtArgs>>): Prisma.Prisma__MealClient<runtime.Types.Result.GetResult<Prisma.$MealPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.

@@ -270,10 +270,10 @@ export type ClientWhereInput = {
   createdAt?: Prisma.DateTimeFilter<"Client"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Client"> | Date | string
   deletedAt?: Prisma.DateTimeNullableFilter<"Client"> | Date | string | null
-  dietitian?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
-  metrics?: Prisma.ClientMetricsListRelationFilter
-  dietPlans?: Prisma.DietPlanListRelationFilter
   appointments?: Prisma.AppointmentListRelationFilter
+  metrics?: Prisma.ClientMetricsListRelationFilter
+  dietitian?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
+  dietPlans?: Prisma.DietPlanListRelationFilter
 }
 
 export type ClientOrderByWithRelationInput = {
@@ -293,10 +293,10 @@ export type ClientOrderByWithRelationInput = {
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   deletedAt?: Prisma.SortOrderInput | Prisma.SortOrder
-  dietitian?: Prisma.UserOrderByWithRelationInput
-  metrics?: Prisma.ClientMetricsOrderByRelationAggregateInput
-  dietPlans?: Prisma.DietPlanOrderByRelationAggregateInput
   appointments?: Prisma.AppointmentOrderByRelationAggregateInput
+  metrics?: Prisma.ClientMetricsOrderByRelationAggregateInput
+  dietitian?: Prisma.UserOrderByWithRelationInput
+  dietPlans?: Prisma.DietPlanOrderByRelationAggregateInput
 }
 
 export type ClientWhereUniqueInput = Prisma.AtLeast<{
@@ -319,10 +319,10 @@ export type ClientWhereUniqueInput = Prisma.AtLeast<{
   createdAt?: Prisma.DateTimeFilter<"Client"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Client"> | Date | string
   deletedAt?: Prisma.DateTimeNullableFilter<"Client"> | Date | string | null
-  dietitian?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
-  metrics?: Prisma.ClientMetricsListRelationFilter
-  dietPlans?: Prisma.DietPlanListRelationFilter
   appointments?: Prisma.AppointmentListRelationFilter
+  metrics?: Prisma.ClientMetricsListRelationFilter
+  dietitian?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
+  dietPlans?: Prisma.DietPlanListRelationFilter
 }, "id" | "email">
 
 export type ClientOrderByWithAggregationInput = {
@@ -385,10 +385,10 @@ export type ClientCreateInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
-  dietitian: Prisma.UserCreateNestedOneWithoutClientsInput
-  metrics?: Prisma.ClientMetricsCreateNestedManyWithoutClientInput
-  dietPlans?: Prisma.DietPlanCreateNestedManyWithoutClientInput
   appointments?: Prisma.AppointmentCreateNestedManyWithoutClientInput
+  metrics?: Prisma.ClientMetricsCreateNestedManyWithoutClientInput
+  dietitian: Prisma.UserCreateNestedOneWithoutClientsInput
+  dietPlans?: Prisma.DietPlanCreateNestedManyWithoutClientInput
 }
 
 export type ClientUncheckedCreateInput = {
@@ -408,9 +408,9 @@ export type ClientUncheckedCreateInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
+  appointments?: Prisma.AppointmentUncheckedCreateNestedManyWithoutClientInput
   metrics?: Prisma.ClientMetricsUncheckedCreateNestedManyWithoutClientInput
   dietPlans?: Prisma.DietPlanUncheckedCreateNestedManyWithoutClientInput
-  appointments?: Prisma.AppointmentUncheckedCreateNestedManyWithoutClientInput
 }
 
 export type ClientUpdateInput = {
@@ -429,10 +429,10 @@ export type ClientUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  dietitian?: Prisma.UserUpdateOneRequiredWithoutClientsNestedInput
-  metrics?: Prisma.ClientMetricsUpdateManyWithoutClientNestedInput
-  dietPlans?: Prisma.DietPlanUpdateManyWithoutClientNestedInput
   appointments?: Prisma.AppointmentUpdateManyWithoutClientNestedInput
+  metrics?: Prisma.ClientMetricsUpdateManyWithoutClientNestedInput
+  dietitian?: Prisma.UserUpdateOneRequiredWithoutClientsNestedInput
+  dietPlans?: Prisma.DietPlanUpdateManyWithoutClientNestedInput
 }
 
 export type ClientUncheckedUpdateInput = {
@@ -452,9 +452,9 @@ export type ClientUncheckedUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  appointments?: Prisma.AppointmentUncheckedUpdateManyWithoutClientNestedInput
   metrics?: Prisma.ClientMetricsUncheckedUpdateManyWithoutClientNestedInput
   dietPlans?: Prisma.DietPlanUncheckedUpdateManyWithoutClientNestedInput
-  appointments?: Prisma.AppointmentUncheckedUpdateManyWithoutClientNestedInput
 }
 
 export type ClientCreateManyInput = {
@@ -693,9 +693,9 @@ export type ClientCreateWithoutDietitianInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
+  appointments?: Prisma.AppointmentCreateNestedManyWithoutClientInput
   metrics?: Prisma.ClientMetricsCreateNestedManyWithoutClientInput
   dietPlans?: Prisma.DietPlanCreateNestedManyWithoutClientInput
-  appointments?: Prisma.AppointmentCreateNestedManyWithoutClientInput
 }
 
 export type ClientUncheckedCreateWithoutDietitianInput = {
@@ -714,9 +714,9 @@ export type ClientUncheckedCreateWithoutDietitianInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
+  appointments?: Prisma.AppointmentUncheckedCreateNestedManyWithoutClientInput
   metrics?: Prisma.ClientMetricsUncheckedCreateNestedManyWithoutClientInput
   dietPlans?: Prisma.DietPlanUncheckedCreateNestedManyWithoutClientInput
-  appointments?: Prisma.AppointmentUncheckedCreateNestedManyWithoutClientInput
 }
 
 export type ClientCreateOrConnectWithoutDietitianInput = {
@@ -783,9 +783,9 @@ export type ClientCreateWithoutMetricsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
+  appointments?: Prisma.AppointmentCreateNestedManyWithoutClientInput
   dietitian: Prisma.UserCreateNestedOneWithoutClientsInput
   dietPlans?: Prisma.DietPlanCreateNestedManyWithoutClientInput
-  appointments?: Prisma.AppointmentCreateNestedManyWithoutClientInput
 }
 
 export type ClientUncheckedCreateWithoutMetricsInput = {
@@ -805,8 +805,8 @@ export type ClientUncheckedCreateWithoutMetricsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
-  dietPlans?: Prisma.DietPlanUncheckedCreateNestedManyWithoutClientInput
   appointments?: Prisma.AppointmentUncheckedCreateNestedManyWithoutClientInput
+  dietPlans?: Prisma.DietPlanUncheckedCreateNestedManyWithoutClientInput
 }
 
 export type ClientCreateOrConnectWithoutMetricsInput = {
@@ -841,9 +841,9 @@ export type ClientUpdateWithoutMetricsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  appointments?: Prisma.AppointmentUpdateManyWithoutClientNestedInput
   dietitian?: Prisma.UserUpdateOneRequiredWithoutClientsNestedInput
   dietPlans?: Prisma.DietPlanUpdateManyWithoutClientNestedInput
-  appointments?: Prisma.AppointmentUpdateManyWithoutClientNestedInput
 }
 
 export type ClientUncheckedUpdateWithoutMetricsInput = {
@@ -863,8 +863,8 @@ export type ClientUncheckedUpdateWithoutMetricsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  dietPlans?: Prisma.DietPlanUncheckedUpdateManyWithoutClientNestedInput
   appointments?: Prisma.AppointmentUncheckedUpdateManyWithoutClientNestedInput
+  dietPlans?: Prisma.DietPlanUncheckedUpdateManyWithoutClientNestedInput
 }
 
 export type ClientCreateWithoutDietPlansInput = {
@@ -883,9 +883,9 @@ export type ClientCreateWithoutDietPlansInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
-  dietitian: Prisma.UserCreateNestedOneWithoutClientsInput
-  metrics?: Prisma.ClientMetricsCreateNestedManyWithoutClientInput
   appointments?: Prisma.AppointmentCreateNestedManyWithoutClientInput
+  metrics?: Prisma.ClientMetricsCreateNestedManyWithoutClientInput
+  dietitian: Prisma.UserCreateNestedOneWithoutClientsInput
 }
 
 export type ClientUncheckedCreateWithoutDietPlansInput = {
@@ -905,8 +905,8 @@ export type ClientUncheckedCreateWithoutDietPlansInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
-  metrics?: Prisma.ClientMetricsUncheckedCreateNestedManyWithoutClientInput
   appointments?: Prisma.AppointmentUncheckedCreateNestedManyWithoutClientInput
+  metrics?: Prisma.ClientMetricsUncheckedCreateNestedManyWithoutClientInput
 }
 
 export type ClientCreateOrConnectWithoutDietPlansInput = {
@@ -941,9 +941,9 @@ export type ClientUpdateWithoutDietPlansInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  dietitian?: Prisma.UserUpdateOneRequiredWithoutClientsNestedInput
-  metrics?: Prisma.ClientMetricsUpdateManyWithoutClientNestedInput
   appointments?: Prisma.AppointmentUpdateManyWithoutClientNestedInput
+  metrics?: Prisma.ClientMetricsUpdateManyWithoutClientNestedInput
+  dietitian?: Prisma.UserUpdateOneRequiredWithoutClientsNestedInput
 }
 
 export type ClientUncheckedUpdateWithoutDietPlansInput = {
@@ -963,8 +963,8 @@ export type ClientUncheckedUpdateWithoutDietPlansInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  metrics?: Prisma.ClientMetricsUncheckedUpdateManyWithoutClientNestedInput
   appointments?: Prisma.AppointmentUncheckedUpdateManyWithoutClientNestedInput
+  metrics?: Prisma.ClientMetricsUncheckedUpdateManyWithoutClientNestedInput
 }
 
 export type ClientCreateWithoutAppointmentsInput = {
@@ -983,8 +983,8 @@ export type ClientCreateWithoutAppointmentsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
-  dietitian: Prisma.UserCreateNestedOneWithoutClientsInput
   metrics?: Prisma.ClientMetricsCreateNestedManyWithoutClientInput
+  dietitian: Prisma.UserCreateNestedOneWithoutClientsInput
   dietPlans?: Prisma.DietPlanCreateNestedManyWithoutClientInput
 }
 
@@ -1041,8 +1041,8 @@ export type ClientUpdateWithoutAppointmentsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  dietitian?: Prisma.UserUpdateOneRequiredWithoutClientsNestedInput
   metrics?: Prisma.ClientMetricsUpdateManyWithoutClientNestedInput
+  dietitian?: Prisma.UserUpdateOneRequiredWithoutClientsNestedInput
   dietPlans?: Prisma.DietPlanUpdateManyWithoutClientNestedInput
 }
 
@@ -1101,9 +1101,9 @@ export type ClientUpdateWithoutDietitianInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  appointments?: Prisma.AppointmentUpdateManyWithoutClientNestedInput
   metrics?: Prisma.ClientMetricsUpdateManyWithoutClientNestedInput
   dietPlans?: Prisma.DietPlanUpdateManyWithoutClientNestedInput
-  appointments?: Prisma.AppointmentUpdateManyWithoutClientNestedInput
 }
 
 export type ClientUncheckedUpdateWithoutDietitianInput = {
@@ -1122,9 +1122,9 @@ export type ClientUncheckedUpdateWithoutDietitianInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  appointments?: Prisma.AppointmentUncheckedUpdateManyWithoutClientNestedInput
   metrics?: Prisma.ClientMetricsUncheckedUpdateManyWithoutClientNestedInput
   dietPlans?: Prisma.DietPlanUncheckedUpdateManyWithoutClientNestedInput
-  appointments?: Prisma.AppointmentUncheckedUpdateManyWithoutClientNestedInput
 }
 
 export type ClientUncheckedUpdateManyWithoutDietitianInput = {
@@ -1151,15 +1151,15 @@ export type ClientUncheckedUpdateManyWithoutDietitianInput = {
  */
 
 export type ClientCountOutputType = {
+  appointments: number
   metrics: number
   dietPlans: number
-  appointments: number
 }
 
 export type ClientCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  appointments?: boolean | ClientCountOutputTypeCountAppointmentsArgs
   metrics?: boolean | ClientCountOutputTypeCountMetricsArgs
   dietPlans?: boolean | ClientCountOutputTypeCountDietPlansArgs
-  appointments?: boolean | ClientCountOutputTypeCountAppointmentsArgs
 }
 
 /**
@@ -1175,6 +1175,13 @@ export type ClientCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Exten
 /**
  * ClientCountOutputType without action
  */
+export type ClientCountOutputTypeCountAppointmentsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.AppointmentWhereInput
+}
+
+/**
+ * ClientCountOutputType without action
+ */
 export type ClientCountOutputTypeCountMetricsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.ClientMetricsWhereInput
 }
@@ -1184,13 +1191,6 @@ export type ClientCountOutputTypeCountMetricsArgs<ExtArgs extends runtime.Types.
  */
 export type ClientCountOutputTypeCountDietPlansArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.DietPlanWhereInput
-}
-
-/**
- * ClientCountOutputType without action
- */
-export type ClientCountOutputTypeCountAppointmentsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  where?: Prisma.AppointmentWhereInput
 }
 
 
@@ -1211,10 +1211,10 @@ export type ClientSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   createdAt?: boolean
   updatedAt?: boolean
   deletedAt?: boolean
-  dietitian?: boolean | Prisma.UserDefaultArgs<ExtArgs>
-  metrics?: boolean | Prisma.Client$metricsArgs<ExtArgs>
-  dietPlans?: boolean | Prisma.Client$dietPlansArgs<ExtArgs>
   appointments?: boolean | Prisma.Client$appointmentsArgs<ExtArgs>
+  metrics?: boolean | Prisma.Client$metricsArgs<ExtArgs>
+  dietitian?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  dietPlans?: boolean | Prisma.Client$dietPlansArgs<ExtArgs>
   _count?: boolean | Prisma.ClientCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["client"]>
 
@@ -1279,10 +1279,10 @@ export type ClientSelectScalar = {
 
 export type ClientOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "firstName" | "lastName" | "email" | "phone" | "dateOfBirth" | "gender" | "dietitianId" | "allergies" | "conditions" | "medications" | "notes" | "isActive" | "createdAt" | "updatedAt" | "deletedAt", ExtArgs["result"]["client"]>
 export type ClientInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  dietitian?: boolean | Prisma.UserDefaultArgs<ExtArgs>
-  metrics?: boolean | Prisma.Client$metricsArgs<ExtArgs>
-  dietPlans?: boolean | Prisma.Client$dietPlansArgs<ExtArgs>
   appointments?: boolean | Prisma.Client$appointmentsArgs<ExtArgs>
+  metrics?: boolean | Prisma.Client$metricsArgs<ExtArgs>
+  dietitian?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  dietPlans?: boolean | Prisma.Client$dietPlansArgs<ExtArgs>
   _count?: boolean | Prisma.ClientCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type ClientIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1295,10 +1295,10 @@ export type ClientIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
 export type $ClientPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "Client"
   objects: {
-    dietitian: Prisma.$UserPayload<ExtArgs>
-    metrics: Prisma.$ClientMetricsPayload<ExtArgs>[]
-    dietPlans: Prisma.$DietPlanPayload<ExtArgs>[]
     appointments: Prisma.$AppointmentPayload<ExtArgs>[]
+    metrics: Prisma.$ClientMetricsPayload<ExtArgs>[]
+    dietitian: Prisma.$UserPayload<ExtArgs>
+    dietPlans: Prisma.$DietPlanPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1711,10 +1711,10 @@ readonly fields: ClientFieldRefs;
  */
 export interface Prisma__ClientClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
-  dietitian<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
-  metrics<T extends Prisma.Client$metricsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Client$metricsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ClientMetricsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
-  dietPlans<T extends Prisma.Client$dietPlansArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Client$dietPlansArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$DietPlanPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   appointments<T extends Prisma.Client$appointmentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Client$appointmentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AppointmentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  metrics<T extends Prisma.Client$metricsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Client$metricsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ClientMetricsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  dietitian<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  dietPlans<T extends Prisma.Client$dietPlansArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Client$dietPlansArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$DietPlanPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2156,6 +2156,30 @@ export type ClientDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.Intern
 }
 
 /**
+ * Client.appointments
+ */
+export type Client$appointmentsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Appointment
+   */
+  select?: Prisma.AppointmentSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Appointment
+   */
+  omit?: Prisma.AppointmentOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AppointmentInclude<ExtArgs> | null
+  where?: Prisma.AppointmentWhereInput
+  orderBy?: Prisma.AppointmentOrderByWithRelationInput | Prisma.AppointmentOrderByWithRelationInput[]
+  cursor?: Prisma.AppointmentWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.AppointmentScalarFieldEnum | Prisma.AppointmentScalarFieldEnum[]
+}
+
+/**
  * Client.metrics
  */
 export type Client$metricsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -2201,30 +2225,6 @@ export type Client$dietPlansArgs<ExtArgs extends runtime.Types.Extensions.Intern
   take?: number
   skip?: number
   distinct?: Prisma.DietPlanScalarFieldEnum | Prisma.DietPlanScalarFieldEnum[]
-}
-
-/**
- * Client.appointments
- */
-export type Client$appointmentsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  /**
-   * Select specific fields to fetch from the Appointment
-   */
-  select?: Prisma.AppointmentSelect<ExtArgs> | null
-  /**
-   * Omit specific fields from the Appointment
-   */
-  omit?: Prisma.AppointmentOmit<ExtArgs> | null
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.AppointmentInclude<ExtArgs> | null
-  where?: Prisma.AppointmentWhereInput
-  orderBy?: Prisma.AppointmentOrderByWithRelationInput | Prisma.AppointmentOrderByWithRelationInput[]
-  cursor?: Prisma.AppointmentWhereUniqueInput
-  take?: number
-  skip?: number
-  distinct?: Prisma.AppointmentScalarFieldEnum | Prisma.AppointmentScalarFieldEnum[]
 }
 
 /**
