@@ -17,16 +17,22 @@ export interface ProblemDetails {
   timestamp: string;
   path: string;
   method: string;
-  errors?: any;
+  errors?: Record<string, unknown> | string[];
   stack?: string;
-  cause?: any;
+  cause?: unknown;
+}
+
+interface ExceptionInfo {
+  status: number;
+  message: string;
+  errors?: Record<string, unknown> | string[];
 }
 
 @Catch()
 export class GlobalExceptionFilter implements ExceptionFilter {
   private readonly logger = new Logger(GlobalExceptionFilter.name);
 
-  catch(exception: unknown, host: ArgumentsHost) {
+  catch(exception: unknown, host: ArgumentsHost): void {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request>();
@@ -45,38 +51,20 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       errors,
     };
 
-    console.log(exception);
-
-    // Development ortamında daha fazla trace
-    if (process.env.NODE_ENV === 'development' && exception instanceof Error) {
-      problemDetails.stack = exception.stack;
-      problemDetails.title = exception.name;
-      problemDetails.errors = {
-        message: exception.message,
-        name: exception.name,
-        ...(errors && { validation: errors }),
-      };
-      if ((exception as any).cause) {
-        problemDetails.cause = (exception as any).cause;
-      }
-    }
+    this.enrichWithDevDetails(problemDetails, exception);
 
     this.logger.error(
-      `${request.method} ${request.url} - ${status} - ${message}`,
+      `${request.method} ${request.url} - ${status} - ${message} `,
       exception instanceof Error ? exception.stack : undefined,
     );
 
     response.status(status).json(problemDetails);
   }
 
-  private extractExceptionInfo(exception: unknown): {
-    status: number;
-    message: string;
-    errors?: any;
-  } {
+  private extractExceptionInfo(exception: unknown): ExceptionInfo {
     let status = HttpStatus.INTERNAL_SERVER_ERROR;
     let message = 'Internal server error';
-    let errors: any;
+    let errors: ExceptionInfo['errors'];
 
     if (exception instanceof HttpException) {
       status = exception.getStatus();
@@ -85,20 +73,39 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       if (typeof exceptionResponse === 'string') {
         message = exceptionResponse;
       } else if (typeof exceptionResponse === 'object') {
-        const resp: any = exceptionResponse;
-        if (Array.isArray(resp.message)) {
+        const resp = exceptionResponse as Record<string, unknown>;
+        if (Array.isArray(resp.errors)) {
           message = 'Validation failed';
-          errors = resp.message;
+          errors = resp.errors as string[];
         } else {
-          message = resp.message || message;
-          errors = resp.errors;
+          message = (resp.message as string) ?? message;
+          errors = resp.errors as Record<string, unknown>;
         }
       }
     } else if (exception instanceof Error) {
       message = exception.message;
+    } else if (typeof exception === 'object' && exception !== null) {
+      status = (exception as any).statusCode ?? status;
+      message = (exception as any).message ?? message;
+      errors = (exception as any).errors;
     }
 
     return { status, message, errors };
+  }
+
+  private enrichWithDevDetails(problemDetails: ProblemDetails, exception: unknown): void {
+    if (process.env.NODE_ENV === 'development' && exception instanceof Error) {
+      problemDetails.stack = exception.stack;
+      problemDetails.title = exception.name;
+      problemDetails.errors = {
+        message: exception.message,
+        name: exception.name,
+        ...(problemDetails.errors && { validation: problemDetails.errors }),
+      };
+      if ((exception as any).cause) {
+        problemDetails.cause = (exception as any).cause;
+      }
+    }
   }
 
   private getErrorType(status: number): string {
@@ -112,12 +119,12 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       403: 'Forbidden',
       404: 'Not Found',
       409: 'Conflict',
-      422: 'Unprocessable Entity',
+      422: 'Validation Failed',
       429: 'Too Many Requests',
       500: 'Internal Server Error',
       502: 'Bad Gateway',
       503: 'Service Unavailable',
     };
-    return titles[status] || 'Error';
+    return titles[status] ?? 'Error';
   }
 }

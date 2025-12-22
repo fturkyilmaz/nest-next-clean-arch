@@ -11,17 +11,17 @@
     "test": "jest"
   },
   "dependencies": {
+    "@nestjs/cache-manager": "3.0.1",
+    "@nestjs/common": "11.1.9",
     "@nestjs/config": "^4.0.2",
+    "@nestjs/core": "11.1.9",
+    "@nestjs/cqrs": "11.0.3",
     "@nestjs/jwt": "^11.0.2",
     "@nestjs/passport": "^11.0.5",
+    "@nestjs/platform-express": "11.1.9",
+    "@nestjs/swagger": "7.4.2",
     "@nestjs/testing": "^11.1.9",
     "@nestjs/throttler": "^6.5.0",
-    "@nestjs/common": "11.1.9",
-    "@nestjs/core": "11.1.9",
-    "@nestjs/platform-express": "11.1.9",
-    "@nestjs/cqrs": "11.0.3",
-    "@nestjs/swagger": "7.4.2",
-    "@nestjs/cache-manager": "3.0.1",
     "@prisma/adapter-pg": "^7.1.0",
     "@prisma/client": "^7.1.0",
     "bcrypt": "^6.0.0",
@@ -40,9 +40,11 @@
     "uuid": "^13.0.0"
   },
   "devDependencies": {
+    "@types/jest": "^30.0.0",
     "@types/node": "^20.11.15",
     "@types/uuid": "^11.0.0",
     "prisma": "^7.1.0",
+    "ts-jest": "^29.4.6",
     "ts-node-dev": "^2.0.0",
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.6.3"

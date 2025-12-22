@@ -38,15 +38,15 @@ import {
 } from '@application/dto/UserDto';
 import { UserMapper } from './user.mapper';
 
+@UseGuards(JwtAuthGuard)
 @ApiTags('Users')
 @Controller('users')
-@UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
 export class UserController {
   constructor(
     private readonly commandBus: CommandBus,
     private readonly queryBus: QueryBus
-  ) {}
+  ) { }
 
   @Post()
   @Roles('ADMIN')

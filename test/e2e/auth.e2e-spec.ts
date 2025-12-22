@@ -5,6 +5,7 @@ import { AppModule } from '../../apps/api/src/app.module';
 
 describe('Authentication E2E Tests', () => {
   let app: INestApplication;
+  let accessToken: string;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -43,6 +44,9 @@ describe('Authentication E2E Tests', () => {
         lastName: expect.any(String),
         role: expect.any(String),
       });
+
+      // Access token'ı sonraki testlerde kullanmak için sakla
+      accessToken = res.body.accessToken;
     });
 
     it('should reject invalid credentials', () =>
@@ -89,5 +93,28 @@ describe('Authentication E2E Tests', () => {
         .send({ refreshToken: 'invalid-token' })
         .expect(401);
     });
+  });
+
+  describe('/users/me/profile (GET)', () => {
+    it('should return current user profile when valid token is provided', async () => {
+      const res = await request(app.getHttpServer())
+        .get('/api/v1/users/me/profile')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .expect(200);
+
+      expect(res.body).toHaveProperty('email', 'admin@dietapp.com');
+      expect(res.body).toHaveProperty('role', 'ADMIN');
+    });
+
+    it('should reject request without token', () =>
+      request(app.getHttpServer())
+        .get('/api/v1/users/me/profile')
+        .expect(401));
+
+    it('should reject request with invalid token', () =>
+      request(app.getHttpServer())
+        .get('/api/v1/users/me/profile')
+        .set('Authorization', 'Bearer invalid-token')
+        .expect(401));
   });
 });

@@ -3,13 +3,21 @@ import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 
 export interface JwtPayload {
-  sub: string; 
+  readonly sub: string;
+  readonly email: string;
+  readonly role: string;
+  readonly firstName: string;
+  readonly lastName: string;
+  readonly iat?: number;
+  readonly exp?: number;
+}
+
+export interface CurrentUserData {
+  id: string;
   email: string;
   role: string;
   firstName: string;
   lastName: string;
-  iat?: number;
-  exp?: number;
 }
 
 @Injectable()
@@ -18,21 +26,25 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
-      secretOrKey: process.env.JWT_SECRET || 'your-super-secret-jwt-key-change-this-in-production',
+      secretOrKey: process.env.JWT_SECRET,
     });
+
+    if (!process.env.JWT_SECRET) {
+      throw new Error('JWT_SECRET environment variable must be defined');
+    }
   }
 
-  async validate(payload: JwtPayload) {
-  if (!payload.sub || !payload.email || !payload.role) {
-    throw new UnauthorizedException('Invalid token payload');
-  }
+  async validate(payload: JwtPayload): Promise<CurrentUserData> {
+    if (!payload.sub || !payload.email || !payload.role) {
+      throw new UnauthorizedException('Invalid token payload');
+    }
 
-  return {
-    id: payload.sub,          
-    email: payload.email,
-    role: payload.role,       
-    firstName: payload.firstName,
-    lastName: payload.lastName,
-  };
-}
+    return {
+      id: payload.sub,
+      email: payload.email,
+      role: payload.role,
+      firstName: payload.firstName,
+      lastName: payload.lastName,
+    };
+  }
 }

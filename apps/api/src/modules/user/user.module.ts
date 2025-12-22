@@ -9,12 +9,13 @@ import {
   GetUserByIdQueryHandler,
   GetAllUsersQueryHandler,
 } from '@application/use-cases/user';
+import { AuthModule } from '../auth/auth.module';
 
 const CommandHandlers = [CreateUserCommandHandler, UpdateUserCommandHandler];
 const QueryHandlers = [GetUserByIdQueryHandler, GetAllUsersQueryHandler];
 
 @Module({
-  imports: [CqrsModule, RepositoryModule],
+  imports: [CqrsModule, RepositoryModule, AuthModule],
   controllers: [UserController],
   providers: [
     ...CommandHandlers,

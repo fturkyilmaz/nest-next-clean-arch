@@ -13,7 +13,7 @@ import {
 @ApiTags('Authentication')
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(private readonly authService: AuthService) { }
 
   @Post('register')
   @HttpCode(HttpStatus.CREATED)
@@ -67,6 +67,7 @@ export class AuthController {
   async refreshToken(
     @Body() refreshTokenDto: RefreshTokenDto
   ): Promise<RefreshTokenResponseDto> {
+    console.log("Girdim", refreshTokenDto.refreshToken);
     const result = await this.authService.refreshToken(refreshTokenDto.refreshToken);
 
     return {
