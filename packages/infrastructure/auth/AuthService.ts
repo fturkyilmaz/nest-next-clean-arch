@@ -72,7 +72,7 @@ export class AuthService {
 
     const hashedPassword = await bcrypt.hash(dto.password, 10);
 
-    const user = User.create({
+    const userEntity = User.create({
       id: crypto.randomUUID(),
       email: Email.create(dto.email).getValue(),
       password: Password.fromHash(hashedPassword),
@@ -82,7 +82,8 @@ export class AuthService {
       isActive: true,
     });
 
-    // Token üret
+    const user = await this.userRepository.create(userEntity);
+
     const payload: JwtPayload = {
       sub: user.getId(),
       username: user.getEmail().getValue(),
@@ -106,6 +107,8 @@ export class AuthService {
 
   async login(email: string, password: string): Promise<LoginResult> {
     const user = await this.userRepository.findByEmail(email);
+
+    console.log("user",user);
 
     if (!user || !user.isActive()) {
       throw new UnauthorizedException("Invalid credentials");
