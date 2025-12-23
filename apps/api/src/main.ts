@@ -1,5 +1,6 @@
 import { NestFactory, Reflector } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import helmet from 'helmet';
 
@@ -14,15 +15,15 @@ function buildValidationPipe() {
     transform: true,
     transformOptions: { enableImplicitConversion: true },
     exceptionFactory: (errors) =>
-      ({
-        statusCode: 422,
-        message: 'Validation failed',
-        errors: errors.map((error) => ({
-          field: error.property,
-          constraints: error.constraints,
-          value: (error as any).value,
-        })),
-      } as any),
+    ({
+      statusCode: 422,
+      message: 'Validation failed',
+      errors: errors.map((error) => ({
+        field: error.property,
+        constraints: error.constraints,
+        value: (error as any).value,
+      })),
+    } as any),
   });
 }
 
@@ -83,11 +84,12 @@ function printStartupBanner(port: number, apiPrefix: string) {
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
-   logger: ['error', 'warn', 'log', 'debug', 'verbose'],
+    logger: ['error', 'warn', 'log', 'debug', 'verbose'],
   });
 
   const reflector = app.get(Reflector);
-  app.useGlobalGuards(new RolesGuard(reflector));
+  const jwtService = app.get(JwtService);
+  app.useGlobalGuards(new RolesGuard(reflector, jwtService));
 
   // Security headers
   app.use(
@@ -95,15 +97,15 @@ async function bootstrap() {
       contentSecurityPolicy:
         process.env.NODE_ENV === 'production'
           ? {
-              useDefaults: true,
-              directives: {
-                defaultSrc: ["'self'"],
-                styleSrc: ["'self'", "'unsafe-inline'"],
-                scriptSrc: ["'self'"],
-                imgSrc: ["'self'", 'data:', 'https:'],
-                connectSrc: ["'self'", 'https:', 'http:'],
-              },
-            }
+            useDefaults: true,
+            directives: {
+              defaultSrc: ["'self'"],
+              styleSrc: ["'self'", "'unsafe-inline'"],
+              scriptSrc: ["'self'"],
+              imgSrc: ["'self'", 'data:', 'https:'],
+              connectSrc: ["'self'", 'https:', 'http:'],
+            },
+          }
           : false,
       hsts: { maxAge: 31536000, includeSubDomains: true, preload: true },
       frameguard: { action: 'deny' },

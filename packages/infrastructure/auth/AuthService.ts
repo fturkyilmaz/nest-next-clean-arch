@@ -14,7 +14,6 @@ import {
 } from "@application/interfaces/services/IJwtService";
 import { IUserRepository } from "@application/interfaces/IUserRepository";
 import { RegisterDto, RegisterResponseDto } from "@application/dto/AuthDto";
-import { Role } from "prisma/generated/prisma/enums";
 import { Email, Password } from "@domain/value-objects";
 import { User, UserRole } from "@domain/entities/User.entity";
 export interface LoginResult extends TokenResult {
@@ -27,7 +26,7 @@ export interface LoginResult extends TokenResult {
   };
 }
 
-export interface RefreshTokenResult extends TokenResult {}
+export interface RefreshTokenResult extends TokenResult { }
 
 export interface ValidatedUser {
   userId: string;
@@ -86,8 +85,13 @@ export class AuthService {
 
     const payload: JwtPayload = {
       sub: user.getId(),
+      email: user.getEmail().getValue(),
       username: user.getEmail().getValue(),
+      role: user.getRole(),
+      firstName: user.getFirstName(),
+      lastName: user.getLastName(),
     };
+    console.log('Generating token with payload:', payload);
     const { accessToken, refreshToken, expiresIn } =
       this.jwtAuthService.generateTokens(payload);
 
@@ -108,9 +112,9 @@ export class AuthService {
   async login(email: string, password: string): Promise<LoginResult> {
     const user = await this.userRepository.findByEmail(email);
 
-    console.log("user",user);
+    console.log("user", user);
 
-    if (!user || !user.isActive()) {
+    if (!user?.isActive()) {
       throw new UnauthorizedException("Invalid credentials");
     }
 
@@ -124,8 +128,13 @@ export class AuthService {
 
     const payload: JwtPayload = {
       sub: user.getId(),
+      email: user.getEmail().getValue(),
       username: user.getEmail().getValue(),
+      role: user.getRole(),
+      firstName: user.getFirstName(),
+      lastName: user.getLastName(),
     };
+    console.log('Generating token with payload:', payload);
     const { accessToken, refreshToken, expiresIn } =
       this.jwtAuthService.generateTokens(payload);
 
@@ -148,19 +157,24 @@ export class AuthService {
       const { sub } = this.jwtAuthService.verifyRefreshToken(refreshToken);
       const user = await this.userRepository.findById(sub);
 
-      if (!user || !user.isActive()) {
+      if (!user?.isActive()) {
         throw new UnauthorizedException("Invalid refresh token");
       }
 
-      const newPayload: JwtPayload = {
+      const payload: JwtPayload = {
         sub: user.getId(),
+        email: user.getEmail().getValue(),
         username: user.getEmail().getValue(),
+        role: user.getRole(),
+        firstName: user.getFirstName(),
+        lastName: user.getLastName(),
       };
+      console.log('Generating token with payload:', payload);
       const {
         accessToken,
         refreshToken: newRefreshToken,
         expiresIn,
-      } = this.jwtAuthService.generateTokens(newPayload);
+      } = this.jwtAuthService.generateTokens(payload);
 
       return {
         accessToken,
@@ -177,7 +191,7 @@ export class AuthService {
 
   async validateUser(userId: string): Promise<ValidatedUser | null> {
     const user = await this.userRepository.findById(userId);
-    if (!user || !user.isActive()) return null;
+    if (!user?.isActive()) return null;
 
     return {
       userId: user.getId(),

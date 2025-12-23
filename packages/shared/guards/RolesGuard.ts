@@ -5,11 +5,15 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
+import { JwtService } from '@nestjs/jwt';
 import { ROLES_KEY } from '@shared/decorators/roles.decorator';
 
 @Injectable()
 export class RolesGuard implements CanActivate {
-  constructor(private readonly reflector: Reflector) { }
+  constructor(
+    private readonly reflector: Reflector,
+    private readonly jwtService: JwtService
+  ) { }
 
   canActivate(context: ExecutionContext): boolean {
     const requiredRoles =
@@ -23,9 +27,35 @@ export class RolesGuard implements CanActivate {
     }
 
     const request = context.switchToHttp().getRequest();
+
+    // If user is not present (e.g. AuthGuard not used or failed), try to decode from header
+    if (!request.user) {
+      const authHeader = request.headers['authorization'];
+      console.log('Headers:', request.headers); // Debug log to see if authorization header exists
+
+      if (authHeader?.startsWith('Bearer ')) {
+        const token = authHeader.split(' ')[1];
+        try {
+          // Use the same fallback secret as JwtAuthService
+          const secret = process.env.JWT_SECRET || 'your-super-secret-jwt-key-change-this-in-production';
+
+          // Manual verification as fallback
+          const payload = this.jwtService.verify(token, {
+            secret: secret
+          });
+          request.user = payload;
+          console.log('User decoded from token manually:', request.user);
+        } catch (error) {
+          console.error('Token verification failed in RolesGuard:', error);
+        }
+      } else {
+        console.warn('No Authorization header found or invalid format');
+      }
+    }
+
     const user = request.user;
 
-    console.log('user', request);
+    console.log('user', user);
 
     if (!user?.role) {
       throw new ForbiddenException('User role not found or unauthorized');
