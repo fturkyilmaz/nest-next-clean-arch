@@ -13,6 +13,7 @@ import {
   ForbiddenException,
   ParseBoolPipe,
   ParseIntPipe,
+  DefaultValuePipe,
 } from '@nestjs/common';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import {
@@ -88,9 +89,9 @@ export class UserController {
   @ApiOkResponse({ description: 'Users retrieved', type: [UserResponseDto] })
   async getAllUsers(
     @Query('role') role?: string,
-    @Query('isActive', ParseBoolPipe) isActive?: boolean,
-    @Query('skip', ParseIntPipe) skip?: number,
-    @Query('take', ParseIntPipe) take?: number
+    @Query('isActive', new DefaultValuePipe(true), ParseBoolPipe) isActive?: boolean,
+    @Query('skip', new DefaultValuePipe(0), ParseIntPipe) skip?: number,
+    @Query('take', new DefaultValuePipe(10), ParseIntPipe) take?: number
   ): Promise<UserResponseDto[]> {
     const query = new GetAllUsersQuery(role, isActive, skip, take);
     const users = await this.queryBus.execute(query);
@@ -107,7 +108,7 @@ export class UserController {
     @Body() updateUserDto: UpdateUserDto,
     @CurrentUser() currentUser: CurrentUserData
   ): Promise<UserResponseDto> {
-    if (currentUser.userId !== id && currentUser.role !== 'ADMIN') {
+    if (currentUser.id !== id && currentUser.role !== 'ADMIN') {
       throw new ForbiddenException('You can only update your own profile');
     }
 
@@ -127,7 +128,7 @@ export class UserController {
   @ApiOkResponse({ description: 'Current user profile', type: UserResponseDto })
   @ApiNotFoundResponse({ description: 'User not found' })
   async getCurrentUser(@CurrentUser() currentUser: CurrentUserData): Promise<UserResponseDto> {
-    const query = new GetUserByIdQuery(currentUser.userId);
+    const query = new GetUserByIdQuery(currentUser.id);
     const user = await this.queryBus.execute(query);
 
     if (!user) {

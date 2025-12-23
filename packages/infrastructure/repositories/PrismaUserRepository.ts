@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@infrastructure/database/PrismaService';
 import { PrismaRepositoryBase } from './PrismaRepositoryBase';
 import { User } from '@domain/entities/User.entity';
-import { User as PrismaUser,Role as UserRole } from '@prisma/client'; // Prisma enum'u da import et
+import { User as PrismaUser, Role as UserRole } from '@prisma/client'; // Prisma enum'u da import et
 import { Email } from '@domain/value-objects/Email.vo';
 import { Password } from '@domain/value-objects/Password.vo';
 import { IUserRepository } from '@application/interfaces/IUserRepository';
@@ -11,8 +11,7 @@ import { Prisma } from 'prisma/generated/prisma/client';
 @Injectable()
 export class PrismaUserRepository
   extends PrismaRepositoryBase<PrismaUser, User, string>
-  implements IUserRepository
-{
+  implements IUserRepository {
   constructor(prisma: PrismaService) {
     super(prisma, 'user');
   }
@@ -23,11 +22,11 @@ export class PrismaUserRepository
 
     return User.reconstitute({
       id: model.id,
-      email: email!,
+      email,
       password: Password.fromHash(model.password),
       firstName: model.firstName,
       lastName: model.lastName,
-      role: model.role as UserRole, // Prisma enum ile uyumlu hale getir
+      role: model.role,
       isActive: model.isActive,
       createdAt: model.createdAt,
       updatedAt: model.updatedAt,
@@ -43,6 +42,9 @@ export class PrismaUserRepository
       lastName: domain.getLastName(),
       role: domain.getRole() as UserRole,
       isActive: domain.isActive(),
+      createdAt: domain.getCreatedAt(),
+      updatedAt: domain.getUpdatedAt(),
+      deletedAt: domain.getDeletedAt() ?? null,
     };
   }
 
