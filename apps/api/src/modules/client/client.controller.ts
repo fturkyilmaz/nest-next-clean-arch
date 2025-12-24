@@ -10,6 +10,8 @@ import {
   HttpCode,
   HttpStatus,
   ForbiddenException,
+  ParseIntPipe,
+  DefaultValuePipe,
 } from '@nestjs/common';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
@@ -36,7 +38,7 @@ export class ClientController {
   constructor(
     private readonly commandBus: CommandBus,
     private readonly queryBus: QueryBus
-  ) {}
+  ) { }
 
   @Post()
   @Roles('ADMIN', 'DIETITIAN')
@@ -50,7 +52,7 @@ export class ClientController {
   ): Promise<ClientResponseDto> {
     const dietitianId =
       currentUser.role === 'DIETITIAN'
-        ? currentUser.userId
+        ? currentUser.id
         : createClientDto.dietitianId;
 
     const command = new CreateClientCommand(
@@ -81,10 +83,10 @@ export class ClientController {
   async getClients(
     @CurrentUser() currentUser: CurrentUserData,
     @Query('isActive') isActive?: boolean,
-    @Query('skip') skip?: number,
-    @Query('take') take?: number
+    @Query('skip', new DefaultValuePipe(0), ParseIntPipe) skip?: number,
+    @Query('take', new DefaultValuePipe(10), ParseIntPipe) take?: number
   ): Promise<ClientResponseDto[]> {
-    const dietitianId = currentUser.role === 'DIETITIAN' ? currentUser.userId : undefined;
+    const dietitianId = currentUser.role === 'DIETITIAN' ? currentUser.id : undefined;
 
     const query = new GetClientsByDietitianQuery(
       dietitianId || '',
@@ -107,10 +109,10 @@ export class ClientController {
   async searchClients(
     @CurrentUser() currentUser: CurrentUserData,
     @Query('q') searchTerm: string,
-    @Query('skip') skip?: number,
-    @Query('take') take?: number
+    @Query('skip', new DefaultValuePipe(0), ParseIntPipe) skip?: number,
+    @Query('take', new DefaultValuePipe(10), ParseIntPipe) take?: number
   ): Promise<ClientResponseDto[]> {
-    const dietitianId = currentUser.role === 'DIETITIAN' ? currentUser.userId : undefined;
+    const dietitianId = currentUser.role === 'DIETITIAN' ? currentUser.id : undefined;
 
     const query = new SearchClientsQuery(searchTerm, dietitianId, skip, take);
     const clients = await this.queryBus.execute(query);
@@ -128,7 +130,7 @@ export class ClientController {
     @CurrentUser() currentUser: CurrentUserData
   ): Promise<ClientResponseDto> {
     const query = new GetClientsByDietitianQuery(
-      currentUser.role === 'DIETITIAN' ? currentUser.userId : '',
+      currentUser.role === 'DIETITIAN' ? currentUser.id : '',
       undefined,
       0,
       1000
@@ -142,7 +144,7 @@ export class ClientController {
 
     if (
       currentUser.role === 'DIETITIAN' &&
-      client.getDietitianId() !== currentUser.userId
+      client.getDietitianId() !== currentUser.id
     ) {
       throw new ForbiddenException('You do not have access to this client');
     }
@@ -160,7 +162,7 @@ export class ClientController {
     @CurrentUser() currentUser: CurrentUserData
   ): Promise<ClientResponseDto> {
     const query = new GetClientsByDietitianQuery(
-      currentUser.role === 'DIETITIAN' ? currentUser.userId : '',
+      currentUser.role === 'DIETITIAN' ? currentUser.id : '',
       undefined,
       0,
       1000
