@@ -1,5 +1,5 @@
 import { QueryHandler, IQueryHandler } from '@nestjs/cqrs';
-import { Inject } from '@nestjs/common';
+import { Inject, NotFoundException } from '@nestjs/common';
 import { GetUserByIdQuery } from './GetUserByIdQuery';
 import { IUserRepository } from '@application/interfaces/repositories/common/IUserRepository';
 import { User } from '@domain/entities/User.entity';
@@ -10,16 +10,13 @@ export class GetUserByIdQueryHandler implements IQueryHandler<GetUserByIdQuery> 
     @Inject('IUserRepository') private readonly userRepository: IUserRepository
   ) { }
 
-  async execute(query: GetUserByIdQuery): Promise<User | null> {
+  async execute(query: GetUserByIdQuery): Promise<User> {
     const user = await this.userRepository.findById(query.userId);
 
-    if (!user) {
-      return null;
-    }
+    if (!user) throw new NotFoundException('User not found');
 
-    // Check if user is soft deleted
     if (user.getDeletedAt()) {
-      return null;
+      throw new NotFoundException('User not found');
     }
 
     return user;

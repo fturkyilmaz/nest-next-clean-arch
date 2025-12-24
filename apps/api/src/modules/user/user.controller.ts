@@ -9,8 +9,6 @@ import {
   UseGuards,
   HttpCode,
   HttpStatus,
-  NotFoundException,
-  ForbiddenException,
   ParseBoolPipe,
   ParseIntPipe,
   DefaultValuePipe,
@@ -38,6 +36,7 @@ import {
   UserResponseDto,
 } from '@application/dto/UserDto';
 import { UserMapper } from './user.mapper';
+import { BaseIdRequest } from '@application/dto/common/BaseIdRequest';
 
 @UseGuards(JwtAuthGuard)
 @ApiTags('Users')
@@ -76,10 +75,6 @@ export class UserController {
     const query = new GetUserByIdQuery(id);
     const user = await this.queryBus.execute(query);
 
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
-
     return UserMapper.toResponseDto(user);
   }
 
@@ -104,16 +99,12 @@ export class UserController {
   @ApiOkResponse({ description: 'User updated', type: UserResponseDto })
   @ApiForbiddenResponse({ description: 'Forbidden - You can only update your own profile' })
   async updateUser(
-    @Param('id') id: string,
+    @Param() request: BaseIdRequest,
     @Body() updateUserDto: UpdateUserDto,
     @CurrentUser() currentUser: CurrentUserData
   ): Promise<UserResponseDto> {
-    if (currentUser.id !== id && currentUser.role !== 'ADMIN') {
-      throw new ForbiddenException('You can only update your own profile');
-    }
-
     const command = new UpdateUserCommand(
-      id,
+      request.id,
       updateUserDto.email,
       updateUserDto.firstName,
       updateUserDto.lastName
@@ -130,10 +121,6 @@ export class UserController {
   async getCurrentUser(@CurrentUser() currentUser: CurrentUserData): Promise<UserResponseDto> {
     const query = new GetUserByIdQuery(currentUser.id);
     const user = await this.queryBus.execute(query);
-
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
 
     return UserMapper.toResponseDto(user);
   }

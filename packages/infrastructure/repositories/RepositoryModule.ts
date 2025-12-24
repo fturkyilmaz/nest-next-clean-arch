@@ -40,4 +40,4 @@ import { PrismaReportRepository } from './PrismaReportRepository';
     'IReportRepository',
   ],
 })
-export class RepositoryModule {}
+export class RepositoryModule { }

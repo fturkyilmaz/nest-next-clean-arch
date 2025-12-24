@@ -24,7 +24,7 @@ import { PrismaUserRepository } from '@infrastructure/repositories';
     }),
     RepositoryModule,
   ],
-  controllers: [AuthController], 
+  controllers: [AuthController],
   providers: [
     { provide: 'IUserRepository', useClass: PrismaUserRepository },
     { provide: 'IJwtService', useClass: JwtAuthService },
@@ -42,4 +42,4 @@ import { PrismaUserRepository } from '@infrastructure/repositories';
     'IUserRepository',
   ],
 })
-export class AuthModule {}
+export class AuthModule { }
