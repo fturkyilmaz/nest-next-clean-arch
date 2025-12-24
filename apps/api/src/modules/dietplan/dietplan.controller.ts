@@ -36,7 +36,7 @@ export class DietPlanController {
   constructor(
     private readonly commandBus: CommandBus,
     private readonly queryBus: QueryBus
-  ) {}
+  ) { }
 
   @Post()
   @Roles('ADMIN', 'DIETITIAN')
@@ -62,7 +62,7 @@ export class DietPlanController {
     );
 
     const dietPlan = await this.commandBus.execute(command);
-    return this.mapToResponse(dietPlan);
+    return dietPlan;
   }
 
   @Get('client/:clientId')
@@ -81,11 +81,10 @@ export class DietPlanController {
     @Query('skip') skip?: number,
     @Query('take') take?: number
   ): Promise<DietPlanResponseDto[]> {
-    // TODO: Verify that dietitian has access to this client
     const query = new GetDietPlansByClientQuery(clientId, status, isActive, skip, take);
     const dietPlans = await this.queryBus.execute(query);
 
-    return dietPlans.map(this.mapToResponse);
+    return dietPlans
   }
 
   @Put(':id/activate')
@@ -97,29 +96,9 @@ export class DietPlanController {
     @Param('id') id: string,
     @CurrentUser() currentUser: CurrentUserData
   ): Promise<DietPlanResponseDto> {
-    // TODO: Verify that dietitian owns this diet plan
     const command = new ActivateDietPlanCommand(id);
     const dietPlan = await this.commandBus.execute(command);
 
-    return this.mapToResponse(dietPlan);
-  }
-
-  /** Helper mapper function */
-  private mapToResponse(dietPlan: any): DietPlanResponseDto {
-    return {
-      id: dietPlan.getId(),
-      name: dietPlan.getName(),
-      description: dietPlan.getDescription(),
-      clientId: dietPlan.getClientId(),
-      dietitianId: dietPlan.getDietitianId(),
-      startDate: dietPlan.getDateRange().getStartDate(),
-      endDate: dietPlan.getDateRange().getEndDate(),
-      status: dietPlan.getStatus(),
-      nutritionalGoals: dietPlan.getNutritionalGoals(),
-      version: dietPlan.getVersion(),
-      isActive: dietPlan.isActive(),
-      createdAt: dietPlan.getCreatedAt(),
-      updatedAt: dietPlan.getUpdatedAt(),
-    };
+    return dietPlan
   }
 }
