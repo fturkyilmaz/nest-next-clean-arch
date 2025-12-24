@@ -1,7 +1,7 @@
 import { QueryHandler, IQueryHandler } from '@nestjs/cqrs';
 import { Inject } from '@nestjs/common';
 import { GetDietPlansByClientQuery } from './GetDietPlansByClientQuery';
-import { IDietPlanRepository } from '@application/interfaces/IDietPlanRepository';
+import { IDietPlanRepository } from '@application/interfaces/repositories/IDietPlanRepository';
 import { DietPlan } from '@domain/entities/DietPlan.entity';
 
 @QueryHandler(GetDietPlansByClientQuery)

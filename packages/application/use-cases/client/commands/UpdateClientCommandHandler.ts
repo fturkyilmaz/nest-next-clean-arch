@@ -1,7 +1,7 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { Inject } from '@nestjs/common';
 import { UpdateClientCommand } from './UpdateClientCommand';
-import { IClientRepository } from '@application/interfaces/IClientRepository';
+import { IClientRepository } from '@application/interfaces/repositories/IClientRepository';
 import { Client, Gender } from '@domain/entities/Client.entity';
 
 @CommandHandler(UpdateClientCommand)

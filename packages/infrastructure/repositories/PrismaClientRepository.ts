@@ -13,9 +13,6 @@ export class PrismaClientRepository extends PrismaRepositoryBase<any, Client, st
   }
 
   protected toDomain(model: any): Client {
-    // Note: We're mapping database fields to domain fields
-    // If DB has extra fields like dietaryPreferences, activityLevel, goal,
-    // we ignore them as they are not in the current Client entity
     return Client.reconstitute({
       id: model.id,
       email: model.email,
@@ -27,8 +24,8 @@ export class PrismaClientRepository extends PrismaRepositoryBase<any, Client, st
       dietitianId: model.dietitianId,
       allergies: model.allergies || [],
       conditions: model.conditions || model.medicalConditions || [], 
-      medications: model.medications || [], // Added medications mapping
-      notes: model.notes, // Added notes mapping
+      medications: model.medications || [],   
+      notes: model.notes,
       isActive: model.isActive ?? true,
       createdAt: model.createdAt,
       updatedAt: model.updatedAt,
@@ -38,8 +35,8 @@ export class PrismaClientRepository extends PrismaRepositoryBase<any, Client, st
 
   protected toPrisma(domain: Client): any {
     return {
-      id: domain.getId() || undefined, // undefined allows Prisma to generate ID if needed, though usually we generate in Domain or DB
-      email: domain.getEmail().getValue(), // Email is a Value Object
+      id: domain.getId() || undefined, 
+      email: domain.getEmail().getValue(),
       firstName: domain.getFirstName(),
       lastName: domain.getLastName(),
       phone: domain.getPhone(),

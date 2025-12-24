@@ -12,7 +12,7 @@ import {
   TokenResult,
   IJwtService,
 } from "@application/interfaces/services/IJwtService";
-import { IUserRepository } from "@application/interfaces/IUserRepository";
+import { IUserRepository } from "@application/interfaces/repositories/common/IUserRepository";
 import { RegisterDto, RegisterResponseDto } from "@application/dto/AuthDto";
 import { Email, Password } from "@domain/value-objects";
 import { User, UserRole } from "@domain/entities/User.entity";

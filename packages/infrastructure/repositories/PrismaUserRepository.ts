@@ -5,7 +5,7 @@ import { User } from '@domain/entities/User.entity';
 import { User as PrismaUser, Role as UserRole } from '@prisma/client'; // Prisma enum'u da import et
 import { Email } from '@domain/value-objects/Email.vo';
 import { Password } from '@domain/value-objects/Password.vo';
-import { IUserRepository } from '@application/interfaces/IUserRepository';
+import { IUserRepository } from '@application/interfaces/repositories/common/IUserRepository';
 import { Prisma } from 'prisma/generated/prisma/client';
 
 @Injectable()

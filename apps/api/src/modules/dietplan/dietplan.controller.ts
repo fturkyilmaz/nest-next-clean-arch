@@ -49,7 +49,7 @@ export class DietPlanController {
     @CurrentUser() currentUser: CurrentUserData
   ): Promise<DietPlanResponseDto> {
     const dietitianId =
-      currentUser.role === 'DIETITIAN' ? currentUser.userId : dto.dietitianId;
+      currentUser.role === 'DIETITIAN' ? currentUser.id : dto.clientId;
 
     const command = new CreateDietPlanCommand(
       dto.name,

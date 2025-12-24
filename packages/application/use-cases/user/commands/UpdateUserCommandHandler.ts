@@ -1,7 +1,7 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { Inject } from '@nestjs/common';
 import { UpdateUserCommand } from './UpdateUserCommand';
-import { IUserRepository } from '@application/interfaces/IUserRepository';
+import { IUserRepository } from '@application/interfaces/repositories/common/IUserRepository';
 import { User } from '@domain/entities/User.entity';
 import { Email } from '@domain/value-objects/Email.vo';
 
