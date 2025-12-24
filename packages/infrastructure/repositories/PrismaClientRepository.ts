@@ -1,18 +1,95 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '@infrastructure/database/PrismaService';
-import { PrismaRepositoryBase } from './PrismaRepositoryBase';
-import { Client } from '@domain/entities/Client.entity';
+import { prisma } from 'prisma/lib/prisma';
+import { Client } from '@domain/entities';
+import { ClientRepository } from '@domain/repositories/ClientRepository';
 
-/**
- * Client Repository using Generic Base
- */
 @Injectable()
-export class PrismaClientRepository extends PrismaRepositoryBase<any, Client, string> {
-  constructor(prisma: PrismaService) {
-    super(prisma, 'client');
+export class PrismaClientRepository implements ClientRepository {
+  async findById(id: string): Promise<Client | null> {
+    const model = await prisma.client.findUnique({
+      where: { id, deletedAt: null },
+    });
+    return model ? this.toDomain(model) : null;
   }
 
-  protected toDomain(model: any): Client {
+  async findByEmail(email: string): Promise<Client | null> {
+    const model = await prisma.client.findUnique({ where: { email } });
+    return model ? this.toDomain(model) : null;
+  }
+
+  async findByDietitianId(
+    dietitianId: string,
+    options?: { isActive?: boolean; skip?: number; take?: number },
+  ): Promise<Client[]> {
+    const { isActive, skip = 0, take = 10 } = options || {};
+    const models = await prisma.client.findMany({
+      where: {
+        dietitianId,
+        deletedAt: null,
+        ...(isActive === undefined ? {} : { isActive }),
+      },
+      skip,
+      take,
+    });
+    return models.map((m) => this.toDomain(m));
+  }
+
+  async search(
+    query: string,
+    dietitianId?: string,
+    options?: { skip?: number; take?: number },
+  ): Promise<Client[]> {
+    const { skip = 0, take = 10 } = options || {};
+    const models = await prisma.client.findMany({
+      where: {
+        ...(dietitianId ? { dietitianId } : {}),
+        deletedAt: null,
+        OR: [
+          { firstName: { contains: query, mode: 'insensitive' } },
+          { lastName: { contains: query, mode: 'insensitive' } },
+          { email: { contains: query, mode: 'insensitive' } },
+        ],
+      },
+      skip,
+      take,
+    });
+    return models.map((m) => this.toDomain(m));
+  }
+
+  async count(filters?: { dietitianId?: string; isActive?: boolean }): Promise<number> {
+    return prisma.client.count({
+      where: {
+        ...(filters?.dietitianId ? { dietitianId: filters.dietitianId } : {}),
+        ...(filters?.isActive !== undefined ? { isActive: filters.isActive } : {}),
+        deletedAt: null,
+      },
+    });
+  }
+
+  async existsByEmail(email: string): Promise<boolean> {
+    const model = await prisma.client.findUnique({ where: { email } });
+    return !!model;
+  }
+
+  async delete(id: string): Promise<void> {
+    await prisma.client.update({
+      where: { id },
+      data: { deletedAt: new Date() },
+    });
+  }
+
+  async create(data: any): Promise<Client> {
+    const model = await prisma.client.create({ data });
+    return this.toDomain(model);
+  }
+
+  async findAll(): Promise<Client[]> {
+    const models = await prisma.client.findMany({ where: { deletedAt: null } });
+    return models.map((m) => this.toDomain(m));
+  }
+
+  // 🔄 Mapping helpers
+  private toDomain(model: any): Client {
     return Client.reconstitute({
       id: model.id,
       email: model.email,
@@ -23,47 +100,13 @@ export class PrismaClientRepository extends PrismaRepositoryBase<any, Client, st
       gender: model.gender,
       dietitianId: model.dietitianId,
       allergies: model.allergies || [],
-      conditions: model.conditions || model.medicalConditions || [], 
-      medications: model.medications || [],   
+      conditions: model.conditions || [],
+      medications: model.medications || [],
       notes: model.notes,
       isActive: model.isActive ?? true,
       createdAt: model.createdAt,
       updatedAt: model.updatedAt,
       deletedAt: model.deletedAt,
     });
-  }
-
-  protected toPrisma(domain: Client): any {
-    return {
-      id: domain.getId() || undefined, 
-      email: domain.getEmail().getValue(),
-      firstName: domain.getFirstName(),
-      lastName: domain.getLastName(),
-      phone: domain.getPhone(),
-      dateOfBirth: domain.getDateOfBirth(),
-      gender: domain.getGender(),
-      dietitianId: domain.getDietitianId(),
-      allergies: domain.getAllergies(),
-      conditions: domain.getConditions(),
-      medications: domain.getMedications(),
-      notes: domain.getNotes(),
-      isActive: domain.isActive(),
-      createdAt: domain.getCreatedAt(),
-      updatedAt: domain.getUpdatedAt(),
-      deletedAt: domain.getDeletedAt(),
-    };
-  }
-
-  // Custom methods
-  async findByEmail(email: string): Promise<Client | null> {
-    const model = await this.model.findUnique({ where: { email } });
-    return model ? this.toDomain(model) : null;
-  }
-
-  async findByDietitian(dietitianId: string): Promise<Client[]> {
-    const models = await this.model.findMany({
-      where: { dietitianId, deletedAt: null },
-    });
-    return models.map((m: any) => this.toDomain(m));
   }
 }

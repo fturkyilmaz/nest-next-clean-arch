@@ -1,17 +1,17 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication, ValidationPipe } from '@nestjs/common';
+import { Test } from '@nestjs/testing';
+import { ValidationPipe } from '@nestjs/common';
 import * as request from 'supertest';
 import { AppModule } from '../../../app.module';
 import { JwtService } from '@nestjs/jwt';
 
 describe('ClientController (e2e)', () => {
-    let app: INestApplication;
-    let jwtService: JwtService;
-    let adminToken: string;
-    let dietitianToken: string;
+    let app;
+    let jwtService;
+    let adminToken;
+    let dietitianToken;
 
     beforeAll(async () => {
-        const moduleFixture: TestingModule = await Test.createTestingModule({
+        const moduleFixture = await Test.createTestingModule({
             imports: [AppModule],
         }).compile();
 

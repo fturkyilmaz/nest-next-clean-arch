@@ -22,7 +22,6 @@
         "@nestjs/config": "^4.0.2",
         "@nestjs/jwt": "^11.0.2",
         "@nestjs/passport": "^11.0.5",
-        "@nestjs/testing": "^11.1.9",
         "@nestjs/throttler": "^6.5.0",
         "@nestjs/common": "11.1.9",
         "@nestjs/core": "11.1.9",
@@ -54,6 +53,8 @@
         "rxjs": "^7.8.2"
     },
     "devDependencies": {
+        "@nestjs/testing": "^11.1.9",
+        "@faker-js/faker": "10.1.0",
         "@types/supertest": "6.0.3",
         "supertest": "^7.1.4",
         "@types/bcrypt": "^5.0.2",

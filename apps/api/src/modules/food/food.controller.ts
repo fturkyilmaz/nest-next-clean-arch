@@ -4,11 +4,12 @@ import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { CreateFoodCommand } from '@application/use-cases/food/CreateFoodUseCase';
 import { GetAllFoodQuery } from '@application/use-cases/food/GetAllFoodUseCase';
 import { GetFoodByIdQuery } from '@application/use-cases/food/GetFoodByIdUseCase';
+import { CreateFoodDto } from '@application/dto/food/CreateFoodDto';
 
 @ApiTags('Food')
 @Controller('foods')
 export class FoodController {
-  constructor(private readonly commandBus: CommandBus, private readonly queryBus: QueryBus) {}
+  constructor(private readonly commandBus: CommandBus, private readonly queryBus: QueryBus) { }
 
   @Get()
   @ApiOperation({ summary: 'Get all foods' })
@@ -28,7 +29,8 @@ export class FoodController {
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Create food' })
   @ApiResponse({ status: 201, description: 'Created successfully' })
-  async create(@Body() dto: any) {
+  async create(@Body() dto: CreateFoodDto) {
     return this.commandBus.execute(new CreateFoodCommand(dto));
   }
+
 }

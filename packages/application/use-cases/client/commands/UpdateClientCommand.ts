@@ -1,16 +1,16 @@
-import { ICommand } from '@nestjs/cqrs';
-
-export class UpdateClientCommand implements ICommand {
+export class UpdateClientCommand {
   constructor(
-    public readonly clientId: string,
-    public readonly firstName?: string,
-    public readonly lastName?: string,
-    public readonly phone?: string,
-    public readonly dateOfBirth?: Date,
-    public readonly gender?: string,
-    public readonly allergies?: string[],
-    public readonly conditions?: string[],
-    public readonly medications?: string[],
-    public readonly notes?: string
-  ) {}
+    public readonly id: string,
+    public readonly payload: {
+      firstName?: string;
+      lastName?: string;
+      phone?: string;
+      dateOfBirth?: Date;
+      gender?: string;
+      allergies?: string[];
+      conditions?: string[];
+      medications?: string[];
+      notes?: string;
+    }
+  ) { }
 }

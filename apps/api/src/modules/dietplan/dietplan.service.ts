@@ -1,17 +1,15 @@
 // dietplan.service.ts
 import { Injectable } from '@nestjs/common';
-import { PrismaClient } from '@prisma/client';
-
+import { prisma } from 'prisma/lib/prisma';
 @Injectable()
 export class DietPlanService {
-  private prisma = new PrismaClient();
 
   async findByClient(clientId: string) {
-    return this.prisma.dietPlan.findMany({ where: { clientId }, include: { mealPlans: true } });
+    return prisma.dietPlan.findMany({ where: { clientId }, include: { mealPlans: true } });
   }
 
   async create(dto: { clientId: string; dietitianId: string; meals: any[] }) {
-    return this.prisma.dietPlan.create({
+    return prisma.dietPlan.create({
       data: {
         clientId: dto.clientId,
         name: 'Diet Plan', // Added required field

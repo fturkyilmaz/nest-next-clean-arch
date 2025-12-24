@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { GetClientsByDietitianQueryHandler } from '../queries/GetClientsByDietitianQueryHandler';
-import { GetClientsByDietitianQuery } from '../queries/GetClientsByDietitianQuery';
+import { GetClientsByDietitianQueryHandler } from '../queries/GetClientsByQueryHandler';
+import { GetClientsByDietitianQuery } from '../queries/GetClientsByIdQuery';
 
 describe('GetClientsByDietitianQueryHandler', () => {
     let handler: GetClientsByDietitianQueryHandler;
