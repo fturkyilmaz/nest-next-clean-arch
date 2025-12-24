@@ -1,28 +1,15 @@
-#!/bin/bash
-
-# Proje kökünden çalıştır
-BASE_DIR="src/tests/repositories"
-
-mkdir -p $BASE_DIR
-
-# Repository listesi
-REPOS=("PrismaUserRepository" "PrismaProductRepository" "PrismaCartRepository" "PrismaOrderRepository")
-
-for repo in "${REPOS[@]}"; do
-  FILE="$BASE_DIR/${repo}.spec.ts"
-  cat > $FILE <<EOL
-import { $repo } from '@infrastructure/repositories/$repo';
+import { PrismaUserRepository } from '@infrastructure/repositories/PrismaUserRepository';
 import { Test, TestingModule } from '@nestjs/testing';
 import { PrismaService } from '@infrastructure/database/PrismaService';
 
-describe('$repo', () => {
-  let repository: $repo;
+describe('PrismaUserRepository', () => {
+  let repository: PrismaUserRepository;
   let prisma: PrismaService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
-        $repo,
+        PrismaUserRepository,
         {
           provide: PrismaService,
           useValue: {
@@ -36,7 +23,7 @@ describe('$repo', () => {
       ],
     }).compile();
 
-    repository = module.get<$repo>($repo);
+    repository = module.get<PrismaUserRepository>(PrismaUserRepository);
     prisma = module.get<PrismaService>(PrismaService);
   });
 
@@ -57,6 +44,3 @@ describe('$repo', () => {
     expect(result).toBeNull();
   });
 });
-EOL
-  echo "Created test file: $FILE"
-done
