@@ -12,6 +12,7 @@
     "lint": "eslint src/"
   },
   "dependencies": {
+    "@diet/shared": "workspace:*",
     "@babel/runtime": "^7.28.4",
     "@expo/vector-icons": "^15.0.3",
     "@hookform/resolvers": "^5.2.2",

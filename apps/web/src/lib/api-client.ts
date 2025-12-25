@@ -1,47 +1,8 @@
-/**
- * Web App API Client - Re-exports from @diet/shared
- * Provides web-specific initialization and configuration
- */
-
-export * from '@diet/shared/api-client';
-export * from '@diet/shared/types';
-export * from '@diet/shared/schemas';
-
-import { createApiClient } from '@diet/shared/api-client';
-import { useAuthStore } from '@/stores/authStore';
+import axios, { AxiosInstance, AxiosError } from 'axios';
 
 /**
- * Initialize API client for web application
+ * API Client Configuration
  */
-export function initializeWebApiClient(baseURL: string) {
-    const authStore = useAuthStore();
-    
-    return createApiClient({
-        baseURL,
-        timeout: 30000,
-        getAccessToken: () => authStore.accessToken,
-        getRefreshToken: () => authStore.refreshToken,
-        enableRetry: true,
-        maxRetries: 3,
-        onTokenExpired: () => {
-            authStore.logout();
-            window.location.href = '/login';
-        },
-        onRefreshToken: ({ accessToken, refreshToken, expiresIn }) => {
-            authStore.setTokens({ 
-                accessToken, 
-                refreshToken, 
-                expiresIn,
-                expiresAt: Date.now() + expiresIn * 1000
-            });
-        },
-        onError: (error) => {
-            console.error('API Error:', error.code, error.detail);
-        },
-    });
-}
-
-// Legacy type exports for backward compatibility
 export interface ApiClientConfig {
     baseURL: string;
     timeout?: number;

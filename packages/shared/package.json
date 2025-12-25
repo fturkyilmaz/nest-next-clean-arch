@@ -2,13 +2,18 @@
     "name": "@diet/shared",
     "version": "0.1.0",
     "private": true,
-    "main": "./api-client/index.ts",
-    "types": "./api-client/index.ts",
     "exports": {
+        ".": {
+            "types": "./types/index.ts",
+            "default": "./api-client/index.ts"
+        },
+        "./types": "./types/index.ts",
+        "./schemas": "./schemas/index.ts",
         "./api-client": "./api-client/index.ts"
     },
     "dependencies": {
-        "axios": "^1.6.0"
+        "axios": "^1.6.0",
+        "zod": "^3.22.0"
     },
     "devDependencies": {
         "typescript": "^5.5.0"

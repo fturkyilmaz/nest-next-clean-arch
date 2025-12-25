@@ -1,8 +1,52 @@
-import axios, { AxiosInstance, AxiosError } from 'axios';
+/**
+ * Mobile App API Client - Re-exports from @diet/shared
+ * Provides mobile-specific initialization and configuration
+ */
+
+export * from '@diet/shared/api-client';
+export * from '@diet/shared/types';
+export * from '@diet/shared/schemas';
+
+import type { AxiosRequestConfig } from '@diet/shared/api-client';
+import { createApiClient } from '@diet/shared/api-client';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 /**
- * API Client Configuration
+ * Initialize API client for mobile application
  */
+export async function initializeMobileApiClient(baseURL: string, authStore: any) {
+    return createApiClient({
+        baseURL,
+        timeout: 30000,
+        getAccessToken: () => authStore.accessToken || null,
+        getRefreshToken: () => authStore.refreshToken || null,
+        enableRetry: true,
+        maxRetries: 3,
+        onTokenExpired: async () => {
+            await authStore.logout();
+            await AsyncStorage.removeItem('tokens');
+        },
+        onRefreshToken: async ({ accessToken, refreshToken, expiresIn }) => {
+            await authStore.setTokens({ 
+                accessToken, 
+                refreshToken, 
+                expiresIn,
+                expiresAt: Date.now() + expiresIn * 1000
+            });
+            await AsyncStorage.setItem('tokens', JSON.stringify({
+                accessToken,
+                refreshToken,
+                expiresIn,
+                expiresAt: Date.now() + expiresIn * 1000
+            }));
+        },
+        onError: (error) => {
+            console.error('API Error:', error.code, error.detail);
+        },
+    });
+}
+
+// Legacy type exports for backward compatibility
 export interface ApiClientConfig {
     baseURL: string;
     timeout?: number;

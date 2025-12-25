@@ -1,15 +1,15 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: [
-    "./App.{js,jsx,ts,tsx}",
+    "./App.tsx",
     "./components/**/*.{js,jsx,ts,tsx}",
-
-    // Monorepo klasörleri
+    "./src/**/*.{js,jsx,ts,tsx}",
+    // Monorepo
     "./apps/mobile/**/*.{js,jsx,ts,tsx}",
     "./apps/web/**/*.{js,jsx,ts,tsx}",
     "./packages/ui/**/*.{js,jsx,ts,tsx}",
     "./packages/lib/**/*.{js,jsx,ts,tsx}",
-    "./packages/shared/**/*.{js,jsx,ts,tsx}"
+    "./packages/shared/**/*.{js,jsx,ts,tsx}",
   ],
   presets: [require("nativewind/preset")],
   theme: {
@@ -53,7 +53,7 @@ module.exports = {
           700: "#374151",
           800: "#1f2937",
           900: "#111827",
-        }
+        },
       },
       fontFamily: {
         sans: ["System"],
