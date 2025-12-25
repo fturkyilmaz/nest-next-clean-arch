@@ -1,10 +1,9 @@
 {
+  "extends": "expo/tsconfig.base",
   "compilerOptions": {
     "strict": true,
     "target": "ESNext",
-    "lib": [
-      "ESNext"
-    ],
+    "lib": ["ESNext"],
     "jsx": "react-jsx",
     "module": "ESNext",
     "moduleResolution": "bundler",
@@ -14,21 +13,22 @@
     "noEmit": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": [
-        "./src/*"
-      ],
-      "@domain/*": [
-        "../../packages/domain/*"
-      ],
-      "@application/*": [
-        "../../packages/application/*"
-      ]
+      "@/*": ["./src/*"],
+      "@diet/shared/*": ["../../packages/shared/src/*"],
+      "@domain/*": ["../../packages/domain/*"],
+      "@application/*": ["../../packages/application/*"]
     }
   },
   "include": [
     "**/*.ts",
     "**/*.tsx",
+    ".expo/types/**/*.ts",
     "nativewind-env.d.ts"
   ],
-  "extends": "expo/tsconfig.base"
+  "exclude": [
+    "node_modules",
+    "babel.config.js",
+    "metro.config.js",
+    "tailwind.config.js"
+  ]
 }

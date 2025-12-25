@@ -5,7 +5,8 @@
  */
 
 import { z } from 'zod';
-import { UserRole, Gender, DietPlanStatus, MealType, AppointmentStatus } from './index';
+import { DietPlanStatus, Gender, Role } from './enums';
+import { AppointmentStatus, MealType } from '../types';
 
 // ============================================
 // Authentication Schemas
@@ -49,7 +50,7 @@ export const createUserSchema = z.object({
     lastName: z.string().min(1, 'Last name is required').max(100),
     email: z.string().email('Invalid email address'),
     password: z.string().min(8, 'Password must be at least 8 characters'),
-    role: z.enum([UserRole.ADMIN, UserRole.DIETITIAN, UserRole.CLIENT]),
+    role: z.enum([Role.ADMIN, Role.DIETITIAN, Role.CLIENT]),
 });
 
 export type CreateUserFormInputs = z.infer<typeof createUserSchema>;
@@ -201,7 +202,7 @@ export const updateDietPlanSchema = z.object({
     name: z.string().min(1, 'Plan name is required').max(200).optional(),
     description: z.string().max(1000).optional(),
     endDate: z.string().datetime('Invalid date format').optional(),
-    status: z.enum([DietPlanStatus.ACTIVE, DietPlanStatus.INACTIVE, DietPlanStatus.ARCHIVED]).optional(),
+    status: z.enum([DietPlanStatus.ACTIVE, DietPlanStatus.DRAFT, DietPlanStatus.COMPLETED, DietPlanStatus.CANCELLED]).optional(),
     targetCalories: z
         .string()
         .refine((val) => !val || (!isNaN(parseInt(val)) && parseInt(val) > 0), {

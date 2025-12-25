@@ -147,12 +147,6 @@ export interface TwoFactorVerifyInput {
 // Client Related Types
 // ============================================
 
-export enum Gender {
-    MALE = 'MALE',
-    FEMALE = 'FEMALE',
-    OTHER = 'OTHER',
-}
-
 export interface Client {
     id: string;
     firstName: string;
@@ -200,12 +194,6 @@ export interface UpdateClientInput {
 // ============================================
 // Diet Plan Related Types
 // ============================================
-
-export enum DietPlanStatus {
-    ACTIVE = 'ACTIVE',
-    INACTIVE = 'INACTIVE',
-    ARCHIVED = 'ARCHIVED',
-}
 
 export interface DietPlan {
     id: string;
@@ -386,13 +374,6 @@ export interface UpdateMetricsInput {
 // Appointment Related Types
 // ============================================
 
-export enum AppointmentStatus {
-    SCHEDULED = 'SCHEDULED',
-    COMPLETED = 'COMPLETED',
-    CANCELLED = 'CANCELLED',
-    NO_SHOW = 'NO_SHOW',
-}
-
 export interface Appointment {
     id: string;
     clientId: string;
@@ -536,3 +517,83 @@ export interface SyncConflict {
     serverVersion: any;
     resolutionStrategy: 'LOCAL_WINS' | 'SERVER_WINS' | 'MANUAL';
 }
+
+
+export const Role = {
+  ADMIN: 'ADMIN',
+  DIETITIAN: 'DIETITIAN',
+  CLIENT: 'CLIENT'
+} as const
+
+export type Role = (typeof Role)[keyof typeof Role]
+
+
+export const Gender = {
+  MALE: 'MALE',
+  FEMALE: 'FEMALE',
+  OTHER: 'OTHER'
+} as const
+
+export type Gender = (typeof Gender)[keyof typeof Gender]
+
+
+export const DietPlanStatus = {
+  DRAFT: 'DRAFT',
+  ACTIVE: 'ACTIVE',
+  COMPLETED: 'COMPLETED',
+  CANCELLED: 'CANCELLED'
+} as const
+
+export type DietPlanStatus = (typeof DietPlanStatus)[keyof typeof DietPlanStatus]
+
+
+export const DayOfWeek = {
+  MONDAY: 'MONDAY',
+  TUESDAY: 'TUESDAY',
+  WEDNESDAY: 'WEDNESDAY',
+  THURSDAY: 'THURSDAY',
+  FRIDAY: 'FRIDAY',
+  SATURDAY: 'SATURDAY',
+  SUNDAY: 'SUNDAY'
+} as const
+
+export type DayOfWeek = (typeof DayOfWeek)[keyof typeof DayOfWeek]
+
+
+export const TimeOfDay = {
+  BREAKFAST: 'BREAKFAST',
+  MORNING_SNACK: 'MORNING_SNACK',
+  LUNCH: 'LUNCH',
+  AFTERNOON_SNACK: 'AFTERNOON_SNACK',
+  DINNER: 'DINNER',
+  EVENING_SNACK: 'EVENING_SNACK'
+} as const
+
+export type TimeOfDay = (typeof TimeOfDay)[keyof typeof TimeOfDay]
+
+
+export const FoodCategory = {
+  VEGETABLES: 'VEGETABLES',
+  FRUITS: 'FRUITS',
+  GRAINS: 'GRAINS',
+  PROTEIN: 'PROTEIN',
+  DAIRY: 'DAIRY',
+  FATS_OILS: 'FATS_OILS',
+  BEVERAGES: 'BEVERAGES',
+  SNACKS: 'SNACKS',
+  CONDIMENTS: 'CONDIMENTS',
+  OTHER: 'OTHER'
+} as const
+
+export type FoodCategory = (typeof FoodCategory)[keyof typeof FoodCategory]
+
+
+export const AppointmentStatus = {
+  SCHEDULED: 'SCHEDULED',
+  CONFIRMED: 'CONFIRMED',
+  COMPLETED: 'COMPLETED',
+  CANCELLED: 'CANCELLED',
+  NO_SHOW: 'NO_SHOW'
+} as const
+
+export type AppointmentStatus = (typeof AppointmentStatus)[keyof typeof AppointmentStatus]

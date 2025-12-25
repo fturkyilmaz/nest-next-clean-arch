@@ -7,7 +7,6 @@ import {
     ActivityIndicator,
     KeyboardAvoidingView,
     Platform,
-    StyleSheet,
 } from 'react-native';
 import { useLogin } from '../lib/api-hooks';
 import { HeartIcon, EnvelopeIcon, LockClosedIcon } from 'react-native-heroicons/outline';
@@ -22,11 +21,17 @@ export default function LoginScreen({ navigation }: any) {
 
     const { control, handleSubmit, formState: { errors } } = useForm<LoginFormInputs>({
         resolver: zodResolver(loginSchema),
+        defaultValues: {
+            "email": "admin@test.com",
+            "password": "Admin123!@#"
+        },
     });
 
     const handleLogin = async (data: LoginFormInputs) => {
         try {
-            await loginMutation.mutateAsync(data);
+            const response = await loginMutation.mutateAsync(data);
+
+            console.log("first", response)
             navigation.replace('MainTabs');
         } catch (err: any) {
             console.error("Login failed:", err);
@@ -52,12 +57,9 @@ export default function LoginScreen({ navigation }: any) {
 
                 {/* Login Form Container */}
                 <View className="bg-gray-800/60 rounded-3xl p-8 shadow-2xl backdrop-blur-lg border border-gray-700/50">
-                    {/* Error */}
-                    {/* Error handling can be added here if needed for server-side errors */}
-
                     {/* Form Fields */}
                     <View className="mb-6">
-                        <Text className="text-gray-300 text-base font-semibold mb-2">Email Address</Text>
+                        <Text className="text-gray-300 text-base font-semibold mb-2">Email</Text>
                         <Controller
                             control={control}
                             name="email"
@@ -153,7 +155,3 @@ export default function LoginScreen({ navigation }: any) {
         </KeyboardAvoidingView>
     );
 }
-
-const styles = StyleSheet.create({
-    // No custom styles needed beyond NativeWind
-});

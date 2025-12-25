@@ -20,7 +20,7 @@ import { ReportModule } from './modules/report/report.module';
 // Infrastructure modules
 import { DatabaseModule } from '@infrastructure/database/DatabaseModule';
 import { RedisCacheModule } from '@infrastructure/cache/RedisCacheModule';
-import { DatabaseOptimizationModule } from '@infrastructure/database/database-optimization.module';
+import { DatabaseOptimizationModule } from '@infrastructure/database/DatabaseOptimizationModule';
 
 // Middleware
 import { CorrelationIdMiddleware } from '@infrastructure/middleware/CorrelationIdMiddleware';

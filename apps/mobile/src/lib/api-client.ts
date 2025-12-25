@@ -180,61 +180,6 @@ export interface ChangePasswordRequest {
 }
 
 /**
- * Create configured API client instance
- */
-export function createApiClient(config: ApiClientConfig): AxiosInstance {
-    const client = axios.create({
-        baseURL: config.baseURL,
-        timeout: config.timeout || 30000,
-        headers: {
-            'Content-Type': 'application/json',
-        },
-    });
-
-    // Request interceptor - add auth token
-    client.interceptors.request.use(
-        (requestConfig) => {
-            const token = config.getAccessToken?.();
-            if (token) {
-                requestConfig.headers.Authorization = `Bearer ${token}`;
-            }
-            return requestConfig;
-        },
-        (error) => Promise.reject(error)
-    );
-
-    // Response interceptor - handle errors
-    client.interceptors.response.use(
-        (response) => response,
-        (error: AxiosError<ApiError>) => {
-            if (error.response) {
-                const apiError = error.response.data;
-
-                // Handle 401 - token expired
-                if (error.response.status === 401) {
-                    config.onTokenExpired?.();
-                }
-
-                config.onError?.(apiError);
-                return Promise.reject(apiError);
-            }
-
-            // Network error
-            const networkError: ApiError = {
-                type: 'https://httpstatuses.com/0',
-                title: 'Network Error',
-                status: 0,
-                detail: error.message || 'Unable to connect to server',
-            };
-            config.onError?.(networkError);
-            return Promise.reject(networkError);
-        }
-    );
-
-    return client;
-}
-
-/**
  * API Service
  */
 export class ApiService {
