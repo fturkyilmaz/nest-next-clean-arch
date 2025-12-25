@@ -44,6 +44,18 @@ async function main() {
       isActive: true,
     },
   });
+
+   // Create Admin user
+ await prisma.user.create({
+    data: {
+      email: 'admin@test.com',
+      password: await bcrypt.hash('Admin123!@#', 12),
+      firstName: 'System',
+      lastName: 'Administrator',
+      role: Role.ADMIN,
+      isActive: true,
+    },
+  });
   console.log(`✅ Admin: ${admin.email}`);
 
   // Create Dietitian users
