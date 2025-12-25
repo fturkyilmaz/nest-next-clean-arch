@@ -26,6 +26,7 @@
     "clsx": "^2.1.1",
     "i18next": "^25.7.2",
     "i18next-browser-languagedetector": "^8.2.0",
+    "lucide-react": "^0.562.0",
     "next": "16.0.7",
     "react": "19.2.0",
     "react-dom": "19.2.0",
@@ -36,6 +37,10 @@
     "zustand": "^5.0.2"
   },
   "devDependencies": {
+    "@storybook/addon-a11y": "^10.1.10",
+    "@storybook/addon-docs": "^10.1.10",
+    "@storybook/addon-onboarding": "^10.1.10",
+    "@storybook/nextjs": "^10.1.10",
     "@tailwindcss/postcss": "^4",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.1.0",
@@ -45,14 +50,10 @@
     "babel-plugin-react-compiler": "1.0.0",
     "eslint": "^9",
     "eslint-config-next": "16.0.7",
+    "eslint-plugin-storybook": "^10.1.10",
     "jsdom": "^25.0.1",
-    "tailwindcss": "^4",
-    "typescript": "^5",
     "storybook": "^10.1.10",
-    "@storybook/nextjs": "^10.1.10",
-    "@storybook/addon-a11y": "^10.1.10",
-    "@storybook/addon-docs": "^10.1.10",
-    "@storybook/addon-onboarding": "^10.1.10",
-    "eslint-plugin-storybook": "^10.1.10"
+    "tailwindcss": "^4",
+    "typescript": "^5"
   }
 }
