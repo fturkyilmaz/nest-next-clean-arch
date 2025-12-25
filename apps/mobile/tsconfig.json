@@ -3,7 +3,9 @@
   "compilerOptions": {
     "strict": true,
     "target": "ESNext",
-    "lib": ["ESNext"],
+    "lib": [
+      "ESNext"
+    ],
     "jsx": "react-jsx",
     "module": "ESNext",
     "moduleResolution": "bundler",
@@ -13,16 +15,23 @@
     "noEmit": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"],
-      "@diet/shared/*": ["../../packages/shared/src/*"],
-      "@domain/*": ["../../packages/domain/*"],
-      "@application/*": ["../../packages/application/*"]
+      "@/*": [
+        "./src/*"
+      ],
+      "@diet/shared/*": [
+        "../../packages/shared/src/*"
+      ],
+      "@domain/*": [
+        "../../packages/domain/*"
+      ],
+      "@application/*": [
+        "../../packages/application/*"
+      ]
     }
   },
   "include": [
     "**/*.ts",
     "**/*.tsx",
-    ".expo/types/**/*.ts",
     "nativewind-env.d.ts"
   ],
   "exclude": [
