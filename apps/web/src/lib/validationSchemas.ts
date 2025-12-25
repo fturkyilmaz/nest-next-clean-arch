@@ -1,3 +1,11 @@
+/**
+ * Web App Validation Schemas - Re-exports from @diet/shared
+ * Single source of truth for form validation across web and mobile
+ */
+
+export * from '@diet/shared/schemas';
+
+// Legacy exports for backward compatibility
 import { z } from 'zod';
 
 export const loginSchema = z.object({
