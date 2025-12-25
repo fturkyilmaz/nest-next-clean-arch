@@ -4,6 +4,10 @@ import { JwtService } from '@nestjs/jwt';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import helmet from 'helmet';
 
+// Initialize telemetry FIRST, before any other imports
+import { initTelemetry } from '@infrastructure/telemetry';
+initTelemetry();
+
 import { AppModule } from './app.module';
 import { GlobalExceptionFilter } from '@infrastructure/filters/GlobalExceptionFilter';
 import { RolesGuard } from '@shared/guards/RolesGuard';

@@ -20,6 +20,7 @@ import { ReportModule } from './modules/report/report.module';
 // Infrastructure modules
 import { DatabaseModule } from '@infrastructure/database/DatabaseModule';
 import { RedisCacheModule } from '@infrastructure/cache/RedisCacheModule';
+import { DatabaseOptimizationModule } from '@infrastructure/database/database-optimization.module';
 
 // Middleware
 import { CorrelationIdMiddleware } from '@infrastructure/middleware/CorrelationIdMiddleware';
@@ -47,6 +48,7 @@ import { RequestLoggingMiddleware } from '@infrastructure/middleware/RequestLogg
     // Infrastructure
     DatabaseModule,
     RedisCacheModule,
+    DatabaseOptimizationModule,
 
     // Feature modules
     HealthModule,

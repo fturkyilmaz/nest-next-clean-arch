@@ -51,7 +51,18 @@
         "dotenv": "17.2.3",
         "pg": "8.16.3",
         "@prisma/adapter-pg": "7.1.0",
-        "rxjs": "^7.8.2"
+        "rxjs": "^7.8.2",
+        "ioredis": "^5.3.7",
+        "@opentelemetry/sdk-node": "^0.50.1",
+        "@opentelemetry/auto-instrumentations-node": "^1.0.2",
+        "@opentelemetry/sdk-trace-node": "^0.50.1",
+        "@opentelemetry/exporter-trace-otlp-http": "^0.50.1",
+        "@opentelemetry/instrumentation-http": "^0.50.1",
+        "@opentelemetry/instrumentation-express": "^0.34.10",
+        "@opentelemetry/instrumentation-nest": "^0.37.0",
+        "@opentelemetry/instrumentation-pg": "^0.40.1",
+        "@opentelemetry/api": "^1.8.0",
+        "@opentelemetry/core": "^1.22.0"
     },
     "devDependencies": {
         "@nestjs/testing": "^11.1.9",
