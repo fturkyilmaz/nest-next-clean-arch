@@ -32,5 +32,9 @@ export * from './audit/audit.types';
 export * from './audit/audit.schema';
 export * from './audit/audit.utils';
 
+// WebSocket & Real-Time
+export * from './websocket/websocket.types';
+export * from './websocket/websocket.service';
+
 // Utils
 export * from './utils/index';
