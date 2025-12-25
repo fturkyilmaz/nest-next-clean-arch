@@ -1,19 +1,27 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosError } from 'axios';
 
 /**
- * API Client Configuration
+ * Centralized API Client for Web, Mobile, and Backend
+ * Provides unified error handling, request/response interceptors, and retry logic
  */
+
+// ============================================
+// Configuration & Interfaces
+// ============================================
+
 export interface ApiClientConfig {
     baseURL: string;
     timeout?: number;
     getAccessToken?: () => string | null;
     onTokenExpired?: () => void;
     onError?: (error: ApiError) => void;
+    getRefreshToken?: () => string | null;
+    onRefreshToken?: (tokens: { accessToken: string; refreshToken: string; expiresIn: number }) => void;
+    enableRetry?: boolean;
+    maxRetries?: number;
+    retryDelay?: number;
 }
 
-/**
- * API Error Response
- */
 export interface ApiError {
     type: string;
     title: string;
@@ -22,11 +30,9 @@ export interface ApiError {
     instance?: string;
     timestamp?: string;
     errors?: Record<string, string[]>;
+    code?: string;
 }
 
-/**
- * Paginated Response
- */
 export interface PaginatedResponse<T> {
     data: T[];
     total: number;
@@ -35,8 +41,31 @@ export interface PaginatedResponse<T> {
     totalPages: number;
 }
 
+// ============================================
+// Retry Configuration with Exponential Backoff
+// ============================================
+
+interface RetryConfig {
+    maxRetries: number;
+    delay: number;
+    backoffMultiplier: number;
+    maxDelay: number;
+}
+
+const DEFAULT_RETRY_CONFIG: RetryConfig = {
+    maxRetries: 3,
+    delay: 1000,
+    backoffMultiplier: 2,
+    maxDelay: 10000,
+};
+
+// ============================================
+// API Client Factory
+// ============================================
+
 /**
- * Create configured API client instance
+ * Create configured API client instance with advanced interceptors
+ * Handles authentication, token refresh, error handling, and retry logic
  */
 export function createApiClient(config: ApiClientConfig): AxiosInstance {
     const client = axios.create({
@@ -47,43 +76,120 @@ export function createApiClient(config: ApiClientConfig): AxiosInstance {
         },
     });
 
-    // Request interceptor - add auth token
+    let isRefreshing = false;
+    let refreshSubscribers: Array<(token: string) => void> = [];
+
+    const onRefreshed = (token: string) => {
+        refreshSubscribers.forEach((callback) => callback(token));
+        refreshSubscribers = [];
+    };
+
+    // ============================================
+    // Request Interceptor - Add Auth Token
+    // ============================================
     client.interceptors.request.use(
         (requestConfig) => {
             const token = config.getAccessToken?.();
             if (token) {
                 requestConfig.headers.Authorization = `Bearer ${token}`;
             }
+            // Add correlation ID for tracing
+            requestConfig.headers['X-Correlation-ID'] = generateCorrelationId();
             return requestConfig;
         },
         (error) => Promise.reject(error)
     );
 
-    // Response interceptor - handle errors
+    // ============================================
+    // Response Interceptor - Error Handling & Token Refresh
+    // ============================================
     client.interceptors.response.use(
         (response) => response,
-        (error: AxiosError<ApiError>) => {
-            if (error.response) {
-                const apiError = error.response.data;
+        async (error: AxiosError<ApiError>) => {
+            const originalRequest = error.config as AxiosRequestConfig & { _retry?: number };
 
-                // Handle 401 - token expired
-                if (error.response.status === 401) {
-                    config.onTokenExpired?.();
-                }
-
-                config.onError?.(apiError);
-                return Promise.reject(apiError);
+            // Handle network error
+            if (!error.response) {
+                const networkError: ApiError = {
+                    type: 'https://httpstatuses.com/0',
+                    title: 'Network Error',
+                    status: 0,
+                    detail: error.message || 'Unable to connect to server',
+                    code: 'NETWORK_ERROR',
+                };
+                config.onError?.(networkError);
+                return Promise.reject(networkError);
             }
 
-            // Network error
-            const networkError: ApiError = {
-                type: 'https://httpstatuses.com/0',
-                title: 'Network Error',
-                status: 0,
-                detail: error.message || 'Unable to connect to server',
+            const apiError = error.response.data || {
+                type: 'https://httpstatuses.com/' + error.response.status,
+                title: error.response.statusText,
+                status: error.response.status,
+                detail: 'An error occurred',
             };
-            config.onError?.(networkError);
-            return Promise.reject(networkError);
+
+            // Handle 401 - Token Expired, attempt refresh
+            if (error.response.status === 401 && config.getRefreshToken) {
+                if (!isRefreshing) {
+                    isRefreshing = true;
+
+                    try {
+                        const refreshToken = config.getRefreshToken();
+                        if (!refreshToken) {
+                            config.onTokenExpired?.();
+                            return Promise.reject(apiError);
+                        }
+
+                        // Call refresh token endpoint
+                        const response = await axios.post(`${config.baseURL}/auth/refresh`, {
+                            refreshToken,
+                        });
+
+                        const { accessToken, refreshToken: newRefreshToken, expiresIn } = response.data;
+                        config.onRefreshToken?.({ accessToken, refreshToken: newRefreshToken, expiresIn });
+
+                        isRefreshing = false;
+                        onRefreshed(accessToken);
+
+                        // Retry original request with new token
+                        if (originalRequest) {
+                            originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+                            return client(originalRequest);
+                        }
+                    } catch (refreshError) {
+                        isRefreshing = false;
+                        config.onTokenExpired?.();
+                        return Promise.reject(apiError);
+                    }
+                }
+
+                // Queue request while token is being refreshed
+                return new Promise((resolve) => {
+                    refreshSubscribers.push((token: string) => {
+                        if (originalRequest) {
+                            originalRequest.headers.Authorization = `Bearer ${token}`;
+                            resolve(client(originalRequest));
+                        }
+                    });
+                });
+            }
+
+            // Implement exponential backoff retry for idempotent requests
+            if (config.enableRetry && shouldRetry(error) && (!originalRequest._retry || originalRequest._retry < DEFAULT_RETRY_CONFIG.maxRetries)) {
+                originalRequest._retry = (originalRequest._retry || 0) + 1;
+                const delay = calculateBackoffDelay(originalRequest._retry, DEFAULT_RETRY_CONFIG);
+
+                await sleep(delay);
+                return client(originalRequest);
+            }
+
+            // Enhance error with code for i18n
+            if (!apiError.code) {
+                apiError.code = mapHttpStatusToErrorCode(error.response.status);
+            }
+
+            config.onError?.(apiError);
+            return Promise.reject(apiError);
         }
     );
 
@@ -91,212 +197,70 @@ export function createApiClient(config: ApiClientConfig): AxiosInstance {
 }
 
 // ============================================
-// API Types
+// Helper Functions
 // ============================================
 
-export interface User {
-    id: string;
-    email: string;
-    firstName: string;
-    lastName: string;
-    role: 'ADMIN' | 'DIETITIAN' | 'CLIENT';
-    isActive: boolean;
-    createdAt: string;
-    updatedAt: string;
+/**
+ * Generate unique correlation ID for request tracing
+ */
+function generateCorrelationId(): string {
+    return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 }
 
-export interface Client {
-    id: string;
-    firstName: string;
-    lastName: string;
-    email: string;
-    phone?: string;
-    dateOfBirth?: string;
-    gender?: 'MALE' | 'FEMALE' | 'OTHER';
-    dietitianId: string;
-    allergies: string[];
-    conditions: string[];
-    medications: string[];
-    notes?: string;
-    isActive: boolean;
-    createdAt: string;
-    updatedAt: string;
+/**
+ * Determine if request should be retried
+ */
+function shouldRetry(error: AxiosError): boolean {
+    if (!error.response) {
+        return true; // Retry network errors
+    }
+
+    const status = error.response.status;
+    const method = error.config?.method?.toUpperCase();
+
+    // Retry safe methods on specific status codes
+    const retryableStatuses = [408, 429, 500, 502, 503, 504];
+    const safeIdempotentMethods = ['GET', 'PUT', 'DELETE', 'HEAD', 'OPTIONS'];
+
+    return retryableStatuses.includes(status) && safeIdempotentMethods.includes(method || 'GET');
 }
 
-export interface ClientMetrics {
-    id: string;
-    clientId: string;
-    weight: number;
-    height: number;
-    bmi?: number;
-    bodyFat?: number;
-    waist?: number;
-    hip?: number;
-    recordedAt: string;
-    notes?: string;
+/**
+ * Calculate exponential backoff delay with jitter
+ */
+function calculateBackoffDelay(retryCount: number, config: RetryConfig): number {
+    const exponentialDelay = config.delay * Math.pow(config.backoffMultiplier, retryCount - 1);
+    const jitter = Math.random() * 0.1 * exponentialDelay;
+    const delay = Math.min(exponentialDelay + jitter, config.maxDelay);
+    return Math.floor(delay);
 }
 
-export interface DietPlan {
-    id: string;
-    name: string;
-    description?: string;
-    clientId: string;
-    dietitianId: string;
-    startDate: string;
-    endDate?: string;
-    status: 'DRAFT' | 'ACTIVE' | 'COMPLETED' | 'CANCELLED';
-    targetCalories?: number;
-    targetProtein?: number;
-    targetCarbs?: number;
-    targetFat?: number;
-    targetFiber?: number;
-    version: number;
-    isActive: boolean;
-    createdAt: string;
-    updatedAt: string;
+/**
+ * Sleep utility for retries
+ */
+function sleep(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-export interface LoginRequest {
-    email: string;
-    password: string;
+/**
+ * Map HTTP status codes to standardized error codes
+ */
+function mapHttpStatusToErrorCode(status: number): string {
+    const statusMap: Record<number, string> = {
+        400: 'BAD_REQUEST',
+        401: 'UNAUTHORIZED',
+        403: 'FORBIDDEN',
+        404: 'NOT_FOUND',
+        409: 'CONFLICT',
+        422: 'VALIDATION_ERROR',
+        429: 'RATE_LIMITED',
+        500: 'INTERNAL_SERVER_ERROR',
+        502: 'BAD_GATEWAY',
+        503: 'SERVICE_UNAVAILABLE',
+    };
+    return statusMap[status] || 'UNKNOWN_ERROR';
 }
 
-export interface LoginResponse {
-    accessToken: string;
-    refreshToken: string;
-    user: User;
-}
-
-export interface CreateClientRequest {
-    firstName: string;
-    lastName: string;
-    email: string;
-    phone?: string;
-    dateOfBirth?: string;
-    gender?: 'MALE' | 'FEMALE' | 'OTHER';
-}
-
-export interface CreateDietPlanRequest {
-    name: string;
-    description?: string;
-    clientId: string;
-    startDate: string;
-    endDate?: string;
-    targetCalories?: number;
-    targetProtein?: number;
-    targetCarbs?: number;
-    targetFat?: number;
-    targetFiber?: number;
-}
-
-// ============================================
-// API Service
-// ============================================
-
-export class ApiService {
-    constructor(private client: AxiosInstance) { }
-
-    // Auth
-    async login(data: LoginRequest): Promise<LoginResponse> {
-        const res = await this.client.post<LoginResponse>('/auth/login', data);
-        return res.data;
-    }
-
-    async refreshToken(refreshToken: string): Promise<LoginResponse> {
-        const res = await this.client.post<LoginResponse>('/auth/refresh', { refreshToken });
-        return res.data;
-    }
-
-    async logout(): Promise<void> {
-        await this.client.post('/auth/logout');
-    }
-
-    // Users
-    async getCurrentUser(): Promise<User> {
-        const res = await this.client.get<User>('/users/me/profile');
-        return res.data;
-    }
-
-    async getUsers(): Promise<User[]> {
-        const res = await this.client.get<User[]>('/users');
-        return res.data;
-    }
-
-    async getUserById(id: string): Promise<User> {
-        const res = await this.client.get<User>(`/users/${id}`);
-        return res.data;
-    }
-
-    // Clients
-    async getClients(): Promise<Client[]> {
-        const res = await this.client.get<Client[]>('/clients');
-        return res.data;
-    }
-
-    async getClientById(id: string): Promise<Client> {
-        const res = await this.client.get<Client>(`/clients/${id}`);
-        return res.data;
-    }
-
-    async createClient(data: CreateClientRequest): Promise<Client> {
-        const res = await this.client.post<Client>('/clients', data);
-        return res.data;
-    }
-
-    async updateClient(id: string, data: Partial<CreateClientRequest>): Promise<Client> {
-        const res = await this.client.put<Client>(`/clients/${id}`, data);
-        return res.data;
-    }
-
-    async getClientMetrics(clientId: string): Promise<ClientMetrics[]> {
-        const res = await this.client.get<ClientMetrics[]>(`/clients/${clientId}/metrics`);
-        return res.data;
-    }
-
-    async addClientMetrics(clientId: string, data: Omit<ClientMetrics, 'id' | 'clientId' | 'recordedAt'>): Promise<ClientMetrics> {
-        const res = await this.client.post<ClientMetrics>(`/clients/${clientId}/metrics`, data);
-        return res.data;
-    }
-
-    // Diet Plans
-    async getDietPlans(): Promise<DietPlan[]> {
-        const res = await this.client.get<DietPlan[]>('/diet-plans');
-        return res.data;
-    }
-
-    async getDietPlanById(id: string): Promise<DietPlan> {
-        const res = await this.client.get<DietPlan>(`/diet-plans/${id}`);
-        return res.data;
-    }
-
-    async getClientDietPlans(clientId: string): Promise<DietPlan[]> {
-        const res = await this.client.get<DietPlan[]>(`/clients/${clientId}/diet-plans`);
-        return res.data;
-    }
-
-    async createDietPlan(data: CreateDietPlanRequest): Promise<DietPlan> {
-        const res = await this.client.post<DietPlan>('/diet-plans', data);
-        return res.data;
-    }
-
-    async updateDietPlan(id: string, data: Partial<CreateDietPlanRequest>): Promise<DietPlan> {
-        const res = await this.client.put<DietPlan>(`/diet-plans/${id}`, data);
-        return res.data;
-    }
-
-    async activateDietPlan(id: string): Promise<DietPlan> {
-        const res = await this.client.post<DietPlan>(`/diet-plans/${id}/activate`);
-        return res.data;
-    }
-
-    async completeDietPlan(id: string): Promise<DietPlan> {
-        const res = await this.client.post<DietPlan>(`/diet-plans/${id}/complete`);
-        return res.data;
-    }
-
-    // Health
-    async healthCheck(): Promise<{ status: string }> {
-        const res = await this.client.get<{ status: string }>('/health');
-        return res.data;
-    }
-}
+// Re-export types and schemas from shared packages
+export * from '../types';
+export * from '../schemas';
