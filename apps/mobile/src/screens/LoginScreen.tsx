@@ -29,10 +29,7 @@ export default function LoginScreen({ navigation }: any) {
 
     const handleLogin = async (data: LoginFormInputs) => {
         try {
-            const response = await loginMutation.mutateAsync(data);
-
-            console.log("first", response)
-            navigation.replace('MainTabs');
+            await loginMutation.mutateAsync(data);
         } catch (err: any) {
             console.error("Login failed:", err);
         }
@@ -135,6 +132,14 @@ export default function LoginScreen({ navigation }: any) {
                             </Text>
                         )}
                     </TouchableOpacity>
+
+                    {/* Register Redirect */}
+                    <View className="mt-6 flex-row justify-center">
+                        <Text className="text-gray-300 text-sm mr-2">Don’t have an account?</Text>
+                        <TouchableOpacity onPress={() => navigation.navigate("Register")}>
+                            <Text className="text-primary-400 text-sm font-semibold">Register</Text>
+                        </TouchableOpacity>
+                    </View>
 
                     {/* Demo credentials */}
                     <View className="mt-8 bg-gray-700/50 rounded-xl p-4">

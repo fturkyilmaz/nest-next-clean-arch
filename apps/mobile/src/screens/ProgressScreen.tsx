@@ -7,7 +7,6 @@ import {
     ArrowTrendingUpIcon,
     HeartIcon,
     CheckCircleIcon,
-    UtensilsIcon,
 } from 'react-native-heroicons/outline';
 
 export default function ProgressScreen() {
@@ -42,7 +41,7 @@ export default function ProgressScreen() {
                     <View className="flex-row justify-around">
                         <StatItem value="5" label="Days on Track" icon={<CheckCircleIcon size={24} color="#818cf8" />} />
                         <StatItem value="9,200" label="Avg Calories" icon={<FireIcon size={24} color="#fde047" />} />
-                        <StatItem value="21" label="Meals Tracked" icon={<UtensilsIcon size={24} color="#4ade80" />} />
+                        <StatItem value="21" label="Meals Tracked" icon={<FireIcon size={24} color="#4ade80" />} />
                     </View>
                 </View>
 

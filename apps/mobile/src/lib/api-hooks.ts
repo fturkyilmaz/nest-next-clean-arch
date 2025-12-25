@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { createApiClient, ApiService, LoginRequest, CreateClientRequest, CreateDietPlanRequest, ClientMetrics, CreateUserRequest, RegisterRequest, ChangePasswordRequest } from './api-client';
+import { Alert } from 'react-native';
+import { createApiClient, ApiService, LoginRequest, CreateClientRequest, CreateDietPlanRequest, ClientMetrics, ChangePasswordRequest, RegisterRequest } from './api-client';
 
 // Create API client for mobile
 const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
@@ -51,6 +52,17 @@ export async function loadStoredToken(): Promise<string | null> {
 // ============================================
 // React Query Hooks for Mobile
 // ============================================
+
+export function useRegister() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (data: RegisterRequest) => api.register(data),
+        onSuccess: async (data) => {
+            await setTokens(data.accessToken, data.refreshToken);
+            queryClient.setQueryData(['currentUser'], data.user);
+        },
+    });
+}
 
 export function useLogin() {
     const queryClient = useQueryClient();
@@ -232,6 +244,179 @@ export function useChangePassword() {
         onError: (error: any) => {
             Alert.alert('Error', error.detail || error.message || 'Failed to change password.');
         },
+    });
+}
+
+// ============================================
+// Appointments Hooks
+// ============================================
+
+export function useAppointments() {
+    return useQuery({
+        queryKey: ['appointments'],
+        queryFn: () => api.getAppointments(),
+    });
+}
+
+export function useAppointment(id: string) {
+    return useQuery({
+        queryKey: ['appointments', id],
+        queryFn: () => api.getAppointmentById(id),
+        enabled: !!id,
+    });
+}
+
+export function useCreateAppointment() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (data: Partial<any>) => api.createAppointment(data),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['appointments'] });
+        },
+    });
+}
+
+// ============================================
+// Foods Hooks
+// ============================================
+
+export function useFoods() {
+    return useQuery({
+        queryKey: ['foods'],
+        queryFn: () => api.getFoods(),
+    });
+}
+
+export function useFood(id: string) {
+    return useQuery({
+        queryKey: ['foods', id],
+        queryFn: () => api.getFoodById(id),
+        enabled: !!id,
+    });
+}
+
+export function useCreateFood() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (data: Partial<any>) => api.createFood(data),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['foods'] });
+        },
+    });
+}
+
+// ============================================
+// Meals Hooks
+// ============================================
+
+export function useMeals() {
+    return useQuery({
+        queryKey: ['meals'],
+        queryFn: () => api.getMeals(),
+    });
+}
+
+export function useMeal(id: string) {
+    return useQuery({
+        queryKey: ['meals', id],
+        queryFn: () => api.getMealById(id),
+        enabled: !!id,
+    });
+}
+
+export function useCreateMeal() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (data: Partial<any>) => api.createMeal(data),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['meals'] });
+        },
+    });
+}
+
+// ============================================
+// Events Hooks
+// ============================================
+
+export function useEvents() {
+    return useQuery({
+        queryKey: ['events'],
+        queryFn: () => api.getEvents(),
+    });
+}
+
+export function useEvent(id: string) {
+    return useQuery({
+        queryKey: ['events', id],
+        queryFn: () => api.getEventById(id),
+        enabled: !!id,
+    });
+}
+
+export function useCreateEvent() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (data: Partial<any>) => api.createEvent(data),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['events'] });
+        },
+    });
+}
+
+// ============================================
+// Reports Hooks
+// ============================================
+
+export function useReports() {
+    return useQuery({
+        queryKey: ['reports'],
+        queryFn: () => api.getReports(),
+    });
+}
+
+export function useReport(id: string) {
+    return useQuery({
+        queryKey: ['reports', id],
+        queryFn: () => api.getReportById(id),
+        enabled: !!id,
+    });
+}
+
+// ============================================
+// Audits (Activity Logs) Hooks
+// ============================================
+
+export function useAudits() {
+    return useQuery({
+        queryKey: ['audits'],
+        queryFn: () => api.getAudits(),
+    });
+}
+
+export function useAudit(id: string) {
+    return useQuery({
+        queryKey: ['audits', id],
+        queryFn: () => api.getAuditById(id),
+        enabled: !!id,
+    });
+}
+
+// ============================================
+// Metrics Hooks
+// ============================================
+
+export function useMetrics() {
+    return useQuery({
+        queryKey: ['metrics'],
+        queryFn: () => api.getMetrics(),
+    });
+}
+
+export function useMetric(id: string) {
+    return useQuery({
+        queryKey: ['metrics', id],
+        queryFn: () => api.getMetricById(id),
+        enabled: !!id,
     });
 }
 

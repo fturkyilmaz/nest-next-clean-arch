@@ -21,6 +21,23 @@ import AddClientScreen from "../screens/AddClientScreen";
 import LoginScreen from "../screens/LoginScreen";
 import RegisterScreen from "../screens/RegisterScreen";
 import EditClientScreen from "../screens/EditClientScreen";
+import ProfileScreen from "../screens/ProfileScreen";
+
+// New screens
+import AppointmentsScreen from "../screens/AppointmentsScreen";
+import AppointmentDetailScreen from "../screens/AppointmentDetailScreen";
+import CreateAppointmentScreen from "../screens/CreateAppointmentScreen";
+import FoodsScreen from "../screens/FoodsScreen";
+import FoodDetailScreen from "../screens/FoodDetailScreen";
+import CreateFoodScreen from "../screens/CreateFoodScreen";
+import EventsScreen from "../screens/EventsScreen";
+import EventDetailScreen from "../screens/EventDetailScreen";
+import ReportsScreen from "../screens/ReportsScreen";
+import ReportDetailScreen from "../screens/ReportDetailScreen";
+import ActivityLogsScreen from "../screens/ActivityLogsScreen";
+import MealDetailScreen from "../screens/MealDetailScreen";
+import CreateMealScreen from "../screens/CreateMealScreen";
+
 import { CalculatorIcon, ChartBarIcon, ClipboardDocumentListIcon, HomeIcon, UserGroupIcon } from "react-native-heroicons/outline";
 
 const Stack = createNativeStackNavigator<RootStackParamList>() as any;
@@ -137,15 +154,40 @@ export default function RootNavigator() {
                     <Stack.Group>
                         <Stack.Screen name="MainTabs" component={MainTabNavigator} />
                         <Stack.Screen name="Users" component={UsersScreen} />
+                        <Stack.Screen name="Profile" component={ProfileScreen} />
+
+                        {/* Diet Plans */}
                         <Stack.Screen name="DietPlanDetail" component={DietPlanDetailScreen} />
                         <Stack.Screen name="CreateDietPlan" component={CreateDietPlanScreen} />
                         <Stack.Screen name="EditDietPlan" component={EditDietPlanScreen} />
+
+                        {/* Clients */}
                         <Stack.Screen name="ClientDetail" component={ClientDetailScreen} />
                         <Stack.Screen name="AddClient" component={AddClientScreen} />
                         <Stack.Screen name="EditClient" component={EditClientScreen} />
+
+                        {/* Appointments */}
+                        <Stack.Screen name="Appointments" component={AppointmentsScreen} />
+                        <Stack.Screen name="AppointmentDetail" component={AppointmentDetailScreen} />
+                        <Stack.Screen name="CreateAppointment" component={CreateAppointmentScreen} />
+
+                        {/* Foods */}
+                        <Stack.Screen name="Foods" component={FoodsScreen} />
+                        <Stack.Screen name="FoodDetail" component={FoodDetailScreen} />
+                        <Stack.Screen name="CreateFood" component={CreateFoodScreen} />
+
+                        {/* Events */}
+                        <Stack.Screen name="Events" component={EventsScreen} />
+                        <Stack.Screen name="EventDetail" component={EventDetailScreen} />
+
+                        {/* Reports */}
+                        <Stack.Screen name="Reports" component={ReportsScreen} />
+                        <Stack.Screen name="ReportDetail" component={ReportDetailScreen} />
+
+                        {/* Activity Logs */}
+                        <Stack.Screen name="ActivityLogs" component={ActivityLogsScreen} />
                     </Stack.Group>
                 ) : (
-                    // User is not authenticated
                     <Stack.Group>
                         <Stack.Screen name="Auth" component={AuthNavigator} />
                     </Stack.Group>
