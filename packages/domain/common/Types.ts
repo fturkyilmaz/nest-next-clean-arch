@@ -69,6 +69,7 @@ export type EmailAddress = Brand<string, 'EmailAddress'>;
 export interface PaginationParams {
   page: number;
   pageSize: number;
+  limit?: number;
 }
 
 export interface PaginatedResult<T> {

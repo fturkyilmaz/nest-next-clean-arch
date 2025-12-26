@@ -11,7 +11,6 @@
     },
     "collectCoverageFrom": [
         "packages/**/*.(t|j)s",
-        "apps/**/*.(t|j)s",
         "!**/*.spec.ts",
         "!**/*.e2e-spec.ts",
         "!**/node_modules/**",
@@ -21,9 +20,7 @@
     "coverageDirectory": "./coverage",
     "testEnvironment": "node",
     "roots": [
-        "<rootDir>/packages/",
-        "<rootDir>/apps/",
-        "<rootDir>/test/"
+        "<rootDir>/packages/"
     ],
     "moduleNameMapper": {
         "^@domain/(.*)$": "<rootDir>/packages/domain/$1",

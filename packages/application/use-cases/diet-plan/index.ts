@@ -7,3 +7,5 @@ export * from './commands/ActivateDietPlanCommandHandler';
 // Queries
 export * from './queries/GetDietPlansByClientQuery';
 export * from './queries/GetDietPlansByClientQueryHandler';
+export * from './queries/GetAllDietPlansQuery';
+export * from './queries/GetAllDietPlansQueryHandler';

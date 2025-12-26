@@ -67,7 +67,6 @@ export class AuthController {
   async refreshToken(
     @Body() refreshTokenDto: RefreshTokenDto
   ): Promise<RefreshTokenResponseDto> {
-    console.log("Girdim", refreshTokenDto.refreshToken);
     const result = await this.authService.refreshToken(refreshTokenDto.refreshToken);
 
     return {

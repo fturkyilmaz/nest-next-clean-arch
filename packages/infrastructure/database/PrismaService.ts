@@ -1,5 +1,5 @@
 import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from 'prisma/generated/prisma/client';
 import { adapter } from '../../../prisma/lib/prisma';
 
 /**
@@ -8,7 +8,7 @@ import { adapter } from '../../../prisma/lib/prisma';
 @Injectable()
 export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
   constructor() {
- 
+
     super({
       adapter,
       log: [

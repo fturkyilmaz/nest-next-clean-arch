@@ -46,7 +46,7 @@ describe('GetDietPlansByClientQueryHandler', () => {
         });
 
         it('should pass pagination and filter params', async () => {
-            const query = new GetDietPlansByClientQuery('client-123', 'ACTIVE', true, 0, 10);
+            const query = new GetDietPlansByClientQuery('client-123', 1, 10, 'ACTIVE', true);
             await handler.execute(query);
 
             expect(mockDietPlanRepository.findByClientId).toHaveBeenCalledWith('client-123', {

@@ -1,7 +1,7 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { Inject } from '@nestjs/common';
 import { CreateDietPlanCommand } from './CreateDietPlanCommand';
-import { IDietPlanRepository } from '@application/interfaces/IDietPlanRepository';
+import { IDietPlanRepository } from '@application/interfaces/repositories/IDietPlanRepository';
 import { DietPlan, DietPlanStatus } from '@domain/entities/DietPlan.entity';
 import { DateRange } from '@domain/value-objects/DateRange.vo';
 

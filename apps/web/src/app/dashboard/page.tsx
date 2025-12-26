@@ -28,45 +28,13 @@ export default function DashboardPage() {
     const totalClients = clients?.length || 0;
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-            {/* Header */}
-            <header className="bg-white/5 backdrop-blur-xl border-b border-white/10">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex items-center justify-between h-16">
-                        <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-gradient-to-r from-emerald-400 to-cyan-400 flex items-center justify-center">
-                                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                                </svg>
-                            </div>
-                            <span className="text-xl font-bold text-white">Diet Management</span>
-                        </div>
-                        <nav className="flex items-center gap-6">
-                            <Link href="/dashboard" className="text-white font-medium">Dashboard</Link>
-                            <Link href="/dashboard/clients" className="text-slate-400 hover:text-white transition">Clients</Link>
-                            <Link href="/dashboard/diet-plans" className="text-slate-400 hover:text-white transition">Diet Plans</Link>
-                            <div className="flex items-center gap-3 ml-4 pl-4 border-l border-white/10">
-                                <span className="text-sm text-slate-400">{user?.firstName} {user?.lastName}</span>
-                                <button
-                                    onClick={handleLogout}
-                                    className="text-slate-400 hover:text-white transition"
-                                >
-                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                                    </svg>
-                                </button>
-                            </div>
-                        </nav>
-                    </div>
-                </div>
-            </header>
-
+        <div className="bg-slate-100 min-h-full">
             {/* Main Content */}
             <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 {/* Welcome */}
-                <div className="mb-8">
-                    <h1 className="text-3xl font-bold text-white">Welcome back, {user?.firstName}!</h1>
-                    <p className="text-slate-400 mt-1">Here's what's happening with your clients today.</p>
+                <div className="mb-10">
+                    <h1 className="text-4xl font-extrabold text-slate-900">Welcome back, {user?.firstName}! ✨</h1>
+                    <p className="text-slate-500 mt-2 text-lg font-medium">Here's a quick overview of your practice statistics.</p>
                 </div>
 
                 {/* Stats Grid */}
@@ -104,10 +72,10 @@ export default function DashboardPage() {
                 {/* Content Grid */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                     {/* Recent Clients */}
-                    <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6">
+                    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
                         <div className="flex items-center justify-between mb-6">
-                            <h2 className="text-xl font-semibold text-white">Recent Clients</h2>
-                            <Link href="/dashboard/clients" className="text-emerald-400 hover:text-emerald-300 text-sm">
+                            <h2 className="text-xl font-semibold text-slate-900">Recent Clients</h2>
+                            <Link href="/dashboard/clients" className="text-indigo-600 hover:text-indigo-700 text-sm font-medium">
                                 View all →
                             </Link>
                         </div>
@@ -123,16 +91,16 @@ export default function DashboardPage() {
                                     <Link
                                         key={client.id}
                                         href={`/dashboard/clients/${client.id}`}
-                                        className="flex items-center gap-4 p-3 rounded-lg bg-white/5 hover:bg-white/10 transition"
+                                        className="flex items-center gap-4 p-4 rounded-xl bg-slate-50 border border-slate-100 hover:bg-slate-100 hover:border-indigo-200 transition-all duration-200"
                                     >
-                                        <div className="w-10 h-10 rounded-full bg-gradient-to-r from-pink-500 to-rose-500 flex items-center justify-center text-white font-semibold">
+                                        <div className="w-12 h-12 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 flex items-center justify-center text-white font-bold text-lg shadow-sm">
                                             {client.firstName[0]}{client.lastName[0]}
                                         </div>
                                         <div className="flex-1">
-                                            <p className="text-white font-medium">{client.firstName} {client.lastName}</p>
-                                            <p className="text-slate-400 text-sm">{client.email}</p>
+                                            <p className="text-slate-900 font-semibold">{client.firstName} {client.lastName}</p>
+                                            <p className="text-slate-500 text-sm font-medium">{client.email}</p>
                                         </div>
-                                        <span className={`text-xs px-2 py-1 rounded-full ${client.isActive ? 'bg-emerald-500/20 text-emerald-400' : 'bg-slate-500/20 text-slate-400'}`}>
+                                        <span className={`text-xs px-3 py-1 rounded-full font-bold ${client.isActive ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-600'}`}>
                                             {client.isActive ? 'Active' : 'Inactive'}
                                         </span>
                                     </Link>
@@ -145,10 +113,10 @@ export default function DashboardPage() {
                     </div>
 
                     {/* Recent Diet Plans */}
-                    <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6">
+                    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
                         <div className="flex items-center justify-between mb-6">
-                            <h2 className="text-xl font-semibold text-white">Recent Diet Plans</h2>
-                            <Link href="/dashboard/diet-plans" className="text-emerald-400 hover:text-emerald-300 text-sm">
+                            <h2 className="text-xl font-semibold text-slate-900">Recent Diet Plans</h2>
+                            <Link href="/dashboard/diet-plans" className="text-indigo-600 hover:text-indigo-700 text-sm font-medium">
                                 View all →
                             </Link>
                         </div>
@@ -164,16 +132,16 @@ export default function DashboardPage() {
                                     <Link
                                         key={plan.id}
                                         href={`/dashboard/diet-plans/${plan.id}`}
-                                        className="flex items-center gap-4 p-3 rounded-lg bg-white/5 hover:bg-white/10 transition"
+                                        className="flex items-center gap-4 p-4 rounded-xl bg-slate-50 border border-slate-100 hover:bg-slate-100 hover:border-indigo-200 transition-all duration-200"
                                     >
-                                        <div className="w-10 h-10 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-500 flex items-center justify-center">
-                                            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-500 flex items-center justify-center shadow-sm">
+                                            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                                             </svg>
                                         </div>
                                         <div className="flex-1">
-                                            <p className="text-white font-medium">{plan.name}</p>
-                                            <p className="text-slate-400 text-sm">{plan.targetCalories} kcal/day</p>
+                                            <p className="text-slate-900 font-semibold">{plan.name}</p>
+                                            <p className="text-slate-500 text-sm font-medium">{plan.targetCalories} kcal/day</p>
                                         </div>
                                         <StatusBadge status={plan.status} />
                                     </Link>
@@ -198,18 +166,18 @@ function StatCard({ title, value, icon, color, loading }: {
     loading?: boolean;
 }) {
     return (
-        <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6">
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 hover:shadow-md transition-shadow duration-200">
             <div className="flex items-center justify-between">
                 <div>
-                    <p className="text-slate-400 text-sm">{title}</p>
+                    <p className="text-slate-500 text-sm font-semibold uppercase tracking-wider">{title}</p>
                     {loading ? (
-                        <div className="h-8 w-16 bg-white/10 rounded animate-pulse mt-1" />
+                        <div className="h-8 w-16 bg-slate-100 rounded animate-pulse mt-2" />
                     ) : (
-                        <p className="text-3xl font-bold text-white mt-1">{value}</p>
+                        <p className="text-3xl font-extrabold text-slate-900 mt-2">{value}</p>
                     )}
                 </div>
-                <div className={`w-12 h-12 rounded-xl bg-gradient-to-r ${color} flex items-center justify-center text-2xl`}>
-                    {icon}
+                <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${color} flex items-center justify-center text-3xl shadow-lg`}>
+                    <span className="drop-shadow-sm">{icon}</span>
                 </div>
             </div>
         </div>
@@ -218,13 +186,13 @@ function StatCard({ title, value, icon, color, loading }: {
 
 function StatusBadge({ status }: { status: string }) {
     const colors: Record<string, string> = {
-        DRAFT: 'bg-amber-500/20 text-amber-400',
-        ACTIVE: 'bg-emerald-500/20 text-emerald-400',
-        COMPLETED: 'bg-blue-500/20 text-blue-400',
-        CANCELLED: 'bg-red-500/20 text-red-400',
+        DRAFT: 'bg-amber-100 text-amber-700 border-amber-200',
+        ACTIVE: 'bg-emerald-100 text-emerald-700 border-emerald-200',
+        COMPLETED: 'bg-indigo-100 text-indigo-700 border-indigo-200',
+        CANCELLED: 'bg-rose-100 text-rose-700 border-rose-200',
     };
     return (
-        <span className={`text-xs px-2 py-1 rounded-full ${colors[status] || colors.DRAFT}`}>
+        <span className={`text-xs px-3 py-1 rounded-full font-bold border ${colors[status] || colors.DRAFT}`}>
             {status}
         </span>
     );

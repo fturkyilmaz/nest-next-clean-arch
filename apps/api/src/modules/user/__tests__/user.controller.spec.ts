@@ -1,19 +1,19 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication, ValidationPipe } from '@nestjs/common';
+import { Test } from '@nestjs/testing';
+import { ValidationPipe } from '@nestjs/common';
 import * as request from 'supertest';
 import { AppModule } from '../../../app.module';
-import { PrismaClient } from '@prisma/client';
 import { JwtService } from '@nestjs/jwt';
+import { PrismaClient } from 'prisma/generated/prisma/client';
 
 describe('UserController (e2e)', () => {
-    let app: INestApplication;
-    let prisma: PrismaClient;
-    let jwtService: JwtService;
-    let adminToken: string;
-    let dietitianToken: string;
+    let app;
+    let prisma;
+    let jwtService;
+    let adminToken;
+    let dietitianToken;
 
     beforeAll(async () => {
-        const moduleFixture: TestingModule = await Test.createTestingModule({
+        const moduleFixture = await Test.createTestingModule({
             imports: [AppModule],
         }).compile();
 

@@ -27,6 +27,8 @@ import {
   GetDietPlansByClientQuery,
 } from '@application/use-cases/diet-plan';
 import { CreateDietPlanDto, DietPlanResponseDto } from '@application/dto/DietPlanDto';
+import { GetAllDietPlansQuery } from '@application/use-cases/diet-plan/queries/GetAllDietPlansQuery';
+import { PaginatedResponseDto } from '@application/dto/common/PaginatedResponseDto';
 
 @ApiTags('Diet Plans')
 @Controller('diet-plans')
@@ -36,7 +38,7 @@ export class DietPlanController {
   constructor(
     private readonly commandBus: CommandBus,
     private readonly queryBus: QueryBus
-  ) {}
+  ) { }
 
   @Post()
   @Roles('ADMIN', 'DIETITIAN')
@@ -49,7 +51,7 @@ export class DietPlanController {
     @CurrentUser() currentUser: CurrentUserData
   ): Promise<DietPlanResponseDto> {
     const dietitianId =
-      currentUser.role === 'DIETITIAN' ? currentUser.userId : dto.dietitianId;
+      currentUser.role === 'DIETITIAN' ? currentUser.id : dto.clientId;
 
     const command = new CreateDietPlanCommand(
       dto.name,
@@ -62,30 +64,58 @@ export class DietPlanController {
     );
 
     const dietPlan = await this.commandBus.execute(command);
-    return this.mapToResponse(dietPlan);
+    return dietPlan;
   }
 
   @Get('client/:clientId')
   @Roles('ADMIN', 'DIETITIAN')
   @ApiOperation({ summary: 'Get all diet plans for a client' })
-  @ApiOkResponse({ description: 'Diet plans retrieved', type: [DietPlanResponseDto] })
+  @ApiOkResponse({ description: 'Diet plans retrieved with pagination', type: PaginatedResponseDto })
+  @ApiQuery({ name: 'page', required: false, type: Number, example: 1 })
+  @ApiQuery({ name: 'limit', required: false, type: Number, example: 10 })
   @ApiQuery({ name: 'status', required: false, type: String })
   @ApiQuery({ name: 'isActive', required: false, type: Boolean })
-  @ApiQuery({ name: 'skip', required: false, type: Number })
-  @ApiQuery({ name: 'take', required: false, type: Number })
   async getDietPlansByClient(
     @Param('clientId') clientId: string,
     @CurrentUser() currentUser: CurrentUserData,
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 10,
     @Query('status') status?: string,
-    @Query('isActive') isActive?: boolean,
-    @Query('skip') skip?: number,
-    @Query('take') take?: number
-  ): Promise<DietPlanResponseDto[]> {
-    // TODO: Verify that dietitian has access to this client
-    const query = new GetDietPlansByClientQuery(clientId, status, isActive, skip, take);
-    const dietPlans = await this.queryBus.execute(query);
+    @Query('isActive') isActive?: boolean
+  ): Promise<PaginatedResponseDto<DietPlanResponseDto>> {
+    const query = new GetDietPlansByClientQuery(clientId, page, limit, status, isActive);
+    const paginatedResult = await this.queryBus.execute(query);
 
-    return dietPlans.map(this.mapToResponse);
+    return new PaginatedResponseDto(
+      paginatedResult.data.map(plan => plan),
+      paginatedResult.page,
+      paginatedResult.limit,
+      paginatedResult.total
+    );
+  }
+
+  @Get() @Roles('ADMIN', 'DIETITIAN')
+  @ApiOperation({ summary: 'Get all diet plans' })
+  @ApiOkResponse({ description: 'All diet plans retrieved with pagination', type: PaginatedResponseDto })
+  @ApiQuery({ name: 'page', required: false, type: Number, example: 1 })
+  @ApiQuery({ name: 'limit', required: false, type: Number, example: 10 })
+  @ApiQuery({ name: 'status', required: false, type: String })
+  @ApiQuery({ name: 'isActive', required: false, type: Boolean })
+  async getAllDietPlans(
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 10,
+    @Query('status') status?: string,
+    @Query('isActive') isActive?: boolean
+  ): Promise<PaginatedResponseDto<DietPlanResponseDto>> {
+    const query = new GetAllDietPlansQuery(page, limit, status, isActive);
+    const paginatedResult = await this.queryBus.execute(query);
+
+    return new PaginatedResponseDto(
+      paginatedResult.data.map(plan => plan),
+      paginatedResult.page,
+      paginatedResult.limit,
+      paginatedResult.total
+    );
   }
 
   @Put(':id/activate')
@@ -97,29 +127,9 @@ export class DietPlanController {
     @Param('id') id: string,
     @CurrentUser() currentUser: CurrentUserData
   ): Promise<DietPlanResponseDto> {
-    // TODO: Verify that dietitian owns this diet plan
     const command = new ActivateDietPlanCommand(id);
     const dietPlan = await this.commandBus.execute(command);
 
-    return this.mapToResponse(dietPlan);
-  }
-
-  /** Helper mapper function */
-  private mapToResponse(dietPlan: any): DietPlanResponseDto {
-    return {
-      id: dietPlan.getId(),
-      name: dietPlan.getName(),
-      description: dietPlan.getDescription(),
-      clientId: dietPlan.getClientId(),
-      dietitianId: dietPlan.getDietitianId(),
-      startDate: dietPlan.getDateRange().getStartDate(),
-      endDate: dietPlan.getDateRange().getEndDate(),
-      status: dietPlan.getStatus(),
-      nutritionalGoals: dietPlan.getNutritionalGoals(),
-      version: dietPlan.getVersion(),
-      isActive: dietPlan.isActive(),
-      createdAt: dietPlan.getCreatedAt(),
-      updatedAt: dietPlan.getUpdatedAt(),
-    };
+    return dietPlan
   }
 }

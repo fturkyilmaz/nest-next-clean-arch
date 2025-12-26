@@ -1,5 +1,6 @@
+import { PrismaUserRepository } from '@infrastructure/repositories/PrismaUserRepository';
+
 import { Test, TestingModule } from '@nestjs/testing';
-import { PrismaUserRepository } from './PrismaUserRepository';
 import { PrismaService } from '@infrastructure/database/PrismaService';
 import { User } from '@domain/entities/User.entity';
 import { Email } from '@domain/value-objects/Email.vo';

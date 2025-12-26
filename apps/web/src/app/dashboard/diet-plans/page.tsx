@@ -3,13 +3,21 @@
 import { useDietPlans, useCreateDietPlan, useActivateDietPlan, useCompleteDietPlan } from '@/lib/api-hooks';
 import Link from 'next/link';
 import { useState } from 'react';
+import { PaginationControls } from '@/components/PaginationControls';
 
 export default function DietPlansPage() {
-    const { data: plans, isLoading } = useDietPlans();
+    const [page, setPage] = useState(1);
+    const limit = 9;
+    const { data: paginatedResult, isLoading } = useDietPlans(page, limit);
     const createPlanMutation = useCreateDietPlan();
     const activateMutation = useActivateDietPlan();
     const completeMutation = useCompleteDietPlan();
     const [filter, setFilter] = useState('all');
+
+    const plans = paginatedResult?.data || [];
+    const totalPages = paginatedResult?.pages || 1;
+    const hasNextPage = paginatedResult?.hasNextPage || false;
+    const hasPreviousPage = paginatedResult?.hasPreviousPage || false;
 
     const filteredPlans = plans?.filter(plan => {
         if (filter === 'all') return true;
@@ -51,7 +59,10 @@ export default function DietPlansPage() {
                     {['all', 'DRAFT', 'ACTIVE', 'COMPLETED', 'CANCELLED'].map(status => (
                         <button
                             key={status}
-                            onClick={() => setFilter(status)}
+                            onClick={() => {
+                                setFilter(status);
+                                setPage(1);
+                            }}
                             className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition ${filter === status
                                     ? 'bg-white/20 text-white'
                                     : 'bg-white/5 text-slate-400 hover:bg-white/10'
@@ -70,79 +81,88 @@ export default function DietPlansPage() {
                         ))}
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {filteredPlans?.map(plan => (
-                            <div
-                                key={plan.id}
-                                className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 overflow-hidden group"
-                            >
-                                <div className={`h-2 bg-gradient-to-r ${statusColors[plan.status]}`} />
-                                <div className="p-6">
-                                    <div className="flex items-start justify-between mb-4">
-                                        <div>
-                                            <h3 className="text-lg font-semibold text-white group-hover:text-emerald-400 transition">
-                                                {plan.name}
-                                            </h3>
-                                            <p className="text-slate-400 text-sm mt-1 line-clamp-2">
-                                                {plan.description || 'No description'}
-                                            </p>
+                    <>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {filteredPlans?.map(plan => (
+                                <div
+                                    key={plan.id}
+                                    className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 overflow-hidden group"
+                                >
+                                    <div className={`h-2 bg-gradient-to-r ${statusColors[plan.status]}`} />
+                                    <div className="p-6">
+                                        <div className="flex items-start justify-between mb-4">
+                                            <div>
+                                                <h3 className="text-lg font-semibold text-white group-hover:text-emerald-400 transition">
+                                                    {plan.name}
+                                                </h3>
+                                                <p className="text-slate-400 text-sm mt-1 line-clamp-2">
+                                                    {plan.description || 'No description'}
+                                                </p>
+                                            </div>
+                                            <span className={`text-xs px-2 py-1 rounded-full bg-gradient-to-r ${statusColors[plan.status]} text-white`}>
+                                                {plan.status}
+                                            </span>
                                         </div>
-                                        <span className={`text-xs px-2 py-1 rounded-full bg-gradient-to-r ${statusColors[plan.status]} text-white`}>
-                                            {plan.status}
-                                        </span>
-                                    </div>
 
-                                    {/* Nutrition Goals */}
-                                    <div className="grid grid-cols-4 gap-2 mb-4">
-                                        <div className="text-center p-2 bg-white/5 rounded-lg">
-                                            <p className="text-white font-semibold">{plan.targetCalories || '-'}</p>
-                                            <p className="text-slate-500 text-xs">kcal</p>
-                                        </div>
-                                        <div className="text-center p-2 bg-white/5 rounded-lg">
-                                            <p className="text-white font-semibold">{plan.targetProtein || '-'}</p>
-                                            <p className="text-slate-500 text-xs">protein</p>
-                                        </div>
-                                        <div className="text-center p-2 bg-white/5 rounded-lg">
-                                            <p className="text-white font-semibold">{plan.targetCarbs || '-'}</p>
-                                            <p className="text-slate-500 text-xs">carbs</p>
-                                        </div>
-                                        <div className="text-center p-2 bg-white/5 rounded-lg">
-                                            <p className="text-white font-semibold">{plan.targetFat || '-'}</p>
-                                            <p className="text-slate-500 text-xs">fat</p>
+                                        {/* Actions */}
+                                        <div className="flex gap-2">
+                                            <Link
+                                                href={`/dashboard/diet-plans/${plan.id}`}
+                                                className="flex-1 py-2 rounded-lg bg-white/10 text-white text-center text-sm hover:bg-white/20 transition"
+                                            >
+                                                View Details
+                                            </Link>
+                                            {plan.status === 'DRAFT' && (
+                                                <button
+                                                    onClick={() => activateMutation.mutate(plan.id)}
+                                                    disabled={activateMutation.isPending}
+                                                    className="px-4 py-2 rounded-lg bg-emerald-500/20 text-emerald-400 text-sm hover:bg-emerald-500/30 transition disabled:opacity-50"
+                                                >
+                                                    Activate
+                                                </button>
+                                            )}
+                                            {plan.status === 'ACTIVE' && (
+                                                <button
+                                                    onClick={() => completeMutation.mutate(plan.id)}
+                                                    disabled={completeMutation.isPending}
+                                                    className="px-4 py-2 rounded-lg bg-blue-500/20 text-blue-400 text-sm hover:bg-blue-500/30 transition disabled:opacity-50"
+                                                >
+                                                    Complete
+                                                </button>
+                                            )}
                                         </div>
                                     </div>
+                                </div>
+                            ))}
+                        </div>
 
-                                    {/* Actions */}
+                        {/* Pagination */}
+                        {filteredPlans && filteredPlans.length > 0 && (
+                            <div className="mt-8 bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10">
+                                <div className="flex items-center justify-between px-6 py-4">
+                                    <div className="text-sm text-slate-400">
+                                        Page <span className="font-medium text-white">{page}</span> of <span className="font-medium text-white">{totalPages}</span>
+                                    </div>
                                     <div className="flex gap-2">
-                                        <Link
-                                            href={`/dashboard/diet-plans/${plan.id}`}
-                                            className="flex-1 py-2 rounded-lg bg-white/10 text-white text-center text-sm hover:bg-white/20 transition"
+                                        <button
+                                            onClick={() => setPage(page - 1)}
+                                            disabled={!hasPreviousPage || isLoading}
+                                            className="px-4 py-2 rounded-lg bg-white/10 text-slate-400 text-sm hover:bg-white/20 transition disabled:opacity-50"
                                         >
-                                            View Details
-                                        </Link>
-                                        {plan.status === 'DRAFT' && (
-                                            <button
-                                                onClick={() => activateMutation.mutate(plan.id)}
-                                                disabled={activateMutation.isPending}
-                                                className="px-4 py-2 rounded-lg bg-emerald-500/20 text-emerald-400 text-sm hover:bg-emerald-500/30 transition disabled:opacity-50"
-                                            >
-                                                Activate
-                                            </button>
-                                        )}
-                                        {plan.status === 'ACTIVE' && (
-                                            <button
-                                                onClick={() => completeMutation.mutate(plan.id)}
-                                                disabled={completeMutation.isPending}
-                                                className="px-4 py-2 rounded-lg bg-blue-500/20 text-blue-400 text-sm hover:bg-blue-500/30 transition disabled:opacity-50"
-                                            >
-                                                Complete
-                                            </button>
-                                        )}
+                                            ← Previous
+                                        </button>
+                                        <button
+                                            onClick={() => setPage(page + 1)}
+                                            disabled={!hasNextPage || isLoading}
+                                            className="px-4 py-2 rounded-lg bg-white/10 text-slate-400 text-sm hover:bg-white/20 transition disabled:opacity-50"
+                                        >
+                                            Next →
+                                        </button>
                                     </div>
                                 </div>
                             </div>
-                        ))}
-                    </div>
+                        )}
+                    </>
                 )}
 
                 {filteredPlans?.length === 0 && !isLoading && (

@@ -1,8 +1,7 @@
 import { Injectable, Inject, UnauthorizedException } from '@nestjs/common';
-import { IJwtService } from '@application/interfaces/services/IJwtService';
+import { IJwtService, JwtPayload } from '@application/interfaces/services/IJwtService';
 import { IUserRepository } from '@application/interfaces';
 import { RefreshTokenDto, RefreshTokenResponseDto } from '@application/dto';
-import { JwtPayload } from '@application/interfaces/services/IJwtService';
 
 @Injectable()
 export class RefreshTokenUseCase {
@@ -16,7 +15,7 @@ export class RefreshTokenUseCase {
 
         const user = await this.userRepository.findById(sub);
 
-        if (!user || !user.isActive()) {
+        if (!user?.isActive()) {
             throw new UnauthorizedException('Invalid refresh token');
         }
 
@@ -26,6 +25,7 @@ export class RefreshTokenUseCase {
             role: user.getRole(),
             firstName: user.getFirstName(),
             lastName: user.getLastName(),
+            username: user.getEmail().getValue(),
         };
 
         const { accessToken, refreshToken, expiresIn } = this.jwtService.generateTokens(payload);

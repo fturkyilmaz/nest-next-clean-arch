@@ -1,7 +1,7 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { Inject } from '@nestjs/common';
 import { CreateClientCommand } from './CreateClientCommand';
-import { IClientRepository } from '@application/interfaces/IClientRepository';
+import { IClientRepository } from '@application/interfaces/repositories/IClientRepository';
 import { Client, Gender } from '@domain/entities/Client.entity';
 import { Email } from '@domain/value-objects/Email.vo';
 
