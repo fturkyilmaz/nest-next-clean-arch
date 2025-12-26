@@ -1,188 +1,57 @@
-/**
- * Metrics Dashboard Page
- *
- * Display user metrics, progress charts, and health analytics.
- */
-
 'use client';
 
-import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { apiClient } from '@/lib/api-client';
-import { useAuth } from '@/hooks/useAuth';
-import { useWebSocketEvent, WebSocketEventType } from '@diet/shared';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import Link from 'next/link';
-
-interface MetricPoint {
-  date: string;
-  value: number;
-  unit: string;
-}
+import { useMetrics } from '@/lib/api-hooks';
+import { BarChart3, TrendingUp } from 'lucide-react';
 
 export default function MetricsPage() {
-  const { user } = useAuth();
-  const [timeRange, setTimeRange] = useState<'7d' | '30d' | '90d'>('30d');
+  const { data: metrics, isLoading } = useMetrics();
 
-  // Fetch metrics data
-  const { data: metricsData } = useQuery({
-    queryKey: ['metrics', user?.id, timeRange],
-    queryFn: async () => {
-      const res = await apiClient.get('/api/metrics', {
-        params: { range: timeRange },
-      });
-      return res.data;
-    },
-    enabled: !!user?.id,
-  });
-
-  // Fetch summary stats
-  const { data: summary } = useQuery({
-    queryKey: ['metrics-summary', user?.id],
-    queryFn: async () => {
-      const res = await apiClient.get('/api/metrics/summary');
-      return res.data;
-    },
-    enabled: !!user?.id,
-  });
-
-  // Real-time metric updates
-  const [latestMetric, setLatestMetric] = useState<any>(null);
-  useWebSocketEvent(WebSocketEventType.METRIC_CREATED, (data) => {
-    setLatestMetric(data);
-  });
-  useWebSocketEvent(WebSocketEventType.METRIC_UPDATED, (data) => {
-    setLatestMetric(data);
-  });
-
-  const chartData = metricsData?.timeline || [];
-  const stats = summary || {};
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    });
+  };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold">Metrics & Progress</h1>
-          <p className="text-gray-600 mt-1">Track your health metrics and progress</p>
+    <div className="p-8">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">Metrics Dashboard</h1>
+        <p className="text-gray-600">View and track performance metrics</p>
+      </div>
+
+      {isLoading ? (
+        <div className="flex items-center justify-center py-12">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
         </div>
-        <Link href="/dashboard/metrics/new">
-          <Button>Log Metric</Button>
-        </Link>
-      </div>
-
-      {/* Time Range Selector */}
-      <div className="flex gap-2">
-        {(['7d', '30d', '90d'] as const).map((range) => (
-          <Button
-            key={range}
-            variant={timeRange === range ? 'default' : 'outline'}
-            onClick={() => setTimeRange(range)}
-          >
-            {range === '7d' ? 'Last 7 days' : range === '30d' ? 'Last 30 days' : 'Last 90 days'}
-          </Button>
-        ))}
-      </div>
-
-      {/* Summary Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        {/* Weight Card */}
-        <Card className="p-4">
-          <h3 className="text-sm font-medium text-gray-600">Current Weight</h3>
-          <div className="mt-2">
-            <div className="text-3xl font-bold">{stats.currentWeight || '-'}</div>
-            <div className="text-sm text-gray-500">kg</div>
-            {stats.weightChange && (
-              <div className={`text-sm font-semibold mt-2 ${
-                stats.weightChange < 0 ? 'text-green-600' : 'text-red-600'
-              }`}>
-                {stats.weightChange > 0 ? '+' : ''}{stats.weightChange.toFixed(1)} kg this month
+      ) : metrics?.length === 0 ? (
+        <div className="text-center py-12 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+          <BarChart3 className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">No metrics found</h3>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {metrics?.map((metric) => (
+            <div key={metric.id} className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
+              <div className="flex items-start justify-between mb-4">
+                <div className="flex-1">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-1">{metric.name}</h3>
+                  <p className="text-sm text-gray-600">{formatDate(metric.recordedAt)}</p>
+                </div>
+                <TrendingUp className="w-6 h-6 text-indigo-600" />
               </div>
-            )}
-          </div>
-        </Card>
 
-        {/* BMI Card */}
-        <Card className="p-4">
-          <h3 className="text-sm font-medium text-gray-600">BMI</h3>
-          <div className="mt-2">
-            <div className="text-3xl font-bold">{stats.bmi?.toFixed(1) || '-'}</div>
-            <div className="text-sm text-gray-500">
-              {stats.bmiCategory || 'N/A'}
+              <div className="mt-4">
+                <div className="text-3xl font-bold text-indigo-600">
+                  {metric.value}
+                  <span className="text-lg font-normal text-gray-600 ml-2">{metric.unit}</span>
+                </div>
+              </div>
             </div>
-          </div>
-        </Card>
-
-        {/* Average Calories Card */}
-        <Card className="p-4">
-          <h3 className="text-sm font-medium text-gray-600">Daily Avg Calories</h3>
-          <div className="mt-2">
-            <div className="text-3xl font-bold">{stats.avgCalories || '-'}</div>
-            <div className="text-sm text-gray-500">kcal/day</div>
-          </div>
-        </Card>
-
-        {/* Streak Card */}
-        <Card className="p-4">
-          <h3 className="text-sm font-medium text-gray-600">Logging Streak</h3>
-          <div className="mt-2">
-            <div className="text-3xl font-bold">{stats.streak || 0}</div>
-            <div className="text-sm text-gray-500">consecutive days</div>
-            {stats.longestStreak && (
-              <div className="text-xs text-gray-400 mt-1">
-                Best: {stats.longestStreak} days
-              </div>
-            )}
-          </div>
-        </Card>
-      </div>
-
-      {/* Chart */}
-      <Card className="p-6">
-        <h2 className="text-lg font-semibold mb-4">Weight Trend</h2>
-        {chartData.length > 0 ? (
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="date" />
-              <YAxis />
-              <Tooltip />
-              <Legend />
-              <Line
-                type="monotone"
-                dataKey="value"
-                stroke="#3b82f6"
-                dot={{ r: 4 }}
-                name="Weight (kg)"
-              />
-            </LineChart>
-          </ResponsiveContainer>
-        ) : (
-          <div className="h-64 flex items-center justify-center text-gray-500">
-            No metric data available for selected range
-          </div>
-        )}
-      </Card>
-
-      {/* Latest Metric */}
-      {latestMetric && (
-        <Card className="p-4 border-blue-200 bg-blue-50">
-          <h3 className="font-semibold text-blue-900">Latest Update</h3>
-          <p className="text-sm text-blue-700 mt-2">
-            {latestMetric.type}: {latestMetric.value} {latestMetric.unit}
-          </p>
-        </Card>
+          ))}
+        </div>
       )}
-
-      {/* Metrics List */}
-      <Card className="p-6">
-        <h2 className="text-lg font-semibold mb-4">Recent Metrics</h2>
-        <Link href="/dashboard/metrics/history">
-          <Button variant="outline">View All Metrics</Button>
-        </Link>
-      </Card>
     </div>
   );
 }
