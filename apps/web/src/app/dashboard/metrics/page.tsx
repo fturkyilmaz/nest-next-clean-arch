@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { useMetrics } from '@/lib/api-hooks';
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import {
@@ -7,18 +8,39 @@ import {
   generateNutritionChartData,
 } from '@/components/charts/ChartComponents';
 
+// Metric tipini tanımla
+interface Metric {
+  id: string;
+  name: string;
+  value: number | string;
+  unit: string;
+  recordedAt: string;
+}
+
 export default function MetricsPage() {
-  const { data: metrics, isLoading } = useMetrics();
+  const { data: metrics = [], isLoading } = useMetrics<Metric[]>();
+  const [nutritionData, setNutritionData] = useState<any[]>([]);
 
-  // Sample data for visualization
-  const nutritionData = generateNutritionChartData(new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), 30);
+  // Chart data sadece client tarafında üretiliyor
+  useEffect(() => {
+    const startDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+    setNutritionData(generateNutritionChartData(startDate, 30));
+  }, []);
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-    });
+  // Tarih formatlamayı sabit locale ile yapıyoruz
+  const formatDate = (dateString?: string) =>
+    dateString
+      ? new Intl.DateTimeFormat('en-US', {
+          month: 'short',
+          day: 'numeric',
+          year: 'numeric',
+        }).format(new Date(dateString))
+      : '';
+
+  const getTrendValue = (metric?: Metric) => {
+    if (!metric?.value) return 0;
+    const num = Number(metric.value);
+    return isNaN(num) ? 0 : num - 100;
   };
 
   const getTrendIcon = (trend: number) => {
@@ -27,15 +49,12 @@ export default function MetricsPage() {
     return <Minus className="w-5 h-5 text-gray-600" />;
   };
 
-  // Group metrics by unit
-  const groupedMetrics = metrics?.reduce(
-    (acc, metric) => {
-      if (!acc[metric.unit]) acc[metric.unit] = [];
-      acc[metric.unit].push(metric);
-      return acc;
-    },
-    {} as Record<string, typeof metrics>
-  );
+  // Metricleri unit bazında grupla
+  const groupedMetrics = metrics.reduce<Record<string, Metric[]>>((acc, metric) => {
+    if (!acc[metric.unit]) acc[metric.unit] = [];
+    acc[metric.unit].push(metric);
+    return acc;
+  }, {});
 
   return (
     <div className="p-8">
@@ -48,63 +67,21 @@ export default function MetricsPage() {
         <div className="flex items-center justify-center py-12">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
         </div>
-      ) : !metrics || metrics.length === 0 ? (
+      ) : metrics.length === 0 ? (
         <>
           {/* Charts with sample data */}
           <div className="space-y-6">
             <div className="bg-white rounded-lg shadow p-6">
               <h2 className="text-2xl font-bold text-gray-900 mb-4">Monthly Nutrition Trends</h2>
-              <LineChartComponent
-                data={nutritionData}
-                className="h-auto"
-              />
+              <LineChartComponent data={nutritionData} className="h-auto" />
             </div>
 
             {/* Summary Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="bg-white rounded-lg shadow p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-gray-600 text-sm font-medium">Average Calories</p>
-                    <p className="text-3xl font-bold text-gray-900 mt-2">2,150</p>
-                    <p className="text-xs text-gray-500 mt-1">kcal/day</p>
-                  </div>
-                  <TrendingUp className="w-8 h-8 text-green-600" />
-                </div>
-              </div>
-
-              <div className="bg-white rounded-lg shadow p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-gray-600 text-sm font-medium">Protein Intake</p>
-                    <p className="text-3xl font-bold text-gray-900 mt-2">70g</p>
-                    <p className="text-xs text-gray-500 mt-1">per day</p>
-                  </div>
-                  <TrendingUp className="w-8 h-8 text-blue-600" />
-                </div>
-              </div>
-
-              <div className="bg-white rounded-lg shadow p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-gray-600 text-sm font-medium">Fiber Content</p>
-                    <p className="text-3xl font-bold text-gray-900 mt-2">28g</p>
-                    <p className="text-xs text-gray-500 mt-1">per day</p>
-                  </div>
-                  <TrendingUp className="w-8 h-8 text-purple-600" />
-                </div>
-              </div>
-
-              <div className="bg-white rounded-lg shadow p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-gray-600 text-sm font-medium">Water Intake</p>
-                    <p className="text-3xl font-bold text-gray-900 mt-2">2.5L</p>
-                    <p className="text-xs text-gray-500 mt-1">per day</p>
-                  </div>
-                  <Minus className="w-8 h-8 text-gray-600" />
-                </div>
-              </div>
+              <SummaryCard title="Average Calories" value="2,150" unit="kcal/day" icon={<TrendingUp className="w-8 h-8 text-green-600" />} />
+              <SummaryCard title="Protein Intake" value="70" unit="g/day" icon={<TrendingUp className="w-8 h-8 text-blue-600" />} />
+              <SummaryCard title="Fiber Content" value="28" unit="g/day" icon={<TrendingUp className="w-8 h-8 text-purple-600" />} />
+              <SummaryCard title="Water Intake" value="2.5" unit="L/day" icon={<Minus className="w-8 h-8 text-gray-600" />} />
             </div>
           </div>
         </>
@@ -112,17 +89,16 @@ export default function MetricsPage() {
         <div className="space-y-6">
           {/* Summary Stats */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {metrics?.slice(0, 4).map((metric) => (
+            {metrics.slice(0, 4).map((metric) => (
               <div key={metric.id} className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition-shadow">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-sm font-medium text-gray-600">{metric.name}</h3>
-                  {getTrendIcon(parseInt(metric.value.toString()) - 100)}
+                  <h4 className="text-sm font-medium text-gray-600">{metric.id}</h4>
+                  {getTrendIcon(getTrendValue(metric?.bmi))}
                 </div>
-
                 <div className="mt-4">
                   <div className="text-3xl font-bold text-indigo-600">
-                    {metric.value}
-                    <span className="text-lg font-normal text-gray-600 ml-2">{metric.unit}</span>
+                    BMI
+                    <span className="text-lg font-normal text-gray-600 ml-2">{metric.bmi ?? ''}</span>
                   </div>
                   <p className="text-xs text-gray-500 mt-2">{formatDate(metric.recordedAt)}</p>
                 </div>
@@ -131,7 +107,7 @@ export default function MetricsPage() {
           </div>
 
           {/* Detailed Metrics Table */}
-          {Object.entries(groupedMetrics || {}).map(([unit, metricsByUnit]) => (
+          {Object.entries(groupedMetrics).map(([unit, metricsByUnit]) => (
             <div key={unit} className="bg-white rounded-lg shadow overflow-hidden">
               <div className="px-6 py-4 bg-gray-50 border-b border-gray-200">
                 <h3 className="text-lg font-semibold text-gray-900">Metrics ({unit})</h3>
@@ -145,15 +121,15 @@ export default function MetricsPage() {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {metricsByUnit?.map((metric) => (
-                    <tr key={metric?.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{metric?.name}</td>
+                  {metricsByUnit.map((metric) => (
+                    <tr key={metric.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{metric.notes}</td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className="text-2xl font-bold text-indigo-600">
-                          {metric?.value}{metric?.unit}
+                          {metric.bodyFat ?? '--'}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{formatDate(metric?.recordedAt)}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{formatDate(metric.recordedAt)}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -162,6 +138,22 @@ export default function MetricsPage() {
           ))}
         </div>
       )}
+    </div>
+  );
+}
+
+// Küçük summary card component
+function SummaryCard({ title, value, unit, icon }: { title: string; value: string; unit: string; icon: React.ReactNode }) {
+  return (
+    <div className="bg-white rounded-lg shadow p-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-gray-600 text-sm font-medium">{title}</p>
+          <p className="text-3xl font-bold text-gray-900 mt-2">{value}</p>
+          <p className="text-xs text-gray-500 mt-1">{unit}</p>
+        </div>
+        {icon}
+      </div>
     </div>
   );
 }

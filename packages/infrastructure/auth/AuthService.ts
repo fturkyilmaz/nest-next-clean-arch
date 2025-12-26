@@ -130,6 +130,8 @@ export class AuthService {
       lastName: user.getLastName(),
     };
 
+      const { accessToken, refreshToken, expiresIn } = this.jwtAuthService.generateTokens(payload);
+
     return {
       accessToken,
       refreshToken,
