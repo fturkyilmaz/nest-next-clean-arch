@@ -27,6 +27,7 @@ import {
   GetDietPlansByClientQuery,
 } from '@application/use-cases/diet-plan';
 import { CreateDietPlanDto, DietPlanResponseDto } from '@application/dto/DietPlanDto';
+import { GetAllDietPlansQuery } from '@application/use-cases/diet-plan/queries/GetAllDietPlansQuery';
 
 @ApiTags('Diet Plans')
 @Controller('diet-plans')
@@ -85,6 +86,22 @@ export class DietPlanController {
     const dietPlans = await this.queryBus.execute(query);
 
     return dietPlans
+  }
+
+  @Get("all") @Roles('ADMIN', 'DIETITIAN')
+  @ApiOperation({ summary: 'Get all diet plans' })
+  @ApiOkResponse({ description: 'All diet plans retrieved', type: [DietPlanResponseDto] })
+  @ApiQuery({ name: 'status', required: false, type: String })
+  @ApiQuery({ name: 'isActive', required: false, type: Boolean })
+  @ApiQuery({ name: 'skip', required: false, type: Number })
+  @ApiQuery({ name: 'take', required: false, type: Number })
+  async getAllDietPlans(
+    @Query('status') status?: string,
+    @Query('isActive') isActive?: boolean,
+    @Query('skip') skip?: number,
+    @Query('take') take?: number
+  ): Promise<DietPlanResponseDto[]> {
+    return this.queryBus.execute(new GetAllDietPlansQuery(status, isActive, skip, take));
   }
 
   @Put(':id/activate')

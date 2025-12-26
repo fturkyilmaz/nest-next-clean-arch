@@ -31,7 +31,7 @@ export class RolesGuard implements CanActivate {
     // If user is not present (e.g. AuthGuard not used or failed), try to decode from header
     if (!request.user) {
       const authHeader = request.headers['authorization'];
-      console.log('Headers:', request.headers); // Debug log to see if authorization header exists
+
 
       if (authHeader?.startsWith('Bearer ')) {
         const token = authHeader.split(' ')[1];
@@ -44,7 +44,6 @@ export class RolesGuard implements CanActivate {
             secret: secret
           });
           request.user = payload;
-          console.log('User decoded from token manually:', request.user);
         } catch (error) {
           console.error('Token verification failed in RolesGuard:', error);
         }
@@ -54,8 +53,6 @@ export class RolesGuard implements CanActivate {
     }
 
     const user = request.user;
-
-    console.log('user', user);
 
     if (!user?.role) {
       throw new ForbiddenException('User role not found or unauthorized');

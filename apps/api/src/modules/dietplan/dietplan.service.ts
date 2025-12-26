@@ -4,6 +4,10 @@ import { prisma } from 'prisma/lib/prisma';
 @Injectable()
 export class DietPlanService {
 
+  async getAllDietPlans(isActive?: boolean, skip?: number, take?: number) {
+    return prisma.dietPlan.findMany({ where: { isActive }, skip, take });
+  }
+
   async findByClient(clientId: string) {
     return prisma.dietPlan.findMany({ where: { clientId }, include: { mealPlans: true } });
   }
