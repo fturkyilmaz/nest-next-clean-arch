@@ -82,3 +82,8 @@ export type EventStore = Prisma.EventStoreModel
  * 
  */
 export type OutboxEvent = Prisma.OutboxEventModel
+/**
+ * Model Report
+ * 
+ */
+export type Report = Prisma.ReportModel

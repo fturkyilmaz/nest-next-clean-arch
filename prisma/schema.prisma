@@ -22,6 +22,7 @@ model User {
   auditLogs    AuditLog[]
   clients      Client[]      @relation("DietitianClients")
   dietPlans    DietPlan[]    @relation("DietitianPlans")
+  reports      Report[]      @relation("UserReports")
 
   @@index([email])
   @@index([role])
@@ -53,6 +54,7 @@ model Client {
   metrics      ClientMetrics[]
   dietitian    User            @relation("DietitianClients", fields: [dietitianId], references: [id], onDelete: Cascade)
   dietPlans    DietPlan[]
+  reports      Report[]
 
   @@index([dietitianId])
   @@index([email])
@@ -358,4 +360,40 @@ enum AppointmentStatus {
   COMPLETED
   CANCELLED
   NO_SHOW
+}
+enum ReportType {
+  NUTRITION
+  PROGRESS
+  MEAL_PLAN
+  ACTIVITY
+  CUSTOM
+}
+
+enum ReportFormat {
+  PDF
+  EXCEL
+  CSV
+}
+
+model Report {
+  id        String       @id @default(cuid())
+  createdBy String
+  user      User         @relation("UserReports", fields: [createdBy], references: [id], onDelete: Cascade)
+  clientId  String?
+  client    Client?      @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  type      ReportType   @default(CUSTOM)
+  format    ReportFormat @default(PDF)
+  title     String
+  data      Json
+  fileUrl   String?
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+  deletedAt DateTime?
+
+  @@index([createdBy])
+  @@index([clientId])
+  @@index([type])
+  @@index([createdAt])
+  @@index([deletedAt])
+  @@map("reports")
 }

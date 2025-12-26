@@ -226,6 +226,7 @@ export type UserWhereInput = {
   auditLogs?: Prisma.AuditLogListRelationFilter
   clients?: Prisma.ClientListRelationFilter
   dietPlans?: Prisma.DietPlanListRelationFilter
+  reports?: Prisma.ReportListRelationFilter
 }
 
 export type UserOrderByWithRelationInput = {
@@ -243,6 +244,7 @@ export type UserOrderByWithRelationInput = {
   auditLogs?: Prisma.AuditLogOrderByRelationAggregateInput
   clients?: Prisma.ClientOrderByRelationAggregateInput
   dietPlans?: Prisma.DietPlanOrderByRelationAggregateInput
+  reports?: Prisma.ReportOrderByRelationAggregateInput
 }
 
 export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -263,6 +265,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   auditLogs?: Prisma.AuditLogListRelationFilter
   clients?: Prisma.ClientListRelationFilter
   dietPlans?: Prisma.DietPlanListRelationFilter
+  reports?: Prisma.ReportListRelationFilter
 }, "id" | "email">
 
 export type UserOrderByWithAggregationInput = {
@@ -312,6 +315,7 @@ export type UserCreateInput = {
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutUserInput
   clients?: Prisma.ClientCreateNestedManyWithoutDietitianInput
   dietPlans?: Prisma.DietPlanCreateNestedManyWithoutDietitianInput
+  reports?: Prisma.ReportCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateInput = {
@@ -329,6 +333,7 @@ export type UserUncheckedCreateInput = {
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutUserInput
   clients?: Prisma.ClientUncheckedCreateNestedManyWithoutDietitianInput
   dietPlans?: Prisma.DietPlanUncheckedCreateNestedManyWithoutDietitianInput
+  reports?: Prisma.ReportUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserUpdateInput = {
@@ -346,6 +351,7 @@ export type UserUpdateInput = {
   auditLogs?: Prisma.AuditLogUpdateManyWithoutUserNestedInput
   clients?: Prisma.ClientUpdateManyWithoutDietitianNestedInput
   dietPlans?: Prisma.DietPlanUpdateManyWithoutDietitianNestedInput
+  reports?: Prisma.ReportUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateInput = {
@@ -363,6 +369,7 @@ export type UserUncheckedUpdateInput = {
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutUserNestedInput
   clients?: Prisma.ClientUncheckedUpdateManyWithoutDietitianNestedInput
   dietPlans?: Prisma.DietPlanUncheckedUpdateManyWithoutDietitianNestedInput
+  reports?: Prisma.ReportUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateManyInput = {
@@ -531,6 +538,20 @@ export type UserUpdateOneWithoutAuditLogsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutAuditLogsInput, Prisma.UserUpdateWithoutAuditLogsInput>, Prisma.UserUncheckedUpdateWithoutAuditLogsInput>
 }
 
+export type UserCreateNestedOneWithoutReportsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutReportsInput, Prisma.UserUncheckedCreateWithoutReportsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutReportsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutReportsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutReportsInput, Prisma.UserUncheckedCreateWithoutReportsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutReportsInput
+  upsert?: Prisma.UserUpsertWithoutReportsInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutReportsInput, Prisma.UserUpdateWithoutReportsInput>, Prisma.UserUncheckedUpdateWithoutReportsInput>
+}
+
 export type UserCreateWithoutClientsInput = {
   id?: string
   email: string
@@ -545,6 +566,7 @@ export type UserCreateWithoutClientsInput = {
   appointments?: Prisma.AppointmentCreateNestedManyWithoutDietitianInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutUserInput
   dietPlans?: Prisma.DietPlanCreateNestedManyWithoutDietitianInput
+  reports?: Prisma.ReportCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutClientsInput = {
@@ -561,6 +583,7 @@ export type UserUncheckedCreateWithoutClientsInput = {
   appointments?: Prisma.AppointmentUncheckedCreateNestedManyWithoutDietitianInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutUserInput
   dietPlans?: Prisma.DietPlanUncheckedCreateNestedManyWithoutDietitianInput
+  reports?: Prisma.ReportUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutClientsInput = {
@@ -593,6 +616,7 @@ export type UserUpdateWithoutClientsInput = {
   appointments?: Prisma.AppointmentUpdateManyWithoutDietitianNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutUserNestedInput
   dietPlans?: Prisma.DietPlanUpdateManyWithoutDietitianNestedInput
+  reports?: Prisma.ReportUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutClientsInput = {
@@ -609,6 +633,7 @@ export type UserUncheckedUpdateWithoutClientsInput = {
   appointments?: Prisma.AppointmentUncheckedUpdateManyWithoutDietitianNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutUserNestedInput
   dietPlans?: Prisma.DietPlanUncheckedUpdateManyWithoutDietitianNestedInput
+  reports?: Prisma.ReportUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutDietPlansInput = {
@@ -625,6 +650,7 @@ export type UserCreateWithoutDietPlansInput = {
   appointments?: Prisma.AppointmentCreateNestedManyWithoutDietitianInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutUserInput
   clients?: Prisma.ClientCreateNestedManyWithoutDietitianInput
+  reports?: Prisma.ReportCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutDietPlansInput = {
@@ -641,6 +667,7 @@ export type UserUncheckedCreateWithoutDietPlansInput = {
   appointments?: Prisma.AppointmentUncheckedCreateNestedManyWithoutDietitianInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutUserInput
   clients?: Prisma.ClientUncheckedCreateNestedManyWithoutDietitianInput
+  reports?: Prisma.ReportUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutDietPlansInput = {
@@ -673,6 +700,7 @@ export type UserUpdateWithoutDietPlansInput = {
   appointments?: Prisma.AppointmentUpdateManyWithoutDietitianNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutUserNestedInput
   clients?: Prisma.ClientUpdateManyWithoutDietitianNestedInput
+  reports?: Prisma.ReportUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutDietPlansInput = {
@@ -689,6 +717,7 @@ export type UserUncheckedUpdateWithoutDietPlansInput = {
   appointments?: Prisma.AppointmentUncheckedUpdateManyWithoutDietitianNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutUserNestedInput
   clients?: Prisma.ClientUncheckedUpdateManyWithoutDietitianNestedInput
+  reports?: Prisma.ReportUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutAppointmentsInput = {
@@ -705,6 +734,7 @@ export type UserCreateWithoutAppointmentsInput = {
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutUserInput
   clients?: Prisma.ClientCreateNestedManyWithoutDietitianInput
   dietPlans?: Prisma.DietPlanCreateNestedManyWithoutDietitianInput
+  reports?: Prisma.ReportCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutAppointmentsInput = {
@@ -721,6 +751,7 @@ export type UserUncheckedCreateWithoutAppointmentsInput = {
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutUserInput
   clients?: Prisma.ClientUncheckedCreateNestedManyWithoutDietitianInput
   dietPlans?: Prisma.DietPlanUncheckedCreateNestedManyWithoutDietitianInput
+  reports?: Prisma.ReportUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutAppointmentsInput = {
@@ -753,6 +784,7 @@ export type UserUpdateWithoutAppointmentsInput = {
   auditLogs?: Prisma.AuditLogUpdateManyWithoutUserNestedInput
   clients?: Prisma.ClientUpdateManyWithoutDietitianNestedInput
   dietPlans?: Prisma.DietPlanUpdateManyWithoutDietitianNestedInput
+  reports?: Prisma.ReportUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutAppointmentsInput = {
@@ -769,6 +801,7 @@ export type UserUncheckedUpdateWithoutAppointmentsInput = {
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutUserNestedInput
   clients?: Prisma.ClientUncheckedUpdateManyWithoutDietitianNestedInput
   dietPlans?: Prisma.DietPlanUncheckedUpdateManyWithoutDietitianNestedInput
+  reports?: Prisma.ReportUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutAuditLogsInput = {
@@ -785,6 +818,7 @@ export type UserCreateWithoutAuditLogsInput = {
   appointments?: Prisma.AppointmentCreateNestedManyWithoutDietitianInput
   clients?: Prisma.ClientCreateNestedManyWithoutDietitianInput
   dietPlans?: Prisma.DietPlanCreateNestedManyWithoutDietitianInput
+  reports?: Prisma.ReportCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutAuditLogsInput = {
@@ -801,6 +835,7 @@ export type UserUncheckedCreateWithoutAuditLogsInput = {
   appointments?: Prisma.AppointmentUncheckedCreateNestedManyWithoutDietitianInput
   clients?: Prisma.ClientUncheckedCreateNestedManyWithoutDietitianInput
   dietPlans?: Prisma.DietPlanUncheckedCreateNestedManyWithoutDietitianInput
+  reports?: Prisma.ReportUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutAuditLogsInput = {
@@ -833,6 +868,7 @@ export type UserUpdateWithoutAuditLogsInput = {
   appointments?: Prisma.AppointmentUpdateManyWithoutDietitianNestedInput
   clients?: Prisma.ClientUpdateManyWithoutDietitianNestedInput
   dietPlans?: Prisma.DietPlanUpdateManyWithoutDietitianNestedInput
+  reports?: Prisma.ReportUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutAuditLogsInput = {
@@ -849,6 +885,91 @@ export type UserUncheckedUpdateWithoutAuditLogsInput = {
   appointments?: Prisma.AppointmentUncheckedUpdateManyWithoutDietitianNestedInput
   clients?: Prisma.ClientUncheckedUpdateManyWithoutDietitianNestedInput
   dietPlans?: Prisma.DietPlanUncheckedUpdateManyWithoutDietitianNestedInput
+  reports?: Prisma.ReportUncheckedUpdateManyWithoutUserNestedInput
+}
+
+export type UserCreateWithoutReportsInput = {
+  id?: string
+  email: string
+  password: string
+  firstName: string
+  lastName: string
+  role: $Enums.Role
+  isActive?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  appointments?: Prisma.AppointmentCreateNestedManyWithoutDietitianInput
+  auditLogs?: Prisma.AuditLogCreateNestedManyWithoutUserInput
+  clients?: Prisma.ClientCreateNestedManyWithoutDietitianInput
+  dietPlans?: Prisma.DietPlanCreateNestedManyWithoutDietitianInput
+}
+
+export type UserUncheckedCreateWithoutReportsInput = {
+  id?: string
+  email: string
+  password: string
+  firstName: string
+  lastName: string
+  role: $Enums.Role
+  isActive?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  appointments?: Prisma.AppointmentUncheckedCreateNestedManyWithoutDietitianInput
+  auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutUserInput
+  clients?: Prisma.ClientUncheckedCreateNestedManyWithoutDietitianInput
+  dietPlans?: Prisma.DietPlanUncheckedCreateNestedManyWithoutDietitianInput
+}
+
+export type UserCreateOrConnectWithoutReportsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutReportsInput, Prisma.UserUncheckedCreateWithoutReportsInput>
+}
+
+export type UserUpsertWithoutReportsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutReportsInput, Prisma.UserUncheckedUpdateWithoutReportsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutReportsInput, Prisma.UserUncheckedCreateWithoutReportsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutReportsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutReportsInput, Prisma.UserUncheckedUpdateWithoutReportsInput>
+}
+
+export type UserUpdateWithoutReportsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.StringFieldUpdateOperationsInput | string
+  firstName?: Prisma.StringFieldUpdateOperationsInput | string
+  lastName?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  appointments?: Prisma.AppointmentUpdateManyWithoutDietitianNestedInput
+  auditLogs?: Prisma.AuditLogUpdateManyWithoutUserNestedInput
+  clients?: Prisma.ClientUpdateManyWithoutDietitianNestedInput
+  dietPlans?: Prisma.DietPlanUpdateManyWithoutDietitianNestedInput
+}
+
+export type UserUncheckedUpdateWithoutReportsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.StringFieldUpdateOperationsInput | string
+  firstName?: Prisma.StringFieldUpdateOperationsInput | string
+  lastName?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  appointments?: Prisma.AppointmentUncheckedUpdateManyWithoutDietitianNestedInput
+  auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutUserNestedInput
+  clients?: Prisma.ClientUncheckedUpdateManyWithoutDietitianNestedInput
+  dietPlans?: Prisma.DietPlanUncheckedUpdateManyWithoutDietitianNestedInput
 }
 
 
@@ -861,6 +982,7 @@ export type UserCountOutputType = {
   auditLogs: number
   clients: number
   dietPlans: number
+  reports: number
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -868,6 +990,7 @@ export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.I
   auditLogs?: boolean | UserCountOutputTypeCountAuditLogsArgs
   clients?: boolean | UserCountOutputTypeCountClientsArgs
   dietPlans?: boolean | UserCountOutputTypeCountDietPlansArgs
+  reports?: boolean | UserCountOutputTypeCountReportsArgs
 }
 
 /**
@@ -908,6 +1031,13 @@ export type UserCountOutputTypeCountDietPlansArgs<ExtArgs extends runtime.Types.
   where?: Prisma.DietPlanWhereInput
 }
 
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountReportsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ReportWhereInput
+}
+
 
 export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -924,6 +1054,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   auditLogs?: boolean | Prisma.User$auditLogsArgs<ExtArgs>
   clients?: boolean | Prisma.User$clientsArgs<ExtArgs>
   dietPlans?: boolean | Prisma.User$dietPlansArgs<ExtArgs>
+  reports?: boolean | Prisma.User$reportsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
@@ -972,6 +1103,7 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   auditLogs?: boolean | Prisma.User$auditLogsArgs<ExtArgs>
   clients?: boolean | Prisma.User$clientsArgs<ExtArgs>
   dietPlans?: boolean | Prisma.User$dietPlansArgs<ExtArgs>
+  reports?: boolean | Prisma.User$reportsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type UserIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -984,6 +1116,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     auditLogs: Prisma.$AuditLogPayload<ExtArgs>[]
     clients: Prisma.$ClientPayload<ExtArgs>[]
     dietPlans: Prisma.$DietPlanPayload<ExtArgs>[]
+    reports: Prisma.$ReportPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1394,6 +1527,7 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   auditLogs<T extends Prisma.User$auditLogsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$auditLogsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AuditLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   clients<T extends Prisma.User$clientsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$clientsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ClientPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   dietPlans<T extends Prisma.User$dietPlansArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$dietPlansArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$DietPlanPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  reports<T extends Prisma.User$reportsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$reportsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ReportPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1914,6 +2048,30 @@ export type User$dietPlansArgs<ExtArgs extends runtime.Types.Extensions.Internal
   take?: number
   skip?: number
   distinct?: Prisma.DietPlanScalarFieldEnum | Prisma.DietPlanScalarFieldEnum[]
+}
+
+/**
+ * User.reports
+ */
+export type User$reportsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Report
+   */
+  select?: Prisma.ReportSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Report
+   */
+  omit?: Prisma.ReportOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ReportInclude<ExtArgs> | null
+  where?: Prisma.ReportWhereInput
+  orderBy?: Prisma.ReportOrderByWithRelationInput | Prisma.ReportOrderByWithRelationInput[]
+  cursor?: Prisma.ReportWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ReportScalarFieldEnum | Prisma.ReportScalarFieldEnum[]
 }
 
 /**

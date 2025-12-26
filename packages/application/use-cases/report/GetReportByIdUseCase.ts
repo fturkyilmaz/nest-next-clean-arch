@@ -1,7 +1,6 @@
 import { IQuery, IQueryHandler, QueryHandler } from '@nestjs/cqrs';
 import { Inject } from '@nestjs/common';
-import { ReportRepository } from '@domain/repositories/ReportRepository';
-import { Report } from '@domain/entities/Report.entity';
+import { IReportRepository } from '@application/interfaces/repositories/IReportRepository';
 
 export class GetReportByIdQuery implements IQuery {
   constructor(public readonly id: string) { }
@@ -11,11 +10,11 @@ export class GetReportByIdQuery implements IQuery {
 export class GetReportByIdUseCase
   implements IQueryHandler<GetReportByIdQuery> {
   constructor(
-    @Inject('ReportRepository')
-    private readonly repo: ReportRepository,
+    @Inject('IReportRepository')
+    private readonly repo: IReportRepository,
   ) { }
 
-  async execute(query: GetReportByIdQuery): Promise<Report | null> {
+  async execute(query: GetReportByIdQuery): Promise<any | null> {
     return this.repo.findById(query.id);
   }
 }

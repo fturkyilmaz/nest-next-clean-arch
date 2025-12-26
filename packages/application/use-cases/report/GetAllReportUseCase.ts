@@ -1,7 +1,6 @@
 import { IQuery, IQueryHandler, QueryHandler } from '@nestjs/cqrs';
 import { Inject } from '@nestjs/common';
-import { ReportRepository } from '@domain/repositories/ReportRepository';
-import { Report } from '@domain/entities/Report.entity';
+import { IReportRepository } from '@application/interfaces/repositories/IReportRepository';
 
 export class GetAllReportQuery implements IQuery { }
 
@@ -9,11 +8,11 @@ export class GetAllReportQuery implements IQuery { }
 export class GetAllReportUseCase
   implements IQueryHandler<GetAllReportQuery> {
   constructor(
-    @Inject('ReportRepository')
-    private readonly repo: ReportRepository,
+    @Inject('IReportRepository')
+    private readonly repo: IReportRepository,
   ) { }
 
-  async execute(): Promise<Report[]> {
+  async execute(): Promise<any[]> {
     return this.repo.findAll();
   }
 }

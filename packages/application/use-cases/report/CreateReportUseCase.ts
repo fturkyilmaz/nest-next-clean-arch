@@ -1,15 +1,14 @@
 import { ICommand, ICommandHandler, CommandHandler } from '@nestjs/cqrs';
 import { Inject } from '@nestjs/common';
-import { ReportRepository } from '@domain/repositories/ReportRepository';
-import { Report } from '@domain/entities/Report.entity';
-
+import { IReportRepository } from '@application/interfaces/repositories/IReportRepository';
 export class CreateReportCommand implements ICommand {
   constructor(
     public readonly title: string,
-    public readonly description?: string,
+    public readonly type?: string,
+    public readonly format?: string,
+    public readonly data?: any,
     public readonly clientId?: string,
-    public readonly dietitianId?: string,
-    public readonly generatedAt?: Date,
+    public readonly createdBy?: string,
   ) { }
 }
 
@@ -17,22 +16,18 @@ export class CreateReportCommand implements ICommand {
 export class CreateReportUseCase
   implements ICommandHandler<CreateReportCommand> {
   constructor(
-    @Inject('ReportRepository')
-    private readonly repo: ReportRepository,
+    @Inject('IReportRepository')
+    private readonly repo: IReportRepository,
   ) { }
 
-  async execute(command: CreateReportCommand): Promise<Report> {
-    const report = Report.create({
-      id: crypto.randomUUID(),
+  async execute(command: CreateReportCommand): Promise<any> {
+    return this.repo.create({
       title: command.title,
-      description: command.description,
+      type: command.type || 'CUSTOM',
+      format: command.format || 'PDF',
+      data: command.data || {},
       clientId: command.clientId,
-      dietitianId: command.dietitianId,
-      generatedAt: command.generatedAt ?? new Date(),
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      createdBy: command.createdBy,
     });
-
-    return this.repo.create(report);
   }
 }

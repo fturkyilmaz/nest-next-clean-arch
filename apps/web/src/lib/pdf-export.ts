@@ -1,6 +1,6 @@
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
-
+import html2canvas from 'html2canvas';
 declare module 'jspdf' {
   interface jsPDF {
     autoTable: any;
@@ -168,31 +168,70 @@ export async function generatePDF(options: ReportGenerateOptions): Promise<void>
 
 /**
  * Convert a chart element to base64 image for embedding in PDF
+ * Uses html2canvas to capture the chart as an image
  */
-export function exportChartAsImage(
-  elementId: string
-): Promise<string> {
-  return new Promise((resolve, reject) => {
+export async function embedChartImage(
+  elementId: string,
+  pdf: jsPDF,
+  xPos: number = 20,
+  yPos: number = 20,
+  width: number = 170,
+  height: number = 80
+): Promise<void> {
+  try {
     const element = document.getElementById(elementId);
     if (!element) {
-      reject(new Error(`Element with ID "${elementId}" not found`));
+      console.warn(`Element with ID "${elementId}" not found`);
       return;
     }
 
-    // Use html2canvas or similar to convert SVG to image
-    // This is a simplified version - you may need to use a library like html2canvas
-    const canvas = document.createElement('canvas');
-    const context = canvas.getContext('2d');
+    // Convert element to canvas image
+    const canvas = await html2canvas(element, {
+      backgroundColor: '#ffffff',
+      scale: 2,
+      useCORS: true,
+      logging: false,
+    });
 
-    if (!context) {
-      reject(new Error('Could not get canvas context'));
-      return;
+    const imageData = canvas.toDataURL('image/png');
+    
+    // Add image to PDF
+    pdf.addImage(imageData, 'PNG', xPos, yPos, width, height);
+  } catch (error) {
+    console.error(`Error embedding chart from element "${elementId}":`, error);
+  }
+}
+
+/**
+ * Export chart as standalone image file
+ */
+export async function exportChartAsImage(
+  elementId: string,
+  fileName: string = 'chart'
+): Promise<void> {
+  try {
+    const element = document.getElementById(elementId);
+    if (!element) {
+      throw new Error(`Element with ID "${elementId}" not found`);
     }
 
-    // For simplicity, we'll just resolve with a placeholder
-    // In production, use html2canvas library
-    resolve('');
-  });
+    const canvas = await html2canvas(element, {
+      backgroundColor: '#ffffff',
+      scale: 2,
+      useCORS: true,
+      logging: false,
+    });
+
+    const link = document.createElement('a');
+    link.href = canvas.toDataURL('image/png');
+    link.download = `${fileName}-${Date.now()}.png`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  } catch (error) {
+    console.error('Error exporting chart:', error);
+    throw error;
+  }
 }
 
 /**

@@ -2,10 +2,14 @@
 
 import { useReports } from '@/lib/api-hooks';
 import Link from 'next/link';
-import { FileText } from 'lucide-react';
+import { FileText, Download } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { ExportButton, type ExportFormat } from '@/components/ui/export-button';
+import { useExport } from '@/hooks/useExport';
 
 export default function ReportsPage() {
     const { data: reports, isLoading } = useReports();
+    const { exportTable } = useExport({ defaultFileName: 'reports' });
 
     const formatDate = (dateString: string) => {
         return new Date(dateString).toLocaleDateString('en-US', {
@@ -17,11 +21,33 @@ export default function ReportsPage() {
         });
     };
 
+    const handleExportReports = async (format: ExportFormat) => {
+        if (!reports || reports.length === 0) {
+            alert('No reports to export');
+            return;
+        }
+
+        const exportData = reports.map(report => ({
+            Title: report.title,
+            Type: report.reportType,
+            Generated: formatDate(report.generatedAt),
+            Status: 'Completed'
+        }));
+
+        await exportTable(exportData, `reports-${new Date().toISOString().split('T')[0]}`, format);
+    };
+
     return (
         <div className="p-8">
-            <div className="mb-8">
-                <h1 className="text-3xl font-bold text-gray-900 mb-2">Reports</h1>
-                <p className="text-gray-600">View and generate reports</p>
+            <div className="mb-8 flex justify-between items-start">
+                <div>
+                    <h1 className="text-3xl font-bold text-gray-900 mb-2">Reports</h1>
+                    <p className="text-gray-600">View and generate reports</p>
+                </div>
+                <ExportButton
+                    onExport={handleExportReports}
+                    formats={['excel', 'csv']}
+                />
             </div>
 
             {isLoading ? (
@@ -61,8 +87,8 @@ export default function ReportsPage() {
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                         {formatDate(report.generatedAt)}
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                        <Link href={`/dashboard/reports/${report.id}`} className="text-indigo-600 hover:text-indigo-900">
+                                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
+                                        <Link href={`/dashboard/reports/${report.id}`} className="text-indigo-600 hover:text-indigo-900 inline-block">
                                             View Report
                                         </Link>
                                     </td>

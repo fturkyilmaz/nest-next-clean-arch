@@ -87,3 +87,23 @@ export const AppointmentStatus = {
 } as const
 
 export type AppointmentStatus = (typeof AppointmentStatus)[keyof typeof AppointmentStatus]
+
+
+export const ReportType = {
+  NUTRITION: 'NUTRITION',
+  PROGRESS: 'PROGRESS',
+  MEAL_PLAN: 'MEAL_PLAN',
+  ACTIVITY: 'ACTIVITY',
+  CUSTOM: 'CUSTOM'
+} as const
+
+export type ReportType = (typeof ReportType)[keyof typeof ReportType]
+
+
+export const ReportFormat = {
+  PDF: 'PDF',
+  EXCEL: 'EXCEL',
+  CSV: 'CSV'
+} as const
+
+export type ReportFormat = (typeof ReportFormat)[keyof typeof ReportFormat]

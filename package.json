@@ -15,7 +15,7 @@
         "prisma:generate": "prisma generate --schema=./prisma/schema.prisma",
         "prisma:migrate": "prisma migrate dev --schema=./prisma/schema.prisma",
         "prisma:seed": "ts-node prisma/seed.ts",
-        "codegen":"pnpm orval -c orval.config.js"
+        "codegen": "pnpm orval -c orval.config.js"
     },
     "prisma": {
         "seed": "ts-node prisma/seed.ts"
@@ -53,10 +53,13 @@
         "class-transformer": "^0.5.1",
         "class-validator": "^0.14.3",
         "dotenv": "17.2.3",
+        "exceljs": "^4.4.0",
         "express": "^5.2.1",
         "helmet": "^8.1.0",
+        "html2canvas": "^1.4.1",
         "ioredis": "^5.3.7",
         "jsonwebtoken": "^9.0.3",
+        "papaparse": "^5.5.3",
         "passport": "^0.7.0",
         "passport-jwt": "^4.0.1",
         "pg": "8.16.3",
@@ -66,6 +69,7 @@
         "rxjs": "^7.8.2",
         "swagger-ui-express": "^5.0.1",
         "uuid": "^13.0.0",
+        "xlsx": "^0.18.5",
         "xss": "^1.0.15"
     },
     "devDependencies": {
