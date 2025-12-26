@@ -1,10 +1,9 @@
 import jsPDF from 'jspdf';
-// TODO: Install jspdf-autotable when needed
-// import 'jspdf-autotable';
+import 'jspdf-autotable';
 
 declare module 'jspdf' {
   interface jsPDF {
-    autoTable?: any;
+    autoTable: any;
   }
 }
 

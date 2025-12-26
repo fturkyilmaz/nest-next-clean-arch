@@ -1,20 +1,52 @@
 import { Injectable } from '@nestjs/common';
 import { prisma } from 'prisma/lib/prisma';
+import { CacheService } from '@infrastructure/cache/cache.service';
 import { Client } from '@domain/entities';
 import { ClientRepository } from '@domain/repositories/ClientRepository';
 
 @Injectable()
 export class PrismaClientRepository implements ClientRepository {
+  constructor(private readonly cache: CacheService) {}
   async findById(id: string): Promise<Client | null> {
+    const cacheKey = `client:${id}`;
+    
+    // Try to get from cache first
+    const cached = await this.cache.get<any>(cacheKey);
+    if (cached) {
+      return this.toDomain(cached);
+    }
+
     const model = await prisma.client.findUnique({
       where: { id, deletedAt: null },
     });
-    return model ? this.toDomain(model) : null;
+    
+    if (model) {
+      // Cache for 1 hour
+      await this.cache.set(cacheKey, model, 3600);
+      return this.toDomain(model);
+    }
+    
+    return null;
   }
 
   async findByEmail(email: string): Promise<Client | null> {
+    const cacheKey = `client:email:${email}`;
+    
+    // Try to get from cache first
+    const cached = await this.cache.get<any>(cacheKey);
+    if (cached) {
+      return this.toDomain(cached);
+    }
+
     const model = await prisma.client.findUnique({ where: { email } });
-    return model ? this.toDomain(model) : null;
+    
+    if (model) {
+      // Cache for 1 hour
+      await this.cache.set(cacheKey, model, 3600);
+      return this.toDomain(model);
+    }
+    
+    return null;
   }
 
   async findByDietitianId(
@@ -76,10 +108,19 @@ export class PrismaClientRepository implements ClientRepository {
       where: { id },
       data: { deletedAt: new Date() },
     });
+    
+    // Invalidate cache for this client
+    await this.cache.invalidateEntityCache('Client', id);
   }
 
   async create(data: any): Promise<Client> {
     const model = await prisma.client.create({ data });
+    
+    // Invalidate dietitian's client list cache
+    if (data.dietitianId) {
+      await this.cache.deletePattern(`client:list:${data.dietitianId}:*`);
+    }
+    
     return this.toDomain(model);
   }
 

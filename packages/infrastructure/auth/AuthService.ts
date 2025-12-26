@@ -91,9 +91,6 @@ export class AuthService {
       firstName: user.getFirstName(),
       lastName: user.getLastName(),
     };
-    console.log('Generating token with payload:', payload);
-    const { accessToken, refreshToken, expiresIn } =
-      this.jwtAuthService.generateTokens(payload);
 
     return {
       accessToken,
@@ -111,8 +108,6 @@ export class AuthService {
 
   async login(email: string, password: string): Promise<LoginResult> {
     const user = await this.userRepository.findByEmail(email);
-
-    console.log("user", user);
 
     if (!user?.isActive()) {
       throw new UnauthorizedException("Invalid credentials");
@@ -134,9 +129,6 @@ export class AuthService {
       firstName: user.getFirstName(),
       lastName: user.getLastName(),
     };
-    console.log('Generating token with payload:', payload);
-    const { accessToken, refreshToken, expiresIn } =
-      this.jwtAuthService.generateTokens(payload);
 
     return {
       accessToken,
@@ -169,7 +161,6 @@ export class AuthService {
         firstName: user.getFirstName(),
         lastName: user.getLastName(),
       };
-      console.log('Generating token with payload:', payload);
       const {
         accessToken,
         refreshToken: newRefreshToken,

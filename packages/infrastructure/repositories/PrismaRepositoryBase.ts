@@ -73,6 +73,38 @@ export abstract class PrismaRepositoryBase<T, TDomain, ID = string>
   }
 
   /**
+ * Find all entities with optional filters and pagination
+ */
+async findAllPaged(
+  filters: Record<string, any> = {}, // örn: { status: 'ACTIVE', isActive: true }
+  page: number = 1,
+  limit: number = 10,
+  orderBy?: string,
+  includes?: string[],
+): Promise<{ data: TDomain[]; total: number; page: number; limit: number }> {
+  const skip = (page - 1) * limit;
+
+  const [models, total] = await Promise.all([
+    this.model.findMany({
+      where: filters,
+      skip,
+      take: limit,
+      orderBy: this.toPrismaOrderBy(orderBy),
+      include: this.toPrismaInclude(includes),
+    }),
+    this.model.count({ where: filters }),
+  ]);
+
+  return {
+    data: models.map((m: T) => this.toDomain(m)),
+    total,
+    page,
+    limit,
+  };
+}
+
+
+  /**
    * Find all entities
    */
   async findAll(): Promise<TDomain[]> {

@@ -8,11 +8,12 @@ export default function DashboardPage() {
     const router = useRouter();
     const { data: user, isLoading: userLoading } = useCurrentUser();
     const { data: clients, isLoading: clientsLoading } = useClients();
-    const { data: dietPlans, isLoading: plansLoading } = useDietPlans();
+    const { data: dietPlans, isLoading: plansLoading } = useDietPlans(1,10,"ACTIVE", true);
     const logoutMutation = useLogout();
 
     const handleLogout = async () => {
         await logoutMutation.mutateAsync();
+        localStorage.clear();
         router.push('/login');
     };
 
@@ -24,7 +25,7 @@ export default function DashboardPage() {
         );
     }
 
-    const activePlans = dietPlans?.filter(p => p.status === 'ACTIVE').length || 0;
+    const activePlans = dietPlans?.data?.filter(p => p.status === 'ACTIVE').length || 0;
     const totalClients = clients?.length || 0;
 
     return (
@@ -55,14 +56,14 @@ export default function DashboardPage() {
                     />
                     <StatCard
                         title="Draft Plans"
-                        value={dietPlans?.filter(p => p.status === 'DRAFT').length || 0}
+                        value={dietPlans?.data?.filter(p => p.status === 'DRAFT').length || 0}
                         icon="✏️"
                         color="from-amber-500 to-amber-600"
                         loading={plansLoading}
                     />
                     <StatCard
                         title="Completed"
-                        value={dietPlans?.filter(p => p.status === 'COMPLETED').length || 0}
+                        value={dietPlans?.data?.filter(p => p.status === 'COMPLETED').length || 0}
                         icon="✅"
                         color="from-purple-500 to-purple-600"
                         loading={plansLoading}
@@ -128,7 +129,7 @@ export default function DashboardPage() {
                             </div>
                         ) : (
                             <div className="space-y-3">
-                                {dietPlans?.slice(0, 5).map(plan => (
+                                {dietPlans?.data?.slice(0, 5).map(plan => (
                                     <Link
                                         key={plan.id}
                                         href={`/dashboard/diet-plans/${plan.id}`}

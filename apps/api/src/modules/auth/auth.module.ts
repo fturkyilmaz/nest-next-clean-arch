@@ -9,6 +9,7 @@ import { LoginUseCase } from '@application/use-cases/auth/LoginUseCase';
 import { RefreshTokenUseCase } from '@application/use-cases/auth/RefreshTokenUseCase';
 import { JwtAuthService } from '@infrastructure/auth/JwtAuthService';
 import { PrismaUserRepository } from '@infrastructure/repositories';
+import { RedisCacheModule } from '@infrastructure/cache';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { PrismaUserRepository } from '@infrastructure/repositories';
       inject: [ConfigService],
     }),
     RepositoryModule,
+    RedisCacheModule
   ],
   controllers: [AuthController],
   providers: [

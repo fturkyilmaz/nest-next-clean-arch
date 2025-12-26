@@ -1,5 +1,7 @@
 import { Module } from '@nestjs/common';
 import { DatabaseModule } from '@infrastructure/database/DatabaseModule';
+import { RedisCacheModule } from '@infrastructure/cache/RedisCacheModule';
+import { CacheService } from '@infrastructure/cache/cache.service';
 import { PrismaUserRepository } from './PrismaUserRepository';
 import { PrismaClientRepository } from './PrismaClientRepository';
 import { PrismaDietPlanRepository } from './PrismaDietPlanRepository';
@@ -12,8 +14,9 @@ import { PrismaEventRepository } from './PrismaEventRepository';
 import { PrismaReportRepository } from './PrismaReportRepository';
 
 @Module({
-  imports: [DatabaseModule],
+  imports: [DatabaseModule, RedisCacheModule],
   providers: [
+    CacheService,
     { provide: 'IUserRepository', useClass: PrismaUserRepository },
     { provide: 'IClientRepository', useClass: PrismaClientRepository },
     { provide: 'IDietPlanRepository', useClass: PrismaDietPlanRepository },
@@ -28,6 +31,7 @@ import { PrismaReportRepository } from './PrismaReportRepository';
     { provide: 'IReportRepository', useClass: PrismaReportRepository },
   ],
   exports: [
+    CacheService,
     'IUserRepository',
     'IClientRepository',
     'IDietPlanRepository',

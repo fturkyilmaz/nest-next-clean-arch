@@ -1,11 +1,11 @@
-import { DietPlan } from '@domain/entities/DietPlan.entity';
+import { DietPlanId } from "@domain/common/Types";
+import { DietPlan } from "@domain/entities/DietPlan.entity";
+import { PrismaRepositoryBase } from "@infrastructure/repositories/PrismaRepositoryBase";
 
-export interface IDietPlanRepository {
-  /**
-   * Find diet plan by ID
-   */
-  findById(id: string): Promise<DietPlan | null>;
-
+export interface IDietPlanRepository extends PrismaRepositoryBase<
+  DietPlan,
+  DietPlan
+> {
   /**
    * Find all diet plans for a specific client
    */
@@ -60,17 +60,20 @@ export interface IDietPlanRepository {
   }): Promise<number>;
 
   /**
-   * Create a new diet plan
+   * Find diet plan by ID
    */
-  create(dietPlan: DietPlan): Promise<DietPlan>;
+  findById(id: DietPlanId): Promise<DietPlan | null>;
 
-  /**
-   * Update an existing diet plan
-   */
-  update(dietPlan: DietPlan): Promise<DietPlan>;
-
-  /**
-   * Delete a diet plan (soft delete)
-   */
-  delete(id: string): Promise<void>;
+  /** * Find all entities with optional filters and pagination */ findAllPaged(
+    filters?: Record<string, any>,
+    page?: number,
+    limit?: number,
+    orderBy?: string,
+    includes?: string[]
+  ): Promise<{
+    data: DietPlan[];
+    total: number;
+    page: number;
+    limit: number;
+  }>;
 }

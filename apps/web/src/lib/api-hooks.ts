@@ -12,6 +12,7 @@ import {
   CreateUserRequest,
 } from "./api-client";
 import { clearRememberedCredentials } from "./remember-me";
+import {notify } from "./toast";
 
 // Create API client for web
 const API_BASE_URL =
@@ -154,6 +155,10 @@ export function useCreateClient() {
     mutationFn: (data: CreateClientRequest) => api.createClient(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["clients"] });
+      notify.success("Client created successfully!");
+    },
+    onError: () => {
+      notify.error("Failed to create client");
     },
   });
 }
@@ -166,6 +171,10 @@ export function useUpdateClient(id: string) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["clients"] });
       queryClient.invalidateQueries({ queryKey: ["clients", id] });
+      notify.success("Client updated successfully!");
+    },
+    onError: () => {
+      notify.error("Failed to update client");
     },
   });
 }
@@ -182,7 +191,7 @@ export function useAddClientMetrics(clientId: string) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (data: Omit<ClientMetrics, "id" | "clientId" | "recordedAt">) =>
-      api.addClientMetrics(clientId, data),
+      api.addClientMetrics(clientId, data), 
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: ["clients", clientId, "metrics"],
@@ -231,6 +240,10 @@ export function useCreateDietPlan() {
     mutationFn: (data: CreateDietPlanRequest) => api.createDietPlan(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["dietPlans"] });
+      notify.success("Diet plan created successfully!");
+    },
+    onError: () => {
+       notify.error("Failed to create diet plan");
     },
   });
 }
@@ -243,6 +256,10 @@ export function useUpdateDietPlan(id: string) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["dietPlans"] });
       queryClient.invalidateQueries({ queryKey: ["dietPlans", id] });
+      notify.success("Diet plan updated successfully!");
+    },
+    onError: () => {
+       notify.error("Failed to update diet plan");
     },
   });
 }
@@ -253,6 +270,10 @@ export function useActivateDietPlan() {
     mutationFn: (id: string) => api.activateDietPlan(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["dietPlans"] });
+      notify.success("Diet plan activated!");
+    },
+    onError: () => {
+      notify.error("Failed to activate diet plan");
     },
   });
 }
@@ -263,6 +284,10 @@ export function useCompleteDietPlan() {
     mutationFn: (id: string) => api.completeDietPlan(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["dietPlans"] });
+      notify.success("Diet plan completed!");
+    },
+    onError: () => {
+      notify.error("Failed to complete diet plan");
     },
   });
 }
@@ -292,6 +317,10 @@ export function useCreateAppointment() {
     mutationFn: (data: Partial<any>) => api.createAppointment(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["appointments"] });
+      notify.success("Appointment scheduled successfully!");
+    },
+    onError: () => {
+       notify.error("Failed to schedule appointment");
     },
   });
 }
@@ -321,6 +350,10 @@ export function useCreateFood() {
     mutationFn: (data: Partial<any>) => api.createFood(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["foods"] });
+      notify.success("Food item created successfully!");
+    },
+    onError: () => {
+      notify.error("Failed to create food item");
     },
   });
 }
@@ -332,6 +365,10 @@ export function useUpdateFood(id: string) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["foods"] });
       queryClient.invalidateQueries({ queryKey: ["foods", id] });
+      notify.success("Food item updated successfully!");
+    },
+    onError: () => {
+      notify.error("Failed to update food item");
     },
   });
 }
@@ -361,6 +398,10 @@ export function useCreateMeal() {
     mutationFn: (data: Partial<any>) => api.createMeal(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["meals"] });
+      notify.success("Meal created successfully!");
+    },
+    onError: () => {
+      notify.error("Failed to create meal");
     },
   });
 }
@@ -390,6 +431,10 @@ export function useCreateEvent() {
     mutationFn: (data: Partial<any>) => api.createEvent(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["events"] });
+      notify.success("Event created successfully!");
+    },
+    onError: () => {
+       notify.error("Failed to create event");
     },
   });
 }

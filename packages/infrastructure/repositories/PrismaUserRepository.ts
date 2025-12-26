@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@infrastructure/database/PrismaService';
+import { CacheService } from '@infrastructure/cache/cache.service';
 import { User, UserRole } from '@domain/entities/User.entity';
 import { Email } from '@domain/value-objects/Email.vo';
 import { Password } from '@domain/value-objects/Password.vo';
@@ -7,7 +8,10 @@ import { IUserRepository } from '@application/interfaces/repositories/common/IUs
 
 @Injectable()
 export class PrismaUserRepository implements IUserRepository {
-  constructor(private readonly prisma: PrismaService) { }
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly cache: CacheService,
+  ) { }
   async create(user: User): Promise<User> {
     const data = this.toPrisma(user);
     const model = await this.prisma.user.upsert({
@@ -15,14 +19,23 @@ export class PrismaUserRepository implements IUserRepository {
       update: data,
       create: data,
     });
+    
+    // Invalidate cache for this user
+    await this.cache.invalidateUserCache(user.getId());
+    
     return this.toDomain(model);
   }
+
   async update(user: User): Promise<User> {
     const data = this.toPrisma(user);
     const model = await this.prisma.user.update({
       where: { id: user.getId() },
       data,
     });
+    
+    // Invalidate cache for this user
+    await this.cache.invalidateUserCache(user.getId());
+    
     return this.toDomain(model);
   }
 
@@ -62,13 +75,45 @@ export class PrismaUserRepository implements IUserRepository {
   }
 
   async findById(id: string): Promise<User | null> {
+    const cacheKey = `user:${id}`;
+    
+    // Try to get from cache first
+    const cached = await this.cache.get<any>(cacheKey);
+    if (cached) {
+      return this.toDomain(cached);
+    }
+
+    // Query database
     const model = await this.prisma.user.findUnique({ where: { id } });
-    return model ? this.toDomain(model) : null;
+    
+    if (model) {
+      // Cache for 1 hour
+      await this.cache.set(cacheKey, model, 3600);
+      return this.toDomain(model);
+    }
+    
+    return null;
   }
 
   async findByEmail(email: string): Promise<User | null> {
+    const cacheKey = `user:email:${email}`;
+    
+    // Try to get from cache first
+    const cached = await this.cache.get<any>(cacheKey);
+    if (cached) {
+      return this.toDomain(cached);
+    }
+
+    // Query database
     const model = await this.prisma.user.findUnique({ where: { email } });
-    return model ? this.toDomain(model) : null;
+    
+    if (model) {
+      // Cache for 1 hour
+      await this.cache.set(cacheKey, model, 3600);
+      return this.toDomain(model);
+    }
+    
+    return null;
   }
 
   async existsByEmail(email: string): Promise<boolean> {

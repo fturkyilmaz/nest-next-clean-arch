@@ -99,3 +99,22 @@ export const createUserSchema = z.object({
 });
 
 export type CreateUserFormInputs = z.infer<typeof createUserSchema>;
+// Profile/Settings Schemas
+export const updateProfileSchema = z.object({
+  firstName: z.string().min(1, 'First Name is required'),
+  lastName: z.string().min(1, 'Last Name is required'),
+  email: z.string().email('Invalid email address'),
+});
+
+export type UpdateProfileFormInputs = z.infer<typeof updateProfileSchema>;
+
+export const changePasswordSchema = z.object({
+  currentPassword: z.string().min(6, 'Password must be at least 6 characters'),
+  newPassword: z.string().min(6, 'New password must be at least 6 characters'),
+  confirmPassword: z.string().min(6, 'Confirm password must be at least 6 characters'),
+}).refine((data) => data.newPassword === data.confirmPassword, {
+  message: 'Passwords don\'t match',
+  path: ['confirmPassword'],
+});
+
+export type ChangePasswordFormInputs = z.infer<typeof changePasswordSchema>;
