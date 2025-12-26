@@ -14,7 +14,8 @@
         "test:e2e": "jest --config ./test/jest-e2e.json",
         "prisma:generate": "prisma generate --schema=./prisma/schema.prisma",
         "prisma:migrate": "prisma migrate dev --schema=./prisma/schema.prisma",
-        "prisma:seed": "ts-node prisma/seed.ts"
+        "prisma:seed": "ts-node prisma/seed.ts",
+        "codegen":"pnpm orval -c orval.config.js"
     },
     "prisma": {
         "seed": "ts-node prisma/seed.ts"
@@ -75,6 +76,7 @@
         "@types/node": "^20.11.15",
         "@types/supertest": "6.0.3",
         "jest": "^30.2.0",
+        "orval": "^7.17.2",
         "prisma": "^7.1.0",
         "supertest": "^7.1.4",
         "ts-jest": "^29.4.6",
