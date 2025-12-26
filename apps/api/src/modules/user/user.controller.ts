@@ -22,6 +22,7 @@ import {
   ApiOkResponse,
   ApiForbiddenResponse,
   ApiNotFoundResponse,
+  ApiParam,
 } from '@nestjs/swagger';
 import { JwtAuthGuard, Roles, CurrentUser, CurrentUserData } from '@infrastructure/auth';
 import {
@@ -69,6 +70,7 @@ export class UserController {
 
   @Get(':id')
   @ApiOperation({ summary: 'Get user by ID' })
+  @ApiParam({ name: 'id', type: String, description: 'User ID' })
   @ApiOkResponse({ description: 'User found', type: UserResponseDto })
   @ApiNotFoundResponse({ description: 'User not found' })
   async getUserById(@Param('id') id: string): Promise<UserResponseDto> {
@@ -95,16 +97,17 @@ export class UserController {
   }
 
   @Put(':id')
+  @ApiParam({ name: 'id', type: String, description: 'User ID' })
   @ApiOperation({ summary: 'Update user' })
   @ApiOkResponse({ description: 'User updated', type: UserResponseDto })
   @ApiForbiddenResponse({ description: 'Forbidden - You can only update your own profile' })
   async updateUser(
-    @Param() request: BaseIdRequest,
+ @Param('id') id: string,
     @Body() updateUserDto: UpdateUserDto,
     @CurrentUser() currentUser: CurrentUserData
   ): Promise<UserResponseDto> {
     const command = new UpdateUserCommand(
-      request.id,
+      id,
       updateUserDto.email,
       updateUserDto.firstName,
       updateUserDto.lastName

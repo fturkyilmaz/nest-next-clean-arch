@@ -1,8 +1,7 @@
 import { ICommand, ICommandHandler, CommandHandler } from '@nestjs/cqrs';
 import { Inject } from '@nestjs/common';
 import { MealRepository } from '@domain/repositories/MealRepository';
-import { Meal } from '@domain/entities/Meal.entity';
-import { TimeOfDay } from '@domain/entities/Meal.entity';
+import { TimeOfDay, Meal } from '@domain/entities/Meal.entity';
 
 export class CreateMealCommand implements ICommand {
   constructor(
@@ -29,7 +28,6 @@ export class CreateMealUseCase
 
   async execute(command: CreateMealCommand): Promise<Meal> {
     const meal = Meal.create({
-      id: crypto.randomUUID(),
       mealPlanId: command.mealPlanId,
       name: command.name,
       timeOfDay: command.timeOfDay,
