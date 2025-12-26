@@ -87,15 +87,15 @@ export default function ClientsScreen({ navigation }: any) {
                                     </View>
                                 </View>
 
-                                {(client.allergies?.length > 0 || client.conditions?.length > 0) && (
+                                {(client?.allergies?.length > 0 || client?.conditions?.length > 0) && (
                                     <View className="flex-row flex-wrap gap-2 mt-4 pt-4 border-t border-gray-700">
-                                        {client.allergies?.slice(0, 2).map((allergy: string, i: number) => (
-                                            <View key={i} className="bg-red-500/20 px-3 py-1 rounded-full">
+                                        {client?.allergies?.slice(0, 2)?.map((allergy: string, i: number) => (
+                                            <View key={i?.toString()} className="bg-red-500/20 px-3 py-1 rounded-full">
                                                 <Text className="text-red-400 text-xs">🚫 {allergy}</Text>
                                             </View>
                                         ))}
-                                        {client.conditions?.slice(0, 2).map((condition: string, i: number) => (
-                                            <View key={i} className="bg-amber-500/20 px-3 py-1 rounded-full">
+                                        {client?.conditions?.slice(0, 2)?.map((condition: string, i: number) => (
+                                            <View key={i?.toString()} className="bg-amber-500/20 px-3 py-1 rounded-full">
                                                 <Text className="text-amber-400 text-xs">⚕️ {condition}</Text>
                                             </View>
                                         ))}

@@ -1,4 +1,3 @@
-import React from 'react';
 import {
     View,
     Text,
@@ -7,16 +6,15 @@ import {
     ActivityIndicator,
     KeyboardAvoidingView,
     Platform,
-    StyleSheet,
 } from 'react-native';
-import { useRegister } from '../lib/api-hooks'; // Assuming useRegister hook exists or will be created
+import { useRegister } from '../lib/api-hooks';
 import { HeartIcon, UserIcon, EnvelopeIcon, LockClosedIcon } from 'react-native-heroicons/outline';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { registrationSchema, RegistrationFormInputs } from '../lib/validationSchemas';
 
 export default function RegisterScreen({ navigation }: any) {
-    const registerMutation = useRegister(); // This will need to be implemented or mocked
+    const registerMutation = useRegister();
 
     const { control, handleSubmit, formState: { errors } } = useForm<RegistrationFormInputs>({
         resolver: zodResolver(registrationSchema),
@@ -24,8 +22,9 @@ export default function RegisterScreen({ navigation }: any) {
 
     const handleRegister = async (data: RegistrationFormInputs) => {
         try {
-            await registerMutation.mutateAsync(data);
-            navigation.replace('Login'); // Redirect to login after successful registration
+            // Role static client
+            await registerMutation.mutateAsync({ ...data, role: 'CLIENT' });
+            navigation.replace('Login');
         } catch (err: any) {
             console.error("Registration failed:", err);
         }
@@ -50,14 +49,13 @@ export default function RegisterScreen({ navigation }: any) {
 
                 {/* Registration Form Container */}
                 <View className="bg-gray-800/60 rounded-3xl p-8 shadow-2xl backdrop-blur-lg border border-gray-700/50">
-                    {/* Error handling can be added here if needed for server-side errors */}
 
-                    {/* Form Fields */}
+                    {/* First Name */}
                     <View className="mb-6">
-                        <Text className="text-gray-300 text-base font-semibold mb-2">Full Name</Text>
+                        <Text className="text-gray-300 text-base font-semibold mb-2">First Name</Text>
                         <Controller
                             control={control}
-                            name="name"
+                            name="firstName"
                             render={({ field: { onChange, onBlur, value } }) => (
                                 <View className="flex-row items-center bg-gray-700 rounded-xl px-4 border border-gray-600">
                                     <UserIcon size={20} color="#a1a1aa" className="mr-3" />
@@ -65,7 +63,7 @@ export default function RegisterScreen({ navigation }: any) {
                                         onBlur={onBlur}
                                         onChangeText={onChange}
                                         value={value}
-                                        placeholder="John Doe"
+                                        placeholder="Furkan"
                                         placeholderTextColor="#a1a1aa"
                                         autoCapitalize="words"
                                         className="flex-1 text-white text-base py-3"
@@ -73,9 +71,34 @@ export default function RegisterScreen({ navigation }: any) {
                                 </View>
                             )}
                         />
-                        {errors.name && <Text className="text-red-400 text-sm mt-1">{errors.name.message}</Text>}
+                        {errors.firstName && <Text className="text-red-400 text-sm mt-1">{errors.firstName.message}</Text>}
                     </View>
 
+                    {/* Last Name */}
+                    <View className="mb-6">
+                        <Text className="text-gray-300 text-base font-semibold mb-2">Last Name</Text>
+                        <Controller
+                            control={control}
+                            name="lastName"
+                            render={({ field: { onChange, onBlur, value } }) => (
+                                <View className="flex-row items-center bg-gray-700 rounded-xl px-4 border border-gray-600">
+                                    <UserIcon size={20} color="#a1a1aa" className="mr-3" />
+                                    <TextInput
+                                        onBlur={onBlur}
+                                        onChangeText={onChange}
+                                        value={value}
+                                        placeholder="Türkyılmaz"
+                                        placeholderTextColor="#a1a1aa"
+                                        autoCapitalize="words"
+                                        className="flex-1 text-white text-base py-3"
+                                    />
+                                </View>
+                            )}
+                        />
+                        {errors.lastName && <Text className="text-red-400 text-sm mt-1">{errors.lastName.message}</Text>}
+                    </View>
+
+                    {/* Email */}
                     <View className="mb-6">
                         <Text className="text-gray-300 text-base font-semibold mb-2">Email Address</Text>
                         <Controller
@@ -100,6 +123,7 @@ export default function RegisterScreen({ navigation }: any) {
                         {errors.email && <Text className="text-red-400 text-sm mt-1">{errors.email.message}</Text>}
                     </View>
 
+                    {/* Password */}
                     <View className="mb-6">
                         <Text className="text-gray-300 text-base font-semibold mb-2">Password</Text>
                         <Controller
@@ -123,6 +147,7 @@ export default function RegisterScreen({ navigation }: any) {
                         {errors.password && <Text className="text-red-400 text-sm mt-1">{errors.password.message}</Text>}
                     </View>
 
+                    {/* Confirm Password */}
                     <View className="mb-8">
                         <Text className="text-gray-300 text-base font-semibold mb-2">Confirm Password</Text>
                         <Controller
@@ -163,7 +188,7 @@ export default function RegisterScreen({ navigation }: any) {
 
                     <View className="mt-8 text-center">
                         <Text className="text-gray-300 text-base">
-                            Already have an account? {' '}
+                            Already have an account?{' '}
                             <Text
                                 className="text-primary-400 font-semibold"
                                 onPress={() => navigation.navigate('Login')}

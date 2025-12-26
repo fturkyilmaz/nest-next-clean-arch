@@ -6,7 +6,6 @@ import { Input } from '@ui/components/Input';
 import { Card } from '@ui/components/Card';
 import { useParams, useRouter } from 'next/navigation';
 import React, { useEffect } from 'react';
-import Link from 'next/link';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { updateClientSchema, UpdateClientFormInputs } from '@/lib/validationSchemas';
@@ -19,7 +18,7 @@ export default function ClientDetailPage() {
     const { data: client, isLoading, error } = useClient(id);
     const updateMutation = useUpdateClient(id);
 
-    const { control, handleSubmit, reset, formState: { errors } } = useForm<UpdateClientFormInputs>({
+    const { control, handleSubmit, reset, formState: { errors }, register } = useForm<UpdateClientFormInputs>({
         resolver: zodResolver(updateClientSchema),
     });
 
@@ -71,15 +70,15 @@ export default function ClientDetailPage() {
                     <p className="text-gray-500 mt-1">{client.firstName} {client.lastName}</p>
                 </div>
                 <div className="flex gap-2">
-                    <Link href={`/clients/${id}/metrics`}>
+                    <a href={`/clients/${id}/metrics`}>
                         <Button variant="outline">View Metrics</Button>
-                    </Link>
-                    <Link href={`/clients/${id}/diet-plans`}>
+                    </a>
+                    <a href={`/clients/${id}/diet-plans`}>
                         <Button variant="outline">Diet Plans</Button>
-                    </Link>
-                    <Link href="/clients">
+                    </a>
+                    <a href="/clients">
                         <Button variant="ghost">Back to List</Button>
-                    </Link>
+                    </a>
                 </div>
             </div>
 

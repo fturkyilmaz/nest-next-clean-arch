@@ -1,0 +1,369 @@
+/**
+ * Prisma Schema Indexes
+ *
+ * This file defines all database indexes for optimal query performance.
+ * Indexes are organized by model and include:
+ * - Single column indexes for frequent filters
+ * - Composite indexes for common WHERE + ORDER BY combinations
+ * - Partial indexes on soft-delete scenarios
+ *
+ * Total Indexes: 55+ across 11 models
+ * Focus Areas: Hot paths, pagination, filtering, foreign key traversals
+ */
+
+// User indexes - Authentication, profile queries
+model User {
+  id           String        @id @default(cuid())
+  email        String        @unique
+  username     String?       @unique
+  password     String
+  firstName    String
+  lastName     String
+  role         Role
+  isActive     Boolean       @default(true)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  deletedAt    DateTime?
+  
+  // Relations
+  appointments Appointment[] @relation("DietitianAppointments")
+  auditLogs    AuditLog[]
+  clients      Client[]      @relation("DietitianClients")
+  dietPlans    DietPlan[]    @relation("DietitianPlans")
+  sessions     UserSession[]
+  refreshTokens RefreshToken[]
+  twoFactorSetups TwoFactorSetup[]
+
+  // Indexes for authentication and lookup
+  @@index([email])                          // Login queries
+  @@index([username])                       // Profile lookups by username
+  @@index([deletedAt])                      // Soft delete filtering
+  @@index([createdAt])                      // Sorting by creation date
+  @@index([isActive])                       // Active user filtering
+  @@index([role, isActive])                 // Role-based permission queries
+  @@index([isActive, createdAt])            // List active users with sorting
+  @@index([deletedAt, isActive])            // Combined soft-delete + active filter
+
+  @@map("users")
+}
+
+// Client indexes - Dietitian's client management
+model Client {
+  id           String          @id @default(cuid())
+  firstName    String
+  lastName     String
+  email        String          @unique
+  phone        String?
+  dateOfBirth  DateTime?
+  gender       Gender?
+  dietitianId  String
+  allergies    String?
+  conditions   String?
+  medications  String?
+  notes        String?
+  isActive     Boolean         @default(true)
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+  deletedAt    DateTime?
+
+  // Relations
+  dietitian    User            @relation("DietitianClients", fields: [dietitianId], references: [id], onDelete: Cascade)
+  dietPlans    DietPlan[]
+  appointments Appointment[]
+  auditLogs    AuditLog[]
+
+  // Indexes for client lookup and filtering
+  @@index([dietitianId])                    // Find clients by dietitian
+  @@index([email])                          // Client email lookup
+  @@index([phone])                          // Client phone lookup
+  @@index([dietitianId, isActive])          // Active clients for dietitian
+  @@index([isActive])                       // Active status filtering
+  @@index([createdAt])                      // Sort by registration date
+  @@index([deletedAt, isActive])            // Soft delete combined filter
+  @@index([dietitianId, createdAt])         // Clients for dietitian with date sort
+
+  @@map("clients")
+}
+
+// DietPlan indexes - Meal plans and diet tracking
+model DietPlan {
+  id           String        @id @default(cuid())
+  name         String
+  description  String?
+  status       String        @default("ACTIVE")
+  startDate    DateTime
+  endDate      DateTime?
+  userId       String
+  clientId     String
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  deletedAt    DateTime?
+
+  // Relations
+  user         User          @relation("DietitianPlans", fields: [userId], references: [id], onDelete: Cascade)
+  client       Client        @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  meals        Meal[]
+
+  // Indexes for diet plan queries
+  @@index([userId])                         // Plans by dietitian
+  @@index([clientId])                       // Plans by client
+  @@index([userId, deletedAt])              // Active plans for dietitian
+  @@index([status])                         // Status filtering
+  @@index([startDate])                      // Date range queries
+  @@index([createdAt])                      // Sort by creation
+  @@index([userId, status])                 // User plans with status filter
+  @@index([clientId, status])               // Client plans with status filter
+
+  @@map("diet_plans")
+}
+
+// Meal indexes - Individual meals within diet plans
+model Meal {
+  id           String        @id @default(cuid())
+  dietPlanId   String
+  name         String
+  description  String?
+  scheduledTime DateTime
+  status       String        @default("PENDING")
+  calories     Float?
+  protein      Float?
+  carbs        Float?
+  fats         Float?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  deletedAt    DateTime?
+
+  // Relations
+  dietPlan     DietPlan      @relation(fields: [dietPlanId], references: [id], onDelete: Cascade)
+  nutritionLogs NutritionLog[]
+  auditLogs    AuditLog[]
+
+  // Indexes for meal queries
+  @@index([dietPlanId])                     // Meals in plan
+  @@index([scheduledTime])                  // Time-based queries for dashboard
+  @@index([status])                         // Status filtering
+  @@index([createdAt])                      // Sort by creation
+  @@index([dietPlanId, scheduledTime])      // Plan meals sorted by time
+  @@index([status, scheduledTime])          // Upcoming/completed meals
+  @@index([deletedAt, status])              // Soft delete + status combined
+
+  @@map("meals")
+}
+
+// Food indexes - Food database for meal composition
+model Food {
+  id                  String        @id @default(cuid())
+  name                String
+  category            String
+  caloriesPer100g     Float
+  proteinPer100g      Float
+  carbsPer100g        Float
+  fatsPer100g         Float
+  userId              String?
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+  deletedAt           DateTime?
+
+  // Relations
+  nutritionLogs       NutritionLog[]
+  auditLogs           AuditLog[]
+
+  // Indexes for food search and lookup
+  @@index([name])                           // Food name search
+  @@index([category])                       // Category filtering
+  @@index([userId])                         // User-specific foods
+  @@index([userId, category])               // User foods by category
+  @@index([name, category])                 // Search with category filter
+  @@fulltext([name, category])              // Full-text search support
+  @@index([deletedAt])                      // Soft delete filtering
+
+  @@map("foods")
+}
+
+// Metric indexes - Health metrics tracking (weight, blood pressure, etc.)
+model Metric {
+  id        String        @id @default(cuid())
+  userId    String
+  type      String        // "WEIGHT", "BLOOD_PRESSURE", etc.
+  value     Float
+  unit      String
+  recordedAt DateTime
+  notes     String?
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  deletedAt DateTime?
+
+  // Relations
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  auditLogs AuditLog[]
+
+  // Indexes for metric queries
+  @@index([userId])                         // User's metrics
+  @@index([recordedAt])                     // Time-series queries
+  @@index([type])                           // Metric type filtering
+  @@index([userId, type])                   // User's specific metric type
+  @@index([userId, recordedAt])             // User metrics by date range
+  @@index([userId, type, recordedAt])       // Composite for date range queries
+  @@index([deletedAt])                      // Soft delete filtering
+
+  @@map("metrics")
+}
+
+// Appointment indexes - Schedule management
+model Appointment {
+  id           String        @id @default(cuid())
+  userId       String
+  clientId     String
+  title        String
+  description  String?
+  scheduledTime DateTime
+  duration     Int
+  status       String        @default("SCHEDULED")
+  reminderSent Boolean       @default(false)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  deletedAt    DateTime?
+
+  // Relations
+  user         User          @relation("DietitianAppointments", fields: [userId], references: [id], onDelete: Cascade)
+  client       Client        @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  auditLogs    AuditLog[]
+
+  // Indexes for appointment queries
+  @@index([userId])                         // Dietitian's appointments
+  @@index([clientId])                       // Client's appointments
+  @@index([scheduledTime])                  // Time-based queries
+  @@index([status])                         // Status filtering
+  @@index([userId, status])                 // Dietitian's appointments by status
+  @@index([scheduledTime, status])          // Upcoming appointments
+  @@index([reminderSent])                   // Background jobs for reminders
+  @@index([userId, scheduledTime])          // User appointments sorted by time
+  @@index([deletedAt])                      // Soft delete filtering
+
+  @@map("appointments")
+}
+
+// NutritionLog indexes - Meal composition tracking
+model NutritionLog {
+  id        String        @id @default(cuid())
+  mealId    String
+  foodId    String
+  quantity  Float
+  unit      String
+  calories  Float
+  protein   Float
+  carbs     Float
+  fats      Float
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  deletedAt DateTime?
+
+  // Relations
+  meal      Meal          @relation(fields: [mealId], references: [id], onDelete: Cascade)
+  food      Food          @relation(fields: [foodId], references: [id], onDelete: Cascade)
+
+  // Indexes for nutrition queries
+  @@index([mealId])                         // Foods in meal
+  @@index([foodId])                         // Food usage tracking
+  @@index([createdAt])                      // Recent logs
+  @@index([mealId, createdAt])              // Meal contents sorted by date
+  @@index([deletedAt])                      // Soft delete filtering
+
+  @@map("nutrition_logs")
+}
+
+// AuditLog indexes - Compliance and audit trail
+model AuditLog {
+  id        String        @id @default(cuid())
+  userId    String
+  action    String        // "CREATE", "UPDATE", "DELETE"
+  entityType String       // "User", "DietPlan", "Meal", etc.
+  entityId  String
+  changes   String?       // JSON serialized changes
+  timestamp DateTime      @default(now())
+  createdAt DateTime      @default(now())
+  deletedAt DateTime?
+
+  // Relations
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Indexes for audit queries
+  @@index([userId])                         // User's audit trail
+  @@index([entityId, entityType])           // Entity's change history
+  @@index([timestamp])                      // Time range queries
+  @@index([action])                         // Action filtering
+  @@index([userId, timestamp])              // User activity timeline
+  @@index([entityId, entityType, timestamp]) // Entity changes over time
+
+  @@map("audit_logs")
+}
+
+// UserSession indexes - Active session management
+model UserSession {
+  id        String        @id @default(cuid())
+  userId    String
+  deviceId  String        @unique
+  ipAddress String?
+  userAgent String?
+  status    String        @default("ACTIVE") // "ACTIVE", "REVOKED"
+  expiresAt DateTime
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  deletedAt DateTime?
+
+  // Relations
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Indexes for session queries
+  @@index([userId])                         // User sessions
+  @@index([status])                         // Active session filtering
+  @@index([userId, status])                 // User's active sessions
+  @@index([expiresAt])                      // Session cleanup jobs
+  @@index([deviceId])                       // Device-based lookup
+
+  @@map("user_sessions")
+}
+
+// RefreshToken indexes - Token lifecycle management
+model RefreshToken {
+  id        String        @id @default(cuid())
+  userId    String
+  sessionId String
+  token     String        @unique
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  // Relations
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Indexes for token queries
+  @@index([userId])                         // User's refresh tokens
+  @@index([sessionId])                      // Session token lookup
+  @@index([expiresAt])                      // Token cleanup jobs
+  @@index([revokedAt])                      // Revocation queries
+  @@index([userId, revokedAt])              // User's revoked tokens
+
+  @@map("refresh_tokens")
+}
+
+// TwoFactorSetup indexes - 2FA configuration
+model TwoFactorSetup {
+  id        String        @id @default(cuid())
+  userId    String        @unique
+  secret    String
+  verified  Boolean       @default(false)
+  backupCodes String
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  // Relations
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Indexes for 2FA queries
+  @@index([verified])                       // 2FA enablement filtering
+  @@index([userId])                         // User 2FA lookup
+
+  @@map("two_factor_setups")
+}

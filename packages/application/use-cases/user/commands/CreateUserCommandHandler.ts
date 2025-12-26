@@ -6,7 +6,7 @@ import { User } from '@domain/entities/User.entity';
 import { Email } from '@domain/value-objects/Email.vo';
 import { Password } from '@domain/value-objects/Password.vo';
 import { Result, ConflictError, ValidationError } from '@domain/common/Result';
-import { IUserRepository } from '@application/interfaces/IUserRepository';
+import { IUserRepository } from '@application/interfaces/repositories/common/IUserRepository';
 import { IPasswordHasher } from '@application/interfaces/services/IPasswordHasher';
 
 /**

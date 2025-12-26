@@ -1,8 +1,52 @@
-import axios, { AxiosInstance, AxiosError } from 'axios';
+/**
+ * Mobile App API Client - Re-exports from @diet/shared
+ * Provides mobile-specific initialization and configuration
+ */
+
+export * from '@diet/shared/api-client';
+export * from '@diet/shared/types';
+export * from '@diet/shared/schemas';
+
+import { createApiClient } from '@diet/shared/api-client';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { AxiosInstance } from 'axios';
 
 /**
- * API Client Configuration
+ * Initialize API client for mobile application
  */
+export async function initializeMobileApiClient(baseURL: string, authStore: any) {
+    return createApiClient({
+        baseURL,
+        timeout: 30000,
+        getAccessToken: () => authStore.accessToken || null,
+        getRefreshToken: () => authStore.refreshToken || null,
+        enableRetry: true,
+        maxRetries: 3,
+        onTokenExpired: async () => {
+            await authStore.logout();
+            await AsyncStorage.removeItem('tokens');
+        },
+        onRefreshToken: async ({ accessToken, refreshToken, expiresIn }) => {
+            await authStore.setTokens({
+                accessToken,
+                refreshToken,
+                expiresIn,
+                expiresAt: Date.now() + expiresIn * 1000
+            });
+            await AsyncStorage.setItem('tokens', JSON.stringify({
+                accessToken,
+                refreshToken,
+                expiresIn,
+                expiresAt: Date.now() + expiresIn * 1000
+            }));
+        },
+        onError: (error) => {
+            console.error('API Error:', error.code, error.detail);
+        },
+    });
+}
+
+// Legacy type exports for backward compatibility
 export interface ApiClientConfig {
     baseURL: string;
     timeout?: number;
@@ -70,6 +114,99 @@ export interface ClientMetrics {
     notes?: string;
 }
 
+export interface Appointment {
+    id: string;
+    clientId: string;
+    dietitianId: string;
+    title: string;
+    description?: string;
+    scheduledAt: string;
+    duration: number; // in minutes
+    status: 'SCHEDULED' | 'COMPLETED' | 'CANCELLED';
+    createdAt: string;
+    updatedAt: string;
+}
+
+export interface Food {
+    id: string;
+    name: string;
+    category?: string;
+    calories: number;
+    protein: number;
+    carbs: number;
+    fat: number;
+    fiber?: number;
+    servingSize: string;
+    unit: string;
+    createdAt: string;
+    updatedAt: string;
+}
+
+export interface MealFood {
+    foodId: string;
+    quantity: number;
+    food?: Food;
+}
+
+export interface Meal {
+    id: string;
+    dietPlanId: string;
+    name: string;
+    mealType: 'BREAKFAST' | 'LUNCH' | 'DINNER' | 'SNACK';
+    scheduledTime?: string;
+    foods: MealFood[];
+    totalCalories: number;
+    totalProtein: number;
+    totalCarbs: number;
+    totalFat: number;
+    createdAt: string;
+    updatedAt: string;
+}
+
+export interface Event {
+    id: string;
+    title: string;
+    description?: string;
+    eventType: string;
+    startDate: string;
+    endDate?: string;
+    metadata?: any;
+    createdAt: string;
+    updatedAt: string;
+}
+
+export interface Report {
+    id: string;
+    title: string;
+    reportType: string;
+    data: any;
+    generatedBy?: string;
+    generatedAt: string;
+    createdAt: string;
+}
+
+export interface Metric {
+    id: string;
+    name: string;
+    value: number;
+    unit: string;
+    timestamp: string;
+    metadata?: any;
+}
+
+export interface Audit {
+    id: string;
+    userId: string;
+    action: string;
+    entity: string;
+    entityId?: string;
+    metadata?: any;
+    ipAddress?: string;
+    userAgent?: string;
+    createdAt: string;
+}
+
+
 export interface DietPlan {
     id: string;
     name: string;
@@ -94,6 +231,15 @@ export interface LoginRequest {
     email: string;
     password: string;
 }
+
+export interface RegisterRequest {
+    email: string
+    password: string
+    firstName: string
+    lastName: string
+    role: string
+}
+
 
 export interface LoginResponse {
     accessToken: string;
@@ -136,61 +282,6 @@ export interface ChangePasswordRequest {
 }
 
 /**
- * Create configured API client instance
- */
-export function createApiClient(config: ApiClientConfig): AxiosInstance {
-    const client = axios.create({
-        baseURL: config.baseURL,
-        timeout: config.timeout || 30000,
-        headers: {
-            'Content-Type': 'application/json',
-        },
-    });
-
-    // Request interceptor - add auth token
-    client.interceptors.request.use(
-        (requestConfig) => {
-            const token = config.getAccessToken?.();
-            if (token) {
-                requestConfig.headers.Authorization = `Bearer ${token}`;
-            }
-            return requestConfig;
-        },
-        (error) => Promise.reject(error)
-    );
-
-    // Response interceptor - handle errors
-    client.interceptors.response.use(
-        (response) => response,
-        (error: AxiosError<ApiError>) => {
-            if (error.response) {
-                const apiError = error.response.data;
-
-                // Handle 401 - token expired
-                if (error.response.status === 401) {
-                    config.onTokenExpired?.();
-                }
-
-                config.onError?.(apiError);
-                return Promise.reject(apiError);
-            }
-
-            // Network error
-            const networkError: ApiError = {
-                type: 'https://httpstatuses.com/0',
-                title: 'Network Error',
-                status: 0,
-                detail: error.message || 'Unable to connect to server',
-            };
-            config.onError?.(networkError);
-            return Promise.reject(networkError);
-        }
-    );
-
-    return client;
-}
-
-/**
  * API Service
  */
 export class ApiService {
@@ -199,6 +290,11 @@ export class ApiService {
     // Auth
     async login(data: LoginRequest): Promise<LoginResponse> {
         const res = await this.client.post<LoginResponse>('/auth/login', data);
+        return res.data;
+    }
+
+    async register(data: RegisterRequest): Promise<LoginResponse> {
+        const res = await this.client.post<LoginResponse>('/auth/register', data);
         return res.data;
     }
 
@@ -301,6 +397,103 @@ export class ApiService {
 
     async changePassword(data: ChangePasswordRequest): Promise<void> {
         await this.client.post('/auth/change-password', data);
+    }
+
+    // Appointments
+    async getAppointments(): Promise<Appointment[]> {
+        const res = await this.client.get<Appointment[]>('/appointments');
+        return res.data;
+    }
+
+    async getAppointmentById(id: string): Promise<Appointment> {
+        const res = await this.client.get<Appointment>(`/appointments/${id}`);
+        return res.data;
+    }
+
+    async createAppointment(data: Partial<Appointment>): Promise<Appointment> {
+        const res = await this.client.post<Appointment>('/appointments', data);
+        return res.data;
+    }
+
+    // Foods
+    async getFoods(): Promise<Food[]> {
+        const res = await this.client.get<Food[]>('/foods');
+        return res.data;
+    }
+
+    async getFoodById(id: string): Promise<Food> {
+        const res = await this.client.get<Food>(`/foods/${id}`);
+        return res.data;
+    }
+
+    async createFood(data: Partial<Food>): Promise<Food> {
+        const res = await this.client.post<Food>('/foods', data);
+        return res.data;
+    }
+
+    // Meals
+    async getMeals(): Promise<Meal[]> {
+        const res = await this.client.get<Meal[]>('/meals');
+        return res.data;
+    }
+
+    async getMealById(id: string): Promise<Meal> {
+        const res = await this.client.get<Meal>(`/meals/${id}`);
+        return res.data;
+    }
+
+    async createMeal(data: Partial<Meal>): Promise<Meal> {
+        const res = await this.client.post<Meal>('/meals', data);
+        return res.data;
+    }
+
+    // Events
+    async getEvents(): Promise<Event[]> {
+        const res = await this.client.get<Event[]>('/events');
+        return res.data;
+    }
+
+    async getEventById(id: string): Promise<Event> {
+        const res = await this.client.get<Event>(`/events/${id}`);
+        return res.data;
+    }
+
+    async createEvent(data: Partial<Event>): Promise<Event> {
+        const res = await this.client.post<Event>('/events', data);
+        return res.data;
+    }
+
+    // Reports
+    async getReports(): Promise<Report[]> {
+        const res = await this.client.get<Report[]>('/reports');
+        return res.data;
+    }
+
+    async getReportById(id: string): Promise<Report> {
+        const res = await this.client.get<Report>(`/reports/${id}`);
+        return res.data;
+    }
+
+    // Audits (Activity Logs)
+    async getAudits(): Promise<Audit[]> {
+        const res = await this.client.get<Audit[]>('/audits');
+        return res.data;
+    }
+
+    async getAuditById(id: string): Promise<Audit> {
+        const res = await this.client.get<Audit>(`/audits/${id}`);
+        return res.data;
+    }
+
+    // Metrics
+    async getMetrics(): Promise<Metric[]> {
+        const res = await this.client.get<Metric[]>('/metrics');
+        return res.data;
+    }
+
+    async getMetricById(id: string): Promise<Metric> {
+        const res = await this.client.get<Metric>(`/metrics/${id}`);
+        return res.data;
     }
 
     // Health

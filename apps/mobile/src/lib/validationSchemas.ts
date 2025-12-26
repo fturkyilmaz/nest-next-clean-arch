@@ -1,3 +1,11 @@
+/**
+ * Mobile App Validation Schemas - Re-exports from @diet/shared
+ * Single source of truth for form validation across web and mobile
+ */
+
+export * from '@diet/shared/schemas';
+
+// Legacy exports for backward compatibility
 import { z } from 'zod';
 
 export const loginSchema = z.object({
@@ -8,14 +16,16 @@ export const loginSchema = z.object({
 export type LoginFormInputs = z.infer<typeof loginSchema>;
 
 export const registrationSchema = z.object({
-  name: z.string().min(1, 'Name is required'),
+  firstName: z.string().min(1, 'First Name is required'),
+  lastName: z.string().min(1, 'Last Name is required'),
   email: z.string().email('Invalid email address'),
   password: z.string().min(6, 'Password must be at least 6 characters long'),
   confirmPassword: z.string().min(6, 'Confirm Password must be at least 6 characters long'),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: 'Passwords don\'t match',
-  path: ['confirmPassword'],
-});
+}).refine((data) => data.password === data.confirmPassword,
+  {
+    message: "Passwords don't match",
+    path: ['confirmPassword'],
+  });
 
 export type RegistrationFormInputs = z.infer<typeof registrationSchema>;
 

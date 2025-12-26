@@ -2,7 +2,7 @@ import { QueryHandler, IQueryHandler } from '@nestjs/cqrs';
 import { GetClientMetricsHistoryQuery } from './GetClientMetricsHistoryQuery';
 import { ClientMetrics } from '@domain/entities/ClientMetrics.entity';
 import { Inject } from '@nestjs/common';
-import { IClientMetricsRepository } from '@application/interfaces/IClientMetricsRepository';
+import { IClientMetricsRepository } from '@application/interfaces/repositories/IClientMetricsRepository';
 
 export @QueryHandler(GetClientMetricsHistoryQuery) class GetClientMetricsHistoryQueryHandler
   implements IQueryHandler<GetClientMetricsHistoryQuery> {

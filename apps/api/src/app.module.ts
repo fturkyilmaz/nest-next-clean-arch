@@ -9,10 +9,18 @@ import { UserModule } from './modules/user/user.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { DietPlanModule } from './modules/dietplan/dietplan.module';
 import { ClientModule } from './modules/client/client.module';
+import { AppointmentModule } from './modules/appointment/appointment.module';
+import { FoodModule } from './modules/food/food.module';
+import { MealModule } from './modules/meal/meal.module';
+import { MetricModule } from './modules/metric/metric.module';
+import { AuditModule } from './modules/audit/audit.module';
+import { EventModule } from './modules/event/event.module';
+import { ReportModule } from './modules/report/report.module';
 
 // Infrastructure modules
 import { DatabaseModule } from '@infrastructure/database/DatabaseModule';
 import { RedisCacheModule } from '@infrastructure/cache/RedisCacheModule';
+import { DatabaseOptimizationModule } from '@infrastructure/database/DatabaseOptimizationModule';
 
 // Middleware
 import { CorrelationIdMiddleware } from '@infrastructure/middleware/CorrelationIdMiddleware';
@@ -40,6 +48,7 @@ import { RequestLoggingMiddleware } from '@infrastructure/middleware/RequestLogg
     // Infrastructure
     DatabaseModule,
     RedisCacheModule,
+    DatabaseOptimizationModule,
 
     // Feature modules
     HealthModule,
@@ -47,6 +56,13 @@ import { RequestLoggingMiddleware } from '@infrastructure/middleware/RequestLogg
     UserModule,
     ClientModule,
     DietPlanModule,
+    AppointmentModule,
+    FoodModule,
+    MealModule,
+    MetricModule,
+    AuditModule,
+    EventModule,
+    ReportModule,
   ],
 })
 export class AppModule implements NestModule {

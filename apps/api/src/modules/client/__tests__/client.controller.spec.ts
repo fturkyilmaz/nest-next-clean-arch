@@ -1,4 +1,4 @@
-import { Test, TestingModule } from '@nestjs/testing';
+import { Test } from '@nestjs/testing';
 import { ClientController } from '../client.controller';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 // Mocks
@@ -10,12 +10,12 @@ const mockQueryBus = {
 };
 
 describe('ClientController', () => {
-    let controller: ClientController;
-    let commandBus: CommandBus;
-    let queryBus: QueryBus;
+    let controller;
+    let commandBus;
+    let queryBus;
 
     beforeEach(async () => {
-        const module: TestingModule = await Test.createTestingModule({
+        const module = await Test.createTestingModule({
             controllers: [ClientController],
             providers: [
                 {

@@ -9,10 +9,9 @@ import {
   UseGuards,
   HttpCode,
   HttpStatus,
-  NotFoundException,
-  ForbiddenException,
   ParseBoolPipe,
   ParseIntPipe,
+  DefaultValuePipe,
 } from '@nestjs/common';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import {
@@ -23,6 +22,7 @@ import {
   ApiOkResponse,
   ApiForbiddenResponse,
   ApiNotFoundResponse,
+  ApiParam,
 } from '@nestjs/swagger';
 import { JwtAuthGuard, Roles, CurrentUser, CurrentUserData } from '@infrastructure/auth';
 import {
@@ -37,6 +37,7 @@ import {
   UserResponseDto,
 } from '@application/dto/UserDto';
 import { UserMapper } from './user.mapper';
+import { BaseIdRequest } from '@application/dto/common/BaseIdRequest';
 
 @UseGuards(JwtAuthGuard)
 @ApiTags('Users')
@@ -69,15 +70,12 @@ export class UserController {
 
   @Get(':id')
   @ApiOperation({ summary: 'Get user by ID' })
+  @ApiParam({ name: 'id', type: String, description: 'User ID' })
   @ApiOkResponse({ description: 'User found', type: UserResponseDto })
   @ApiNotFoundResponse({ description: 'User not found' })
   async getUserById(@Param('id') id: string): Promise<UserResponseDto> {
     const query = new GetUserByIdQuery(id);
     const user = await this.queryBus.execute(query);
-
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
 
     return UserMapper.toResponseDto(user);
   }
@@ -88,9 +86,9 @@ export class UserController {
   @ApiOkResponse({ description: 'Users retrieved', type: [UserResponseDto] })
   async getAllUsers(
     @Query('role') role?: string,
-    @Query('isActive', ParseBoolPipe) isActive?: boolean,
-    @Query('skip', ParseIntPipe) skip?: number,
-    @Query('take', ParseIntPipe) take?: number
+    @Query('isActive', new DefaultValuePipe(true), ParseBoolPipe) isActive?: boolean,
+    @Query('skip', new DefaultValuePipe(0), ParseIntPipe) skip?: number,
+    @Query('take', new DefaultValuePipe(10), ParseIntPipe) take?: number
   ): Promise<UserResponseDto[]> {
     const query = new GetAllUsersQuery(role, isActive, skip, take);
     const users = await this.queryBus.execute(query);
@@ -99,18 +97,15 @@ export class UserController {
   }
 
   @Put(':id')
+  @ApiParam({ name: 'id', type: String, description: 'User ID' })
   @ApiOperation({ summary: 'Update user' })
   @ApiOkResponse({ description: 'User updated', type: UserResponseDto })
   @ApiForbiddenResponse({ description: 'Forbidden - You can only update your own profile' })
   async updateUser(
-    @Param('id') id: string,
+ @Param('id') id: string,
     @Body() updateUserDto: UpdateUserDto,
     @CurrentUser() currentUser: CurrentUserData
   ): Promise<UserResponseDto> {
-    if (currentUser.userId !== id && currentUser.role !== 'ADMIN') {
-      throw new ForbiddenException('You can only update your own profile');
-    }
-
     const command = new UpdateUserCommand(
       id,
       updateUserDto.email,
@@ -127,12 +122,8 @@ export class UserController {
   @ApiOkResponse({ description: 'Current user profile', type: UserResponseDto })
   @ApiNotFoundResponse({ description: 'User not found' })
   async getCurrentUser(@CurrentUser() currentUser: CurrentUserData): Promise<UserResponseDto> {
-    const query = new GetUserByIdQuery(currentUser.userId);
+    const query = new GetUserByIdQuery(currentUser.id);
     const user = await this.queryBus.execute(query);
-
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
 
     return UserMapper.toResponseDto(user);
   }

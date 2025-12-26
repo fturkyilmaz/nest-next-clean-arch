@@ -1,4 +1,5 @@
 {
+  "extends": "expo/tsconfig.base",
   "compilerOptions": {
     "strict": true,
     "target": "ESNext",
@@ -17,6 +18,9 @@
       "@/*": [
         "./src/*"
       ],
+      "@diet/shared/*": [
+        "../../packages/shared/src/*"
+      ],
       "@domain/*": [
         "../../packages/domain/*"
       ],
@@ -30,5 +34,10 @@
     "**/*.tsx",
     "nativewind-env.d.ts"
   ],
-  "extends": "expo/tsconfig.base"
+  "exclude": [
+    "node_modules",
+    "babel.config.js",
+    "metro.config.js",
+    "tailwind.config.js"
+  ]
 }

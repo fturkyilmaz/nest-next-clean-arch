@@ -3,9 +3,17 @@ import { IQuery } from '@nestjs/cqrs';
 export class GetDietPlansByClientQuery implements IQuery {
   constructor(
     public readonly clientId: string,
+    public readonly page: number = 1,
+    public readonly limit: number = 10,
     public readonly status?: string,
-    public readonly isActive?: boolean,
-    public readonly skip?: number,
-    public readonly take?: number
+    public readonly isActive?: boolean
   ) {}
+
+  get skip(): number {
+    return (this.page - 1) * this.limit;
+  }
+
+  get take(): number {
+    return this.limit;
+  }
 }

@@ -5,7 +5,6 @@ import { Button } from '@ui/components/Button';
 import { Input } from '@ui/components/Input';
 import { Card } from '@ui/components/Card';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { createClientSchema, CreateClientFormInputs } from '@/lib/validationSchemas';
@@ -57,9 +56,9 @@ export default function CreateClientPage() {
                     <h1 className="text-2xl font-bold tracking-tight text-gray-900">Add New Client</h1>
                     <p className="text-gray-500 mt-1">Create a new client profile</p>
                 </div>
-                <Link href="/clients">
+                <a href="/clients">
                     <Button variant="ghost">Cancel</Button>
-                </Link>
+                </a>
             </div>
 
             <Card className="p-6">
@@ -140,9 +139,9 @@ export default function CreateClientPage() {
                     </div>
 
                     <div className="pt-4 flex justify-end gap-3">
-                        <Link href="/clients">
+                        <a href="/clients">
                             <Button type="button" variant="ghost">Cancel</Button>
-                        </Link>
+                        </a>
                         <Button type="submit" disabled={createMutation.isPending}>
                             {createMutation.isPending ? 'Creating Client...' : 'Create Client'}
                         </Button>

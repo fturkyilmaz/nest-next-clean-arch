@@ -7,7 +7,6 @@ import {
     ActivityIndicator,
     KeyboardAvoidingView,
     Platform,
-    StyleSheet,
 } from 'react-native';
 import { useLogin } from '../lib/api-hooks';
 import { HeartIcon, EnvelopeIcon, LockClosedIcon } from 'react-native-heroicons/outline';
@@ -22,12 +21,15 @@ export default function LoginScreen({ navigation }: any) {
 
     const { control, handleSubmit, formState: { errors } } = useForm<LoginFormInputs>({
         resolver: zodResolver(loginSchema),
+        defaultValues: {
+            "email": "admin@test.com",
+            "password": "Admin123!@#"
+        },
     });
 
     const handleLogin = async (data: LoginFormInputs) => {
         try {
             await loginMutation.mutateAsync(data);
-            navigation.replace('MainTabs');
         } catch (err: any) {
             console.error("Login failed:", err);
         }
@@ -52,12 +54,9 @@ export default function LoginScreen({ navigation }: any) {
 
                 {/* Login Form Container */}
                 <View className="bg-gray-800/60 rounded-3xl p-8 shadow-2xl backdrop-blur-lg border border-gray-700/50">
-                    {/* Error */}
-                    {/* Error handling can be added here if needed for server-side errors */}
-
                     {/* Form Fields */}
                     <View className="mb-6">
-                        <Text className="text-gray-300 text-base font-semibold mb-2">Email Address</Text>
+                        <Text className="text-gray-300 text-base font-semibold mb-2">Email</Text>
                         <Controller
                             control={control}
                             name="email"
@@ -134,6 +133,14 @@ export default function LoginScreen({ navigation }: any) {
                         )}
                     </TouchableOpacity>
 
+                    {/* Register Redirect */}
+                    <View className="mt-6 flex-row justify-center">
+                        <Text className="text-gray-300 text-sm mr-2">Don’t have an account?</Text>
+                        <TouchableOpacity onPress={() => navigation.navigate("Register")}>
+                            <Text className="text-primary-400 text-sm font-semibold">Register</Text>
+                        </TouchableOpacity>
+                    </View>
+
                     {/* Demo credentials */}
                     <View className="mt-8 bg-gray-700/50 rounded-xl p-4">
                         <Text className="text-gray-300 text-center text-sm mb-3">Demo Credentials:</Text>
@@ -153,7 +160,3 @@ export default function LoginScreen({ navigation }: any) {
         </KeyboardAvoidingView>
     );
 }
-
-const styles = StyleSheet.create({
-    // No custom styles needed beyond NativeWind
-});

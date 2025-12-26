@@ -7,10 +7,13 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "vitest run",
-    "test:watch": "vitest"
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build"
   },
   "dependencies": {
+    "@diet/shared": "workspace:*",
     "@hookform/resolvers": "^5.2.2",
     "@radix-ui/react-dialog": "^1.1.4",
     "@radix-ui/react-dropdown-menu": "^2.1.4",
@@ -21,18 +24,26 @@
     "@tanstack/react-query-devtools": "^5.91.1",
     "axios": "^1.13.2",
     "clsx": "^2.1.1",
+    "html2pdf.js": "^0.10.1",
     "i18next": "^25.7.2",
     "i18next-browser-languagedetector": "^8.2.0",
+    "jspdf": "^2.5.2",
+    "lucide-react": "^0.562.0",
     "next": "16.0.7",
     "react": "19.2.0",
     "react-dom": "19.2.0",
     "react-hook-form": "^7.68.0",
     "react-toastify": "^11.0.5",
+    "recharts": "^2.12.7",
     "tailwind-merge": "^2.6.0",
     "zod": "^4.1.13",
     "zustand": "^5.0.2"
   },
   "devDependencies": {
+    "@storybook/addon-a11y": "^10.1.10",
+    "@storybook/addon-docs": "^10.1.10",
+    "@storybook/addon-onboarding": "^10.1.10",
+    "@storybook/nextjs": "^10.1.10",
     "@tailwindcss/postcss": "^4",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.1.0",
@@ -42,7 +53,9 @@
     "babel-plugin-react-compiler": "1.0.0",
     "eslint": "^9",
     "eslint-config-next": "16.0.7",
+    "eslint-plugin-storybook": "^10.1.10",
     "jsdom": "^25.0.1",
+    "storybook": "^10.1.10",
     "tailwindcss": "^4",
     "typescript": "^5"
   }

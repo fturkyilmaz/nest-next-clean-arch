@@ -6,7 +6,7 @@
   "include": [
     "src/**/*",
     "../../packages/**/*"
-  ],
+, "../../orval.config.js"  ],
   "exclude": [
     "node_modules",
     "dist",

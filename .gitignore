@@ -33,7 +33,6 @@ pnpm-lock.yaml
 
 /generated/prisma
 
-
 # Coverage reports
 coverage/
 coverage-final.json
@@ -59,3 +58,6 @@ jest-html-reporters-*
 *.tar
 *.pid
 *.sock
+
+# pnpm lock file
+pnpm-lock.yaml
