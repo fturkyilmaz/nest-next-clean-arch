@@ -278,6 +278,90 @@ export interface FoodResponseDto {
 
 export interface CreateFoodDto { [key: string]: unknown }
 
+/**
+ * Time of day when the meal is scheduled
+ */
+export type MealResponseDtoTimeOfDay = typeof MealResponseDtoTimeOfDay[keyof typeof MealResponseDtoTimeOfDay];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const MealResponseDtoTimeOfDay = {
+  BREAKFAST: 'BREAKFAST',
+  MORNING_SNACK: 'MORNING_SNACK',
+  LUNCH: 'LUNCH',
+  AFTERNOON_SNACK: 'AFTERNOON_SNACK',
+  DINNER: 'DINNER',
+  EVENING_SNACK: 'EVENING_SNACK',
+} as const;
+
+export interface MealResponseDto {
+  /** Unique identifier of the meal */
+  id: string;
+  /** Meal plan ID this meal belongs to */
+  mealPlanId: string;
+  /** Meal name */
+  name: string;
+  /** Time of day when the meal is scheduled */
+  timeOfDay: MealResponseDtoTimeOfDay;
+  /** Description of the meal */
+  description?: string;
+  /** Preparation or serving instructions */
+  instructions?: string;
+  /** Calories count */
+  calories?: number;
+  /** Protein amount (grams) */
+  protein?: number;
+  /** Carbohydrates amount (grams) */
+  carbs?: number;
+  /** Fat amount (grams) */
+  fat?: number;
+  /** Fiber amount (grams) */
+  fiber?: number;
+  /** Creation timestamp */
+  createdAt: string;
+  /** Last update timestamp */
+  updatedAt: string;
+}
+
+/**
+ * Time of day
+ */
+export type CreateMealRequestDtoTimeOfDay = typeof CreateMealRequestDtoTimeOfDay[keyof typeof CreateMealRequestDtoTimeOfDay];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const CreateMealRequestDtoTimeOfDay = {
+  BREAKFAST: 'BREAKFAST',
+  MORNING_SNACK: 'MORNING_SNACK',
+  LUNCH: 'LUNCH',
+  AFTERNOON_SNACK: 'AFTERNOON_SNACK',
+  DINNER: 'DINNER',
+  EVENING_SNACK: 'EVENING_SNACK',
+} as const;
+
+export interface CreateMealRequestDto {
+  /** Meal plan ID */
+  mealPlanId: string;
+  /** Meal name */
+  name: string;
+  /** Time of day */
+  timeOfDay: CreateMealRequestDtoTimeOfDay;
+  /** Description of the meal */
+  description?: string;
+  /** Instructions for preparing the meal */
+  instructions?: string;
+  /** Calories count */
+  calories?: number;
+  /** Protein amount (grams) */
+  protein?: number;
+  /** Carbohydrates amount (grams) */
+  carbs?: number;
+  /** Fat amount (grams) */
+  fat?: number;
+  /** Fiber amount (grams) */
+  fiber?: number;
+}
+
 export type UserControllerGetAllUsersParams = {
 role: string;
 isActive: boolean;
@@ -293,6 +377,13 @@ take?: number;
 
 export type ClientControllerSearchClientsParams = {
 q: string;
+skip?: number;
+take?: number;
+};
+
+export type DietPlanControllerGetAllDietPlansParams = {
+status?: string;
+isActive?: boolean;
 skip?: number;
 take?: number;
 };
@@ -1473,6 +1564,75 @@ export const useDietPlanControllerCreateDietPlan = <TError = AxiosError<void>,
     }
     
 /**
+ * @summary Get all diet plans
+ */
+export const dietPlanControllerGetAllDietPlans = (
+    params?: DietPlanControllerGetAllDietPlansParams, options?: AxiosRequestConfig
+ ): Promise<AxiosResponse<DietPlanResponseDto[]>> => {
+    
+    
+    return axios.get(
+      `/api/v1/diet-plans`,{
+    ...options,
+        params: {...params, ...options?.params},}
+    );
+  }
+
+
+
+
+export const getDietPlanControllerGetAllDietPlansQueryKey = (params?: DietPlanControllerGetAllDietPlansParams,) => {
+    return [
+    `/api/v1/diet-plans`, ...(params ? [params]: [])
+    ] as const;
+    }
+
+    
+export const getDietPlanControllerGetAllDietPlansQueryOptions = <TData = Awaited<ReturnType<typeof dietPlanControllerGetAllDietPlans>>, TError = AxiosError<unknown>>(params?: DietPlanControllerGetAllDietPlansParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof dietPlanControllerGetAllDietPlans>>, TError, TData>, axios?: AxiosRequestConfig}
+) => {
+
+const {query: queryOptions, axios: axiosOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getDietPlanControllerGetAllDietPlansQueryKey(params);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof dietPlanControllerGetAllDietPlans>>> = ({ signal }) => dietPlanControllerGetAllDietPlans(params, { signal, ...axiosOptions });
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof dietPlanControllerGetAllDietPlans>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type DietPlanControllerGetAllDietPlansQueryResult = NonNullable<Awaited<ReturnType<typeof dietPlanControllerGetAllDietPlans>>>
+export type DietPlanControllerGetAllDietPlansQueryError = AxiosError<unknown>
+
+
+/**
+ * @summary Get all diet plans
+ */
+
+export function useDietPlanControllerGetAllDietPlans<TData = Awaited<ReturnType<typeof dietPlanControllerGetAllDietPlans>>, TError = AxiosError<unknown>>(
+ params?: DietPlanControllerGetAllDietPlansParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof dietPlanControllerGetAllDietPlans>>, TError, TData>, axios?: AxiosRequestConfig}
+  
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getDietPlanControllerGetAllDietPlansQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+
+/**
  * @summary Get all diet plans for a client
  */
 export const dietPlanControllerGetDietPlansByClient = (
@@ -2002,7 +2162,7 @@ export function useFoodControllerFindOne<TData = Awaited<ReturnType<typeof foodC
  */
 export const mealControllerFindAll = (
      options?: AxiosRequestConfig
- ): Promise<AxiosResponse<void>> => {
+ ): Promise<AxiosResponse<MealResponseDto[]>> => {
     
     
     return axios.get(
@@ -2068,20 +2228,21 @@ export function useMealControllerFindAll<TData = Awaited<ReturnType<typeof mealC
  * @summary Create meal
  */
 export const mealControllerCreate = (
-     options?: AxiosRequestConfig
- ): Promise<AxiosResponse<void>> => {
+    createMealRequestDto: CreateMealRequestDto, options?: AxiosRequestConfig
+ ): Promise<AxiosResponse<MealResponseDto>> => {
     
     
     return axios.post(
-      `/api/v1/meals`,undefined,options
+      `/api/v1/meals`,
+      createMealRequestDto,options
     );
   }
 
 
 
 export const getMealControllerCreateMutationOptions = <TError = AxiosError<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof mealControllerCreate>>, TError,void, TContext>, axios?: AxiosRequestConfig}
-): UseMutationOptions<Awaited<ReturnType<typeof mealControllerCreate>>, TError,void, TContext> => {
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof mealControllerCreate>>, TError,{data: CreateMealRequestDto}, TContext>, axios?: AxiosRequestConfig}
+): UseMutationOptions<Awaited<ReturnType<typeof mealControllerCreate>>, TError,{data: CreateMealRequestDto}, TContext> => {
 
 const mutationKey = ['mealControllerCreate'];
 const {mutation: mutationOptions, axios: axiosOptions} = options ?
@@ -2093,10 +2254,10 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
       
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof mealControllerCreate>>, void> = () => {
-          
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof mealControllerCreate>>, {data: CreateMealRequestDto}> = (props) => {
+          const {data} = props ?? {};
 
-          return  mealControllerCreate(axiosOptions)
+          return  mealControllerCreate(data,axiosOptions)
         }
 
         
@@ -2105,18 +2266,18 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
   return  { mutationFn, ...mutationOptions }}
 
     export type MealControllerCreateMutationResult = NonNullable<Awaited<ReturnType<typeof mealControllerCreate>>>
-    
+    export type MealControllerCreateMutationBody = CreateMealRequestDto
     export type MealControllerCreateMutationError = AxiosError<unknown>
 
     /**
  * @summary Create meal
  */
 export const useMealControllerCreate = <TError = AxiosError<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof mealControllerCreate>>, TError,void, TContext>, axios?: AxiosRequestConfig}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof mealControllerCreate>>, TError,{data: CreateMealRequestDto}, TContext>, axios?: AxiosRequestConfig}
  ): UseMutationResult<
         Awaited<ReturnType<typeof mealControllerCreate>>,
         TError,
-        void,
+        {data: CreateMealRequestDto},
         TContext
       > => {
 
@@ -2130,7 +2291,7 @@ export const useMealControllerCreate = <TError = AxiosError<unknown>,
  */
 export const mealControllerFindOne = (
     id: string, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<void>> => {
+ ): Promise<AxiosResponse<MealResponseDto>> => {
     
     
     return axios.get(

@@ -5,21 +5,65 @@ import { useLogin } from '@/lib/api-hooks';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { loginSchema, LoginFormInputs } from '@/lib/validationSchemas';
+import { useEffect, useState } from 'react';
+import { getRememberedEmail, saveRememberedCredentials, clearRememberedCredentials } from '@/lib/remember-me';
+import { useAuthStore } from '@/stores/auth.store';
 
-export default function LoginPage() {
+function LoginPageContent() {
     const router = useRouter();
     const loginMutation = useLogin();
+    const { login, isAuthenticated } = useAuthStore();
+    const [rememberedEmail, setRememberedEmail] = useState<string | null>(null);
 
-    const { register, handleSubmit, formState: { errors } } = useForm<LoginFormInputs>({
+    // Redirect if already authenticated
+    useEffect(() => {
+        if (isAuthenticated) {
+            router.replace('/dashboard');
+        }
+    }, [isAuthenticated, router]);
+
+    useEffect(() => {
+        const email = getRememberedEmail();
+        setRememberedEmail(email);
+    }, []);
+
+    const { register, handleSubmit, formState: { errors }, setValue } = useForm<LoginFormInputs>({
         resolver: zodResolver(loginSchema),
+        defaultValues: {
+            email: rememberedEmail || '',
+            password: '',
+            rememberMe: !!rememberedEmail,
+        },
     });
+
+    useEffect(() => {
+        if (rememberedEmail) {
+            setValue('email', rememberedEmail);
+            setValue('rememberMe', true);
+        }
+    }, [rememberedEmail, setValue]);
 
     const onSubmit = async (data: LoginFormInputs) => {
         try {
-            await loginMutation.mutateAsync(data);
+            const response = await loginMutation.mutateAsync({
+                email: data.email,
+                password: data.password,
+            });
+
+            // Handle "Remember Me" functionality
+            if (data.rememberMe) {
+                // Save refresh token for future auto-login (30 days)
+                saveRememberedCredentials(data.email, response.refreshToken, 30);
+            } else {
+                // Clear remembered credentials if unchecked
+                clearRememberedCredentials();
+            }
+
+            // Update auth store with user data
+            login(response.user, response.accessToken, response.refreshToken);
+
             router.push('/dashboard');
         } catch (err: any) {
-            // Handle error, e.g., show a toast notification or a generic error message
             console.error("Login failed:", err);
         }
     };
@@ -54,10 +98,11 @@ export default function LoginPage() {
                             <input
                                 id="email"
                                 type="email"
+                                value={"admin@test.com"}
                                 {...register('email')}
                                 required
                                 className="w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent transition-all"
-                                placeholder="admin@dietapp.com"
+                                placeholder="admin@test.com"
                             />
                             {errors.email && <p className="text-red-300 text-sm mt-1">{errors.email.message}</p>}
                         </div>
@@ -68,6 +113,7 @@ export default function LoginPage() {
                             </label>
                             <input
                                 id="password"
+                                value={"Admin123!@#"}
                                 type="password"
                                 {...register('password')}
                                 required
@@ -78,9 +124,13 @@ export default function LoginPage() {
                         </div>
 
                         <div className="flex items-center justify-between">
-                            <label className="flex items-center">
-                                <input type="checkbox" className="rounded bg-white/10 border-white/20 text-emerald-400 focus:ring-emerald-400" />
-                                <span className="ml-2 text-sm text-slate-400">Remember me</span>
+                            <label className="flex items-center cursor-pointer">
+                                <input 
+                                    type="checkbox"
+                                    {...register('rememberMe')}
+                                    className="rounded bg-white/10 border border-white/20 text-emerald-400 focus:ring-2 focus:ring-emerald-400 cursor-pointer"
+                                />
+                                <span className="ml-2 text-sm text-slate-400">Beni Hatırla</span>
                             </label>
                             <a href="#" className="text-sm text-emerald-400 hover:text-emerald-300">
                                 Forgot password?
@@ -116,4 +166,23 @@ export default function LoginPage() {
             </div>
         </div>
     );
+}
+export default function LoginPage() {
+    const { isAuthenticated, isLoading } = useAuthStore();
+
+    // Show loading state while checking authentication
+    if (isLoading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+                <div className="text-lg text-gray-300">Loading...</div>
+            </div>
+        );
+    }
+
+    // If authenticated, show loading and let the effect handle redirect
+    if (isAuthenticated) {
+        return null;
+    }
+
+    return <LoginPageContent />;
 }

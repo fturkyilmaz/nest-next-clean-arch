@@ -3,6 +3,7 @@ import { Inject } from '@nestjs/common';
 import { GetDietPlansByClientQuery } from './GetDietPlansByClientQuery';
 import { IDietPlanRepository } from '@application/interfaces/repositories/IDietPlanRepository';
 import { DietPlan } from '@domain/entities/DietPlan.entity';
+import { PaginatedResponseDto } from '@application/dto/common/PaginatedResponseDto';
 
 @QueryHandler(GetDietPlansByClientQuery)
 export class GetDietPlansByClientQueryHandler
@@ -11,12 +12,21 @@ export class GetDietPlansByClientQueryHandler
     @Inject('IDietPlanRepository') private readonly dietPlanRepository: IDietPlanRepository
   ) { }
 
-  async execute(query: GetDietPlansByClientQuery): Promise<DietPlan[]> {
-    return await this.dietPlanRepository.findByClientId(query.clientId, {
-      status: query.status,
-      isActive: query.isActive,
-      skip: query.skip,
-      take: query.take,
-    });
+  async execute(query: GetDietPlansByClientQuery): Promise<PaginatedResponseDto<DietPlan>> {
+    const [data, total] = await Promise.all([
+      this.dietPlanRepository.findByClientId(query.clientId, {
+        status: query.status,
+        isActive: query.isActive,
+        skip: query.skip,
+        take: query.take,
+      }),
+      this.dietPlanRepository.count({
+        clientId: query.clientId,
+        status: query.status,
+        isActive: query.isActive,
+      }),
+    ]);
+
+    return new PaginatedResponseDto(data, query.page, query.limit, total);
   }
 }

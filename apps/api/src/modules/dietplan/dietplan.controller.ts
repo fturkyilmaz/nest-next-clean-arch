@@ -28,6 +28,7 @@ import {
 } from '@application/use-cases/diet-plan';
 import { CreateDietPlanDto, DietPlanResponseDto } from '@application/dto/DietPlanDto';
 import { GetAllDietPlansQuery } from '@application/use-cases/diet-plan/queries/GetAllDietPlansQuery';
+import { PaginatedResponseDto } from '@application/dto/common/PaginatedResponseDto';
 
 @ApiTags('Diet Plans')
 @Controller('diet-plans')
@@ -69,39 +70,52 @@ export class DietPlanController {
   @Get('client/:clientId')
   @Roles('ADMIN', 'DIETITIAN')
   @ApiOperation({ summary: 'Get all diet plans for a client' })
-  @ApiOkResponse({ description: 'Diet plans retrieved', type: [DietPlanResponseDto] })
+  @ApiOkResponse({ description: 'Diet plans retrieved with pagination', type: PaginatedResponseDto })
+  @ApiQuery({ name: 'page', required: false, type: Number, example: 1 })
+  @ApiQuery({ name: 'limit', required: false, type: Number, example: 10 })
   @ApiQuery({ name: 'status', required: false, type: String })
   @ApiQuery({ name: 'isActive', required: false, type: Boolean })
-  @ApiQuery({ name: 'skip', required: false, type: Number })
-  @ApiQuery({ name: 'take', required: false, type: Number })
   async getDietPlansByClient(
     @Param('clientId') clientId: string,
     @CurrentUser() currentUser: CurrentUserData,
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 10,
     @Query('status') status?: string,
-    @Query('isActive') isActive?: boolean,
-    @Query('skip') skip?: number,
-    @Query('take') take?: number
-  ): Promise<DietPlanResponseDto[]> {
-    const query = new GetDietPlansByClientQuery(clientId, status, isActive, skip, take);
-    const dietPlans = await this.queryBus.execute(query);
+    @Query('isActive') isActive?: boolean
+  ): Promise<PaginatedResponseDto<DietPlanResponseDto>> {
+    const query = new GetDietPlansByClientQuery(clientId, page, limit, status, isActive);
+    const paginatedResult = await this.queryBus.execute(query);
 
-    return dietPlans
+    return new PaginatedResponseDto(
+      paginatedResult.data.map(plan => plan),
+      paginatedResult.page,
+      paginatedResult.limit,
+      paginatedResult.total
+    );
   }
 
-  @Get("all") @Roles('ADMIN', 'DIETITIAN')
+  @Get() @Roles('ADMIN', 'DIETITIAN')
   @ApiOperation({ summary: 'Get all diet plans' })
-  @ApiOkResponse({ description: 'All diet plans retrieved', type: [DietPlanResponseDto] })
+  @ApiOkResponse({ description: 'All diet plans retrieved with pagination', type: PaginatedResponseDto })
+  @ApiQuery({ name: 'page', required: false, type: Number, example: 1 })
+  @ApiQuery({ name: 'limit', required: false, type: Number, example: 10 })
   @ApiQuery({ name: 'status', required: false, type: String })
   @ApiQuery({ name: 'isActive', required: false, type: Boolean })
-  @ApiQuery({ name: 'skip', required: false, type: Number })
-  @ApiQuery({ name: 'take', required: false, type: Number })
   async getAllDietPlans(
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 10,
     @Query('status') status?: string,
-    @Query('isActive') isActive?: boolean,
-    @Query('skip') skip?: number,
-    @Query('take') take?: number
-  ): Promise<DietPlanResponseDto[]> {
-    return this.queryBus.execute(new GetAllDietPlansQuery(status, isActive, skip, take));
+    @Query('isActive') isActive?: boolean
+  ): Promise<PaginatedResponseDto<DietPlanResponseDto>> {
+    const query = new GetAllDietPlansQuery(page, limit, status, isActive);
+    const paginatedResult = await this.queryBus.execute(query);
+
+    return new PaginatedResponseDto(
+      paginatedResult.data.map(plan => plan),
+      paginatedResult.page,
+      paginatedResult.limit,
+      paginatedResult.total
+    );
   }
 
   @Put(':id/activate')

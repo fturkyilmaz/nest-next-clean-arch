@@ -5,7 +5,6 @@ import { Button } from '@ui/components/Button';
 import { Input } from '@ui/components/Input';
 import { Card } from '@ui/components/Card';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { createDietPlanSchema, CreateDietPlanFormInputs } from '@/lib/validationSchemas';
@@ -58,9 +57,9 @@ export default function CreateDietPlanPage() {
                     <h1 className="text-2xl font-bold tracking-tight text-gray-900">Create Diet Plan</h1>
                     <p className="text-gray-500 mt-1">Design a new nutrition plan for a client</p>
                 </div>
-                <Link href="/diet-plans">
+                <a href="/diet-plans">
                     <Button variant="ghost">Cancel</Button>
-                </Link>
+                </a>
             </div>
 
             <Card className="p-6">
@@ -148,9 +147,9 @@ export default function CreateDietPlanPage() {
                     </div>
 
                     <div className="pt-4 flex justify-end gap-3">
-                        <Link href="/diet-plans">
+                        <a href="/diet-plans">
                             <Button type="button" variant="ghost">Cancel</Button>
-                        </Link>
+                        </a>
                         <Button type="submit" disabled={createMutation.isPending}>
                             {createMutation.isPending ? 'Creating Plan...' : 'Create Diet Plan'}
                         </Button>

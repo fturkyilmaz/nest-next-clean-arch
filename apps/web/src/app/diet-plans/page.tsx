@@ -1,12 +1,15 @@
 'use client';
 
+import { useState } from 'react';
 import { useDietPlans } from '@/lib/api-hooks';
-import Link from 'next/link';
 import { Button } from '@ui/components/Button';
 import { Card } from '@ui/components/Card';
+import { PaginationControls } from '@/components/PaginationControls';
 
 export default function DietPlansPage() {
-    const { data: dietPlans, isLoading, error } = useDietPlans();
+    const [page, setPage] = useState(1);
+    const limit = 10;
+    const { data: paginatedResult, isLoading, error } = useDietPlans(page, limit);
 
     if (isLoading) {
         return (
@@ -24,6 +27,11 @@ export default function DietPlansPage() {
         );
     }
 
+    const dietPlans = paginatedResult?.data || [];
+    const totalPages = paginatedResult?.pages || 1;
+    const hasNextPage = paginatedResult?.hasNextPage || false;
+    const hasPreviousPage = paginatedResult?.hasPreviousPage || false;
+
     return (
         <div className="container mx-auto max-w-7xl p-6 space-y-8">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -31,9 +39,9 @@ export default function DietPlansPage() {
                     <h1 className="text-3xl font-bold tracking-tight text-gray-900">Diet Plans</h1>
                     <p className="text-gray-500 mt-1">Manage diet plans for your clients</p>
                 </div>
-                <Link href="/diet-plans/new">
+                <a href="/diet-plans/new">
                     <Button>Create Plan</Button>
-                </Link>
+                </a>
             </div>
 
             <Card className="overflow-hidden border-gray-200 shadow-sm">
@@ -70,9 +78,9 @@ export default function DietPlansPage() {
                                         {plan.endDate ? new Date(plan.endDate).toLocaleDateString() : '-'}
                                     </td>
                                     <td className="px-6 py-4 text-right">
-                                        <Link href={`/diet-plans/${plan.id}`}>
+                                        <a href={`/diet-plans/${plan.id}`}>
                                             <Button variant="outline" size="sm" className="h-8">View</Button>
-                                        </Link>
+                                        </a>
                                     </td>
                                 </tr>
                             ))}
@@ -89,6 +97,16 @@ export default function DietPlansPage() {
                         </tbody>
                     </table>
                 </div>
+                {dietPlans && dietPlans.length > 0 && (
+                    <PaginationControls
+                        page={page}
+                        totalPages={totalPages}
+                        hasNextPage={hasNextPage}
+                        hasPreviousPage={hasPreviousPage}
+                        onPageChange={setPage}
+                        isLoading={isLoading}
+                    />
+                )}
             </Card>
         </div>
     );

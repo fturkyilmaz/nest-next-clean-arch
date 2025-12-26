@@ -11,6 +11,7 @@ import {
   RegisterRequest,
   CreateUserRequest,
 } from "./api-client";
+import { clearRememberedCredentials } from "./remember-me";
 
 // Create API client for web
 const API_BASE_URL =
@@ -75,12 +76,12 @@ export function useRegister() {
 }
 
 export function useLogout() {
-  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: () => api.logout(),
     onSuccess: () => {
       clearTokens();
-      queryClient.clear();
+      clearRememberedCredentials();
+      window.location.href = "/login";
     },
   });
 }
@@ -191,10 +192,15 @@ export function useAddClientMetrics(clientId: string) {
 }
 
 // Diet Plans
-export function useDietPlans() {
+export function useDietPlans(page: number = 1, limit: number = 10, status?: string, isActive?: boolean) {
   return useQuery({
-    queryKey: ["dietPlans"],
-    queryFn: () => api.getDietPlans(),
+    queryKey: ["dietPlans", page, limit, status, isActive],
+    queryFn: () => api.getDietPlans({
+      page,
+      limit,
+      ...(status && { status }),
+      ...(isActive !== undefined && { isActive }),
+    }),
   });
 }
 
@@ -206,10 +212,15 @@ export function useDietPlan(id: string) {
   });
 }
 
-export function useClientDietPlans(clientId: string) {
+export function useClientDietPlans(clientId: string, page: number = 1, limit: number = 10, status?: string, isActive?: boolean) {
   return useQuery({
-    queryKey: ["clients", clientId, "dietPlans"],
-    queryFn: () => api.getClientDietPlans(clientId),
+    queryKey: ["clients", clientId, "dietPlans", page, limit, status, isActive],
+    queryFn: () => api.getClientDietPlans(clientId, {
+      page,
+      limit,
+      ...(status && { status }),
+      ...(isActive !== undefined && { isActive }),
+    }),
     enabled: !!clientId,
   });
 }

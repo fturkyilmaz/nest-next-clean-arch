@@ -1,7 +1,6 @@
 'use client';
 
 import { useClients } from '@/lib/api-hooks';
-import Link from 'next/link';
 import { Button } from '@ui/components/Button';
 import { Card } from '@ui/components/Card';
 
@@ -31,9 +30,9 @@ export default function ClientsPage() {
                     <h1 className="text-3xl font-bold tracking-tight text-gray-900">Clients</h1>
                     <p className="text-gray-500 mt-1">Manage your clients and their progress</p>
                 </div>
-                <Link href="/clients/new">
+                <a href="/clients/new">
                     <Button>Add Client</Button>
-                </Link>
+                </a>
             </div>
 
             <Card className="overflow-hidden border-gray-200 shadow-sm">
@@ -68,9 +67,9 @@ export default function ClientsPage() {
                                         )}
                                     </td>
                                     <td className="px-6 py-4 text-right">
-                                        <Link href={`/clients/${client.id}`}>
+                                        <a href={`/clients/${client.id}`}>
                                             <Button variant="outline" size="sm" className="h-8">View</Button>
-                                        </Link>
+                                        </a>
                                     </td>
                                 </tr>
                             ))}

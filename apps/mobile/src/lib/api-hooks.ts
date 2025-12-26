@@ -76,12 +76,10 @@ export function useLogin() {
 }
 
 export function useLogout() {
-    const queryClient = useQueryClient();
     return useMutation({
         mutationFn: () => api.logout(),
         onSuccess: async () => {
             await clearTokens();
-            queryClient.clear();
         },
     });
 }

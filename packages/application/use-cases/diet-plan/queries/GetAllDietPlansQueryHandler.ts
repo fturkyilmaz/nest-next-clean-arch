@@ -3,6 +3,7 @@ import { GetAllDietPlansQuery } from './GetAllDietPlansQuery';
 import { Inject } from '@nestjs/common';
 import { IDietPlanRepository } from '@application/interfaces';
 import { DietPlan } from '@domain/entities';
+import { PaginatedResponseDto } from '@application/dto/common/PaginatedResponseDto';
 
 @QueryHandler(GetAllDietPlansQuery)
 export class GetAllDietPlansHandler implements IQueryHandler<GetAllDietPlansQuery> {
@@ -10,9 +11,22 @@ export class GetAllDietPlansHandler implements IQueryHandler<GetAllDietPlansQuer
         @Inject('IDietPlanRepository') private readonly dietPlanRepository: IDietPlanRepository
     ) { }
 
-    async execute(query: GetAllDietPlansQuery): Promise<DietPlan[]> {
-        const { status, isActive = true, skip = 0, take = 10 } = query;
-        console.log(status, isActive, skip, take);
-        return await this.dietPlanRepository.findAll({ status, isActive, skip, take });
+    async execute(query: GetAllDietPlansQuery): Promise<PaginatedResponseDto<DietPlan>> {
+        const { status, isActive = true } = query;
+
+        const [data, total] = await Promise.all([
+            this.dietPlanRepository.findAll({
+                status,
+                isActive,
+                skip: query.skip,
+                take: query.take,
+            }),
+            this.dietPlanRepository.count({
+                status,
+                isActive,
+            }),
+        ]);
+
+        return new PaginatedResponseDto(data, query.page, query.limit, total);
     }
 }

@@ -1,3 +1,4 @@
+import { PaginationParams } from './../../../../packages/domain/common/Types';
 import axios, { AxiosInstance, AxiosError } from "axios";
 
 /**
@@ -260,10 +261,28 @@ export function createApiClient(config: ApiClientConfig): AxiosInstance {
     },
   });
 
+  let isRefreshing = false;
+  let failedQueue: Array<{
+    resolve: (value: string) => void;
+    reject: (reason?: any) => void;
+  }> = [];
+
+  const processQueue = (error: any, token: string | null = null) => {
+    failedQueue.forEach((prom) => {
+      if (error) {
+        prom.reject(error);
+      } else {
+        prom.resolve(token || "");
+      }
+    });
+    failedQueue = [];
+  };
+
   // Request interceptor - add auth token
   client.interceptors.request.use(
     (requestConfig) => {
       const token = config.getAccessToken?.();
+      console.log("First token:", token);
       if (token) {
         requestConfig.headers.Authorization = `Bearer ${token}`;
       }
@@ -272,31 +291,35 @@ export function createApiClient(config: ApiClientConfig): AxiosInstance {
     (error) => Promise.reject(error)
   );
 
-  // Response interceptor - handle errors
+  // Response interceptor - handle errors and token refresh
   client.interceptors.response.use(
     (response) => response,
-    (error: AxiosError<ApiError>) => {
-      if (error.response) {
-        const apiError = error.response.data;
-
-        // Handle 401 - token expired
-        if (error.response.status === 401) {
-          config.onTokenExpired?.();
+    async (error: AxiosError<ApiError>) => {
+      if (error.response?.status === 401) {
+        if (!isRefreshing) {
+          isRefreshing = true;
+          try {
+            const newToken = await config.onTokenExpired?.();
+            processQueue(null, newToken);
+          } catch (err) {
+            processQueue(err, null);
+            return Promise.reject(err);
+          } finally {
+            isRefreshing = false;
+          }
         }
-
-        config.onError?.(apiError);
-        return Promise.reject(apiError);
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        });
       }
-
-      // Network error
-      const networkError: ApiError = {
-        type: "https://httpstatuses.com/0",
-        title: "Network Error",
-        status: 0,
-        detail: error.message || "Unable to connect to server",
+      const apiError: ApiError = error.response?.data || {
+        type: "https://httpstatuses.com/500",
+        title: "Unexpected Error",
+        status: error.response?.status || 500,
+        detail: error.message,
       };
-      config.onError?.(networkError);
-      return Promise.reject(networkError);
+      config.onError?.(apiError);
+      return Promise.reject(apiError);
     }
   );
 
@@ -403,22 +426,50 @@ export class ApiService {
   }
 
   // Diet Plans
-  async getDietPlans(): Promise<DietPlan[]> {
-    const res = await this.client.get<DietPlan[]>("/diet-plans");
-    return res.data;
-  }
+// Diet Plans
+async getDietPlans({
+  page = 1,
+  limit = 10,
+  status,
+  isActive,
+}: {
+  page?: number;
+  limit?: number;
+  status?: string;
+  isActive?: boolean;
+}): Promise<DietPlan[]> {
+  const res = await this.client.get<DietPlan[]>("/diet-plans", {
+    params: { page, limit, status, isActive },
+  });
+  return res.data;
+}
+
 
   async getDietPlanById(id: string): Promise<DietPlan> {
     const res = await this.client.get<DietPlan>(`/diet-plans/${id}`);
     return res.data;
   }
 
-  async getClientDietPlans(clientId: string): Promise<DietPlan[]> {
-    const res = await this.client.get<DietPlan[]>(
-      `/clients/${clientId}/diet-plans`
-    );
-    return res.data;
-  }
+async getClientDietPlans(
+  clientId: string,
+  {
+    page = 1,
+    limit = 10,
+    status,
+    isActive,
+  }: {
+    page?: number;
+    limit?: number;
+    status?: string;
+    isActive?: boolean;
+  } = {}
+): Promise<DietPlan[]> {
+  const res = await this.client.get<DietPlan[]>(`/clients/${clientId}/diet-plans`, {
+    params: { page, limit, status, isActive },
+  });
+  return res.data;
+}
+
 
   async createDietPlan(data: CreateDietPlanRequest): Promise<DietPlan> {
     const res = await this.client.post<DietPlan>("/diet-plans", data);
@@ -572,3 +623,12 @@ export class ApiService {
     return res.data;
   }
 }
+
+const client = createApiClient({
+  baseURL: process.env.NEXT_PUBLIC_API_URL!,
+  getAccessToken: () => localStorage.getItem("accessToken"),
+  onTokenExpired: () => window.dispatchEvent(new Event("token-expired")),
+  onError: (error) => console.error("API Error:", error),
+});
+
+export const apiService = new ApiService(client);

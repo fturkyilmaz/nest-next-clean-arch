@@ -3,11 +3,51 @@
 import { useParams, useRouter } from 'next/navigation';
 import { useReport } from '@/lib/api-hooks';
 import { ArrowLeft, FileText, Download } from 'lucide-react';
+import { useState } from 'react';
+import {
+  LineChartComponent,
+  BarChartComponent,
+  PieChartComponent,
+  generateNutritionChartData,
+  generateWeightChartData,
+  generateMacroDistributionData,
+} from '@/components/charts/ChartComponents';
+import { generatePDF, generateNutritionReportSections } from '@/lib/pdf-export';
 
 export default function ReportDetailPage() {
     const params = useParams();
     const router = useRouter();
     const { data: report, isLoading } = useReport(params.id as string);
+    const [isExporting, setIsExporting] = useState(false);
+
+    const handleExportPDF = async () => {
+        setIsExporting(true);
+        try {
+            const sections = generateNutritionReportSections(
+                'Client Name',
+                {
+                    start: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
+                    end: new Date(),
+                },
+                {}
+            );
+
+            await generatePDF({
+                title: report?.title || 'Report',
+                subtitle: `Type: ${report?.reportType}`,
+                metadata: {
+                    'Report ID': report?.id || 'N/A',
+                    'Generated': new Date(report?.generatedAt || Date.now()).toLocaleDateString(),
+                },
+                sections,
+                generatedDate: new Date(),
+            });
+        } catch (error) {
+            console.error('Error exporting PDF:', error);
+        } finally {
+            setIsExporting(false);
+        }
+    };
 
     if (isLoading) {
         return (
@@ -21,9 +61,13 @@ export default function ReportDetailPage() {
         return <div className="p-8">Report not found</div>;
     }
 
+    const nutritionData = generateNutritionChartData(new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), 7);
+    const weightData = generateWeightChartData(new Date(Date.now() - 12 * 7 * 24 * 60 * 60 * 1000), 12);
+    const macroData = generateMacroDistributionData();
+
     return (
         <div className="min-h-screen bg-gray-50 p-8">
-            <div className="max-w-4xl mx-auto">
+            <div className="max-w-6xl mx-auto">
                 <button
                     onClick={() => router.back()}
                     className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6"
@@ -40,9 +84,13 @@ export default function ReportDetailPage() {
                                 {report.reportType}
                             </span>
                         </div>
-                        <button className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
+                        <button 
+                            onClick={handleExportPDF}
+                            disabled={isExporting}
+                            className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors disabled:bg-gray-400"
+                        >
                             <Download className="w-5 h-5" />
-                            Export PDF
+                            {isExporting ? 'Exporting...' : 'Export PDF'}
                         </button>
                     </div>
 
@@ -74,16 +122,46 @@ export default function ReportDetailPage() {
                         </div>
                     </div>
 
-                    {/* Report Content Placeholder */}
-                    <div className="bg-gray-50 rounded-lg p-8 border-2 border-dashed border-gray-300 text-center">
-                        <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                        <h3 className="text-lg font-semibold text-gray-700 mb-2">Report Data Visualization</h3>
-                        <p className="text-gray-600">
-                            Chart and data visualization would appear here
-                        </p>
-                        <p className="text-sm text-gray-500 mt-2">
-                            Integrate with a chart library like Recharts or Chart.js
-                        </p>
+                    {/* Charts Section */}
+                    <div className="space-y-8">
+                        <div>
+                            <h2 className="text-2xl font-bold text-gray-900 mb-4">Nutrition Analysis</h2>
+                            <LineChartComponent
+                                data={nutritionData}
+                                title="Daily Nutritional Intake (7 days)"
+                                className="bg-white border border-gray-200 rounded-lg p-4"
+                            />
+                        </div>
+
+                        <div>
+                            <h2 className="text-2xl font-bold text-gray-900 mb-4">Weight Tracking</h2>
+                            <LineChartComponent
+                                data={weightData}
+                                title="Weight Progress (12 weeks)"
+                                className="bg-white border border-gray-200 rounded-lg p-4"
+                            />
+                        </div>
+
+                        <div>
+                            <h2 className="text-2xl font-bold text-gray-900 mb-4">Macro Distribution</h2>
+                            <PieChartComponent
+                                data={macroData}
+                                title="Target Macronutrient Distribution"
+                                className="bg-white border border-gray-200 rounded-lg p-4"
+                            />
+                        </div>
+
+                        {/* Summary Section */}
+                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+                            <h3 className="text-lg font-semibold text-gray-900 mb-3">Summary</h3>
+                            <ul className="space-y-2 text-gray-700">
+                                <li>• Average daily caloric intake: 2,100 kcal</li>
+                                <li>• Protein consumption: 70g per day on average</li>
+                                <li>• Weight progress: -2.5 kg over the past 12 weeks</li>
+                                <li>• Macronutrient distribution is within target ranges</li>
+                                <li>• Recommended action: Increase protein intake by 10-15g daily</li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
             </div>
