@@ -1,17 +1,20 @@
 import { Injectable } from '@nestjs/common';
-import { prisma } from 'prisma/lib/prisma';
+import { PrismaService } from '@infrastructure/database/PrismaService';
 import { CacheService } from '@infrastructure/cache/cache.service';
 import { IReportRepository } from '@application/interfaces/repositories/IReportRepository';
 
 @Injectable()
 export class PrismaReportRepository implements IReportRepository {
-  constructor(private readonly cache: CacheService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly cache: CacheService,
+  ) {}
 
   /**
    * Find all reports
    */
-  async findAll() {
-    return prisma.report.findMany({
+  async findAll(): Promise<any[]> {
+    return this.prisma.report.findMany({
       where: { deletedAt: null },
       include: { user: true, client: true },
       orderBy: { createdAt: 'desc' },
@@ -21,8 +24,8 @@ export class PrismaReportRepository implements IReportRepository {
   /**
    * Find report by ID
    */
-  async findById(id: string) {
-    return prisma.report.findUnique({
+  async findById(id: string): Promise<any | null> {
+    return this.prisma.report.findUnique({
       where: { id },
       include: { user: true, client: true },
     });
@@ -31,8 +34,8 @@ export class PrismaReportRepository implements IReportRepository {
   /**
    * Create report
    */
-  async create(data: any) {
-    return prisma.report.create({
+  async create(data: any): Promise<any> {
+    return this.prisma.report.create({
       data: {
         title: data.title,
         type: data.type || 'CUSTOM',
@@ -48,8 +51,8 @@ export class PrismaReportRepository implements IReportRepository {
   /**
    * Update report
    */
-  async update(id: string, data: any) {
-    return prisma.report.update({
+  async update(id: string, data: any): Promise<any> {
+    return this.prisma.report.update({
       where: { id },
       data: {
         title: data.title,
@@ -64,18 +67,18 @@ export class PrismaReportRepository implements IReportRepository {
   /**
    * Delete report (soft delete)
    */
-  async delete(id: string) {
-    return prisma.report.update({
+  async delete(id: string): Promise<any> {
+    return this.prisma.report.update({
       where: { id },
       data: { deletedAt: new Date() },
     });
   }
 
   /**
-   * Genel rapor: aktif diyet planlarının sayısı ve ortalama hedef değerleri
+   * General report: active diet plans count and average target values
    */
-  async dietPlanSummary() {
-    const summary = await prisma.dietPlan.aggregate({
+  async dietPlanSummary(): Promise<any> {
+    const summary = await this.prisma.dietPlan.aggregate({
       where: { isActive: true },
       _count: { id: true },
       _avg: {
@@ -98,10 +101,10 @@ export class PrismaReportRepository implements IReportRepository {
   }
 
   /**
-   * Danışan bazlı ölçüm raporu: son ölçümlere göre kilo ortalamaları
+   * Client metrics summary: average weight by latest metrics
    */
-  async clientMetricsSummary() {
-    const metrics = await prisma.clientMetric.groupBy({
+  async clientMetricsSummary(): Promise<any[]> {
+    const metrics = await this.prisma.clientMetrics.groupBy({
       by: ['clientId'],
       _avg: { weight: true, bmi: true, bodyFat: true },
     });
@@ -115,10 +118,10 @@ export class PrismaReportRepository implements IReportRepository {
   }
 
   /**
-   * Besin raporu: kategori bazlı ortalama kalori
+   * Food category summary: average calories by category
    */
-  async foodCategorySummary() {
-    const foods = await prisma.foodItem.groupBy({
+  async foodCategorySummary(): Promise<any[]> {
+    const foods = await this.prisma.foodItem.groupBy({
       by: ['category'],
       _avg: { calories: true, protein: true, fats: true },
     });
