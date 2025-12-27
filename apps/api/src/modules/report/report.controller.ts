@@ -53,7 +53,16 @@ export class ReportController {
   @ApiOperation({ summary: 'Create report' })
   @ApiResponse({ status: 201, description: 'Report created successfully', type: ReportResponseDto })
   async create(@Body() dto: CreateReportDto): Promise<ReportResponseDto> {
-    return this.commandBus.execute(new CreateReportCommand(dto));
+    return this.commandBus.execute(
+      new CreateReportCommand(
+        dto.title,
+        dto.type,
+        dto.format,
+        dto.data,
+        dto.clientId,
+        dto.createdBy,
+      ),
+    );
   }
 
   @Put(':id')
@@ -61,7 +70,7 @@ export class ReportController {
   @ApiResponse({ status: 200, description: 'Report updated successfully', type: ReportResponseDto })
   @ApiResponse({ status: 404, description: 'Report not found' })
   async update(@Param('id') id: string, @Body() dto: UpdateReportDto): Promise<ReportResponseDto> {
-    return this.commandBus.execute(new CreateReportCommand({ ...dto, id }));
+    return this.reportService.update(id, dto);
   }
 
   @Delete(':id')
@@ -70,7 +79,7 @@ export class ReportController {
   @ApiResponse({ status: 204, description: 'Report deleted successfully' })
   @ApiResponse({ status: 404, description: 'Report not found' })
   async delete(@Param('id') id: string): Promise<void> {
-    return this.commandBus.execute(new CreateReportCommand({ id }));
+    return this.reportService.delete(id);
   }
 
   @Get(':id/export/pdf')

@@ -24,13 +24,18 @@ export class ReportService {
     return this.toResponseDto(report);
   }
 
-  async create(dto: CreateReportDto): Promise<ReportResponseDto> {
+  async create(dto: CreateReportDto, createdBy?: string): Promise<ReportResponseDto> {
+    if (!createdBy && !dto.createdBy) {
+      throw new NotFoundException('User information is required to create a report');
+    }
+
     const report = await this.reportRepository.create({
       title: dto.title,
       type: dto.type || 'CUSTOM',
       format: dto.format || 'PDF',
       data: dto.data || {},
       clientId: dto.clientId,
+      createdBy: createdBy || dto.createdBy,
     });
     return this.toResponseDto(report);
   }

@@ -47,4 +47,9 @@ export class CreateReportDto {
   @IsOptional()
   @IsString()
   clientId?: string;
+
+  @ApiProperty({ example: 'user_id_123', required: false })
+  @IsOptional()
+  @IsString()
+  createdBy?: string;
 }
