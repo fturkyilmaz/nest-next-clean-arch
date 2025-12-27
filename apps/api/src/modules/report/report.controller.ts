@@ -22,9 +22,7 @@ import { CreateReportDto } from './dto/CreateReportDto';
 import { UpdateReportDto } from './dto/UpdateReportDto';
 import { ReportResponseDto } from './dto/ReportResponseDto';
 import { ReportService } from './report.service';
-import { PDFExporter } from '@lib/pdf-export';
-import { ExcelExporter } from '@lib/excel-export';
-import { CSVExporter } from '@lib/csv-export';
+import { PDFExporter, ExcelExporter, CSVExporter } from '@infrastructure/exports';
 
 @ApiTags('Report')
 @Controller('reports')
@@ -124,7 +122,7 @@ export class ReportController {
         ? report.data 
         : [report.data];
 
-      const excelBuffer = ExcelExporter.exportJSON(data, {
+      const excelBuffer = await ExcelExporter.exportData(data, {
         sheetName: report.type || 'Report',
       });
 
@@ -159,8 +157,8 @@ export class ReportController {
         ? report.data 
         : [report.data];
 
-      const csv = CSVExporter.exportJSON(data, {
-        headers: true,
+      const csvBuffer = CSVExporter.exportData(data, {
+        includeHeader: true,
       });
 
       res.set({
@@ -168,7 +166,7 @@ export class ReportController {
         'Content-Disposition': `attachment; filename="${report.title}.csv"`,
       });
 
-      res.send(csv);
+      res.send(csvBuffer);
     } catch (error) {
       throw new BadRequestException(`Failed to generate CSV: ${error.message}`);
     }
